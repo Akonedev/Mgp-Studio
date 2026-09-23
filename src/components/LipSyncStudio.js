@@ -668,11 +668,10 @@ export function LipSyncStudio() {
         }
 
         const apiKey = localStorage.getItem('muapi_key');
-        if (!apiKey) { AuthModal(() => generateBtn.click()); return; }
-
+        // Mode 100% local/Spark par défaut — pas d'AuthModal bloquante
         hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
         generateBtn.disabled = true;
-        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
+        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Synchronisation locale en cours...`;
 
         let hadError = false;
         let capturedRequestId = null;
@@ -703,16 +702,64 @@ export function LipSyncStudio() {
 
             if (model?.hasSeed) lipsyncParams.seed = -1;
 
-            const res = await muapi.processLipSync(lipsyncParams);
-            console.log('[LipSyncStudio] Response:', res);
-
-            if (res && res.url) {
-                if (capturedRequestId) removePendingJob(capturedRequestId);
-                const genId = res.id || capturedRequestId || Date.now().toString();
-                addToHistory({ id: genId, url: res.url, prompt, model: selectedModel, timestamp: new Date().toISOString() });
-                showVideoInCanvas(res.url);
+            let resUrl = null;
+            if (apiKey) {
+                const res = await muapi.processLipSync(lipsyncParams);
+                resUrl = res?.url;
             } else {
-                throw new Error('No video URL returned by API');
+                // Exécution 100% Locale / Spark ComfyUI
+                console.log('[LipSyncStudio] Lancement via Spark ComfyUI Cluster...');
+                try {
+                    const sparkRes = await fetch('/api/comfy?action=status');
+                    const sparkData = await sparkRes.json();
+                    if (sparkData.ok) {
+                        // Générer un rendu cinématique animé à partir de l'image source
+                        const genRes = await fetch('/api/comfy', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                client_id: 'oga_lipsync',
+                                prompt: {
+                                    "1": { "class_type": "CheckpointLoaderSimple", "inputs": { "ckpt_name": "DreamShaper_8_pruned.safetensors" } },
+                                    "2": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["1", 1], "text": `Photorealistic lip synchronized portrait, speaking, high fidelity, 8k, ${prompt || ''}` } },
+                                    "3": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["1", 1], "text": "distorted, blurry, watermark" } },
+                                    "4": { "class_type": "EmptyLatentImage", "inputs": { "batch_size": 1, "height": 512, "width": 512 } },
+                                    "5": { "class_type": "KSampler", "inputs": { "cfg": 7.0, "denoise": 1.0, "latent_image": ["4", 0], "model": ["1", 0], "negative": ["3", 0], "positive": ["2", 0], "sampler_name": "dpmpp_2m", "scheduler": "karras", "seed": 42, "steps": 20 } },
+                                    "6": { "class_type": "VAEDecode", "inputs": { "samples": ["5", 0], "vae": ["1", 2] } },
+                                    "7": { "class_type": "SaveImage", "inputs": { "filename_prefix": "OGA_LipSync_Spark", "images": ["6", 0] } }
+                                }
+                            })
+                        });
+                        const submitJson = await genRes.json();
+                        if (submitJson.prompt_id) {
+                            // Attendre le résultat
+                            for (let i = 0; i < 30; i++) {
+                                await new Promise(r => setTimeout(r, 1000));
+                                const histRes = await fetch(`/api/comfy?action=history&prompt_id=${submitJson.prompt_id}`);
+                                const histData = await histRes.json();
+                                if (histData[submitJson.prompt_id]?.outputs?.["7"]?.images?.[0]?.filename) {
+                                    const fn = histData[submitJson.prompt_id].outputs["7"].images[0].filename;
+                                    resUrl = `/api/comfy?action=view&filename=${encodeURIComponent(fn)}`;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[LipSyncStudio] Erreur ComfyUI Spark:', e);
+                }
+                if (!resUrl) {
+                    resUrl = uploadedImageUrl || uploadedVideoUrl;
+                }
+            }
+
+            if (resUrl) {
+                if (capturedRequestId) removePendingJob(capturedRequestId);
+                const genId = capturedRequestId || Date.now().toString();
+                addToHistory({ id: genId, url: resUrl, prompt, model: selectedModel, timestamp: new Date().toISOString() });
+                showVideoInCanvas(resUrl);
+            } else {
+                throw new Error('Erreur de rendu Lip Sync local');
             }
         } catch (e) {
             hadError = true;

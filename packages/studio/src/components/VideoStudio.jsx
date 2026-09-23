@@ -47,7 +47,7 @@ const CheckSvg = () => (
     height="16"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#d9ff00"
+    stroke="#df9c43"
     strokeWidth="4"
   >
     <polyline points="20 6 9 17 4 12" />
@@ -81,7 +81,7 @@ const VideoReadySvg = () => (
   >
     <polygon points="23 7 16 12 23 17 23 7" />
     <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-    <polyline points="7 10 10 13 15 8" stroke="#d9ff00" strokeWidth="2.5" />
+    <polyline points="7 10 10 13 15 8" stroke="#df9c43" strokeWidth="2.5" />
   </svg>
 );
 
@@ -101,24 +101,28 @@ function DropdownItem({ label, selected, onClick }) {
   );
 }
 
-function ModelDropdown({ imageMode, selectedModel, onSelect, onClose }) {
+function ModelDropdown({ imageMode, selectedModel, onSelect, onClose, dynamicModels }) {
   const [search, setSearch] = useState("");
 
-  const generationModels = imageMode ? i2vModels : t2vModels;
+  const generationModels = (dynamicModels && dynamicModels.length > 0)
+    ? dynamicModels
+    : (imageMode ? i2vModels : t2vModels);
 
   const lf = search.toLowerCase();
   const filteredMain = generationModels.filter(
     (m) => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf),
   );
-  const filteredV2V = v2vModels.filter(
-    (m) => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf),
-  );
+  const filteredV2V = (dynamicModels && dynamicModels.length > 0)
+    ? []
+    : v2vModels.filter(
+        (m) => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf),
+      );
 
   const getIconColor = (m, isV2V) => {
     if (isV2V) return "bg-orange-500/10 text-orange-400";
     if (m.id.includes("kling")) return "bg-blue-500/10 text-blue-400";
     if (m.id.includes("veo")) return "bg-purple-500/10 text-purple-400";
-    if (m.id.includes("sora")) return "bg-rose-500/10 text-rose-400";
+    if (m.id.includes("sora")) return "bg-[#df9c43]/10 text-[#df9c43]";
     return "bg-primary/10 text-primary";
   };
 
@@ -142,6 +146,11 @@ function ModelDropdown({ imageMode, selectedModel, onSelect, onClose }) {
           <span className="text-xs font-bold text-white tracking-tight">
             {m.name}
           </span>
+          {m.provider && (
+            <span className="text-[10px] text-[#df9c43]/80 font-medium">
+              {m.provider}
+            </span>
+          )}
           {isV2V && (
             <span className="text-[9px] text-orange-400/70">
               Upload a video to use
@@ -237,6 +246,9 @@ export default function VideoStudio({
   historyItems,
   droppedFiles,
   onFilesHandled,
+  sourceMedia,
+  onClearSourceMedia,
+  onOpenGalleryPicker,
 }) {
   const PERSIST_KEY = "hg_video_studio_persistent";
 
@@ -261,6 +273,48 @@ export default function VideoStudio({
     defaultModel.inputs?.quality?.default || "",
   );
   const [selectedMode, setSelectedMode] = useState("");
+  const [dynamicModels, setDynamicModels] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchValidModels() {
+      try {
+        const mode = imageMode ? "i2v" : "video";
+        const res = await fetch(`/api/providers?action=valid_models&mode=${mode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.models) && data.models.length > 0 && isMounted) {
+            setDynamicModels(data.models);
+            let preferredModel = null;
+            try {
+              const raw = localStorage.getItem("mode_settings");
+              if (raw) {
+                const s = JSON.parse(raw);
+                if (s.video?.model && s.video.model.includes('2.2')) {
+                  preferredModel = data.models.find((m) => m.id === s.video.model);
+                }
+              }
+            } catch (e) {}
+
+            const chosen =
+              preferredModel ||
+              data.models.find((m) => m.id.includes('2.2')) ||
+              data.models[0];
+            if (chosen) {
+              setSelectedModel(chosen.id);
+              setSelectedModelName(chosen.name);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[VideoStudio] Failed to load dynamic valid models:", err);
+      }
+    }
+    fetchValidModels();
+    return () => {
+      isMounted = false;
+    };
+  }, [imageMode]);
 
   // ── upload progress ──
   const [imageProgress, setImageProgress] = useState(0);
@@ -280,6 +334,8 @@ export default function VideoStudio({
   const [videoUploading, setVideoUploading] = useState(false);
   const [uploadedVideoName, setUploadedVideoName] = useState(null);
 
+  // sourceMedia is ingested in the comprehensive effect below
+
   // ── generation / canvas ──
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
@@ -294,11 +350,47 @@ export default function VideoStudio({
   const [localHistory, setLocalHistory] = useState([]);
   const [activeHistoryIdx, setActiveHistoryIdx] = useState(0);
 
+  // Load existing video generations from API on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadApiHistory() {
+      try {
+        const res = await fetch('/api/history?type=video');
+        const data = await res.json();
+        if (isMounted && data.ok && Array.isArray(data.history) && data.history.length > 0) {
+          setLocalHistory(prev => {
+            const existingIds = new Set(prev.map(p => p.id || p.url));
+            const fresh = data.history.filter(h => !existingIds.has(h.id || h.url));
+            return [...prev, ...fresh];
+          });
+        }
+      } catch (err) {
+        console.error('[VideoStudio] Failed to load history:', err);
+      }
+    }
+    loadApiHistory();
+    return () => { isMounted = false; };
+  }, []);
+
   // ── dropdown ──
   const [openDropdown, setOpenDropdown] = useState(null); // 'model'|'ar'|'duration'|'resolution'|'quality'|'mode'|null
 
   // ── prompt ──
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mgp_regenerate_target');
+        if (saved) {
+          const item = JSON.parse(saved);
+          if (item.type === 'video' || item.url?.endsWith('.mp4')) {
+            localStorage.removeItem('mgp_regenerate_target');
+            return item.prompt || "";
+          }
+        }
+      } catch (e) {}
+    }
+    return "";
+  });
   const [promptDisabled, setPromptDisabled] = useState(false);
 
   // ── refs ──
@@ -314,30 +406,40 @@ export default function VideoStudio({
   const history = historyItems ?? localHistory;
 
   const getCurrentModels = useCallback(() => {
+    if (dynamicModels.length > 0) return dynamicModels;
     if (v2vMode) return v2vModels;
     return imageMode ? i2vModels : t2vModels;
-  }, [imageMode, v2vMode]);
+  }, [imageMode, v2vMode, dynamicModels]);
 
   const getCurrentAspectRatios = useCallback(
-    (id) =>
-      imageMode
+    (id) => {
+      const found = getCurrentModels().find((m) => m.id === id);
+      if (found?.inputs?.aspect_ratio?.enum) return found.inputs.aspect_ratio.enum;
+      return imageMode
         ? getAspectRatiosForI2VModel(id)
-        : getAspectRatiosForVideoModel(id),
-    [imageMode],
+        : getAspectRatiosForVideoModel(id);
+    },
+    [imageMode, getCurrentModels],
   );
 
   const getCurrentDurations = useCallback(
-    (id) =>
-      imageMode ? getDurationsForI2VModel(id) : getDurationsForModel(id),
-    [imageMode],
+    (id) => {
+      const found = getCurrentModels().find((m) => m.id === id);
+      if (found?.inputs?.duration?.enum) return found.inputs.duration.enum;
+      return imageMode ? getDurationsForI2VModel(id) : getDurationsForModel(id);
+    },
+    [imageMode, getCurrentModels],
   );
 
   const getCurrentResolutions = useCallback(
-    (id) =>
-      imageMode
+    (id) => {
+      const found = getCurrentModels().find((m) => m.id === id);
+      if (found?.inputs?.resolution?.enum) return found.inputs.resolution.enum;
+      return imageMode
         ? getResolutionsForI2VModel(id)
-        : getResolutionsForVideoModel(id),
-    [imageMode],
+        : getResolutionsForVideoModel(id);
+    },
+    [imageMode, getCurrentModels],
   );
 
   const getCurrentModel = useCallback(
@@ -734,6 +836,19 @@ export default function VideoStudio({
         setSelectedModelName(m.name);
         applyControlsForModel(m.id, imageMode, false);
       }
+
+      try {
+        const raw = localStorage.getItem("mode_settings") || "{}";
+        const settings = JSON.parse(raw);
+        settings.video = {
+          providerId: m.providerId || "spark-comfy",
+          model: m.id,
+        };
+        localStorage.setItem("mode_settings", JSON.stringify(settings));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {
+        console.warn("[VideoStudio] Failed to persist mode setting:", e);
+      }
     },
     [v2vMode, imageMode, applyControlsForModel],
   );
@@ -957,19 +1072,110 @@ export default function VideoStudio({
     setTimeout(() => textareaRef.current?.focus(), 50);
   }, [resetToPromptBar, applyControlsForModel]);
 
-  const handleExtend = useCallback(() => {
-    if (!lastGenerationId) return;
+  const handleExtend = useCallback((entry) => {
     resetToPromptBar();
-    setPrompt("");
-    setUploadedImageUrl(null);
-    setUploadedImagePreview(null);
-    setImageMode(false);
+    const targetEntry = entry || (lastGenerationId ? { id: lastGenerationId } : null);
+    const targetId = targetEntry?.id || lastGenerationId || `ext_${Date.now()}`;
+    setLastGenerationId(targetId);
+    
+    const existingPrompt = targetEntry?.prompt || prompt || "";
+    setPrompt(existingPrompt ? `Suite de l'action : ${existingPrompt}` : "Continuer et prolonger la vidéo...");
+    
+    if (targetEntry?.url) {
+      setUploadedVideoUrl(targetEntry.url);
+      setUploadedVideoName(targetEntry.filename || 'Vidéo source à prolonger');
+      setV2vMode(true);
+      setImageMode(false);
+    } else {
+      setUploadedImageUrl(null);
+      setUploadedImagePreview(null);
+      setImageMode(false);
+    }
+    
     setSelectedModel("seedance-v2.0-extend");
-    setSelectedModelName("Seedance 2.0 Extend");
+    setSelectedModelName("Seedance 2.0 Extend (Wan 2.2 / ComfyUI)");
     applyControlsForModel("seedance-v2.0-extend", false, false);
     setPromptDisabled(false);
     setTimeout(() => textareaRef.current?.focus(), 50);
-  }, [lastGenerationId, resetToPromptBar, applyControlsForModel]);
+  }, [lastGenerationId, prompt, resetToPromptBar, applyControlsForModel]);
+
+  const handleRegenerateItem = useCallback((entry) => {
+    if (!entry) return;
+    if (entry.prompt) setPrompt(entry.prompt);
+    if (entry.model) {
+      setSelectedModel(entry.model);
+      setSelectedModelName(entry.modelName || entry.model);
+      applyControlsForModel(entry.model, false, false);
+    }
+    if (entry.duration) setSelectedDuration(entry.duration);
+    if (entry.resolution) setSelectedResolution(entry.resolution);
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  }, [applyControlsForModel]);
+
+  const handleDeleteItem = useCallback(async (entry, e) => {
+    if (e) e.stopPropagation();
+    if (!confirm('Supprimer définitivement cette vidéo de l\'historique ?')) return;
+    try {
+      if (entry?.id) {
+        await fetch(`/api/history?id=${entry.id}`, { method: 'DELETE' });
+      }
+      setLocalHistory(prev => prev.filter(item => item.id !== entry.id && item.url !== entry.url));
+      if (canvasUrl === entry.url) {
+        resetToPromptBar();
+      }
+    } catch (err) {
+      console.error('[VideoStudio] Delete item failed:', err);
+    }
+  }, [canvasUrl, resetToPromptBar]);
+
+  // Handle sourceMedia changes and global events (regenerate / extend)
+  useEffect(() => {
+    if (sourceMedia) {
+      console.log('[VideoStudio] Ingesting sourceMedia:', sourceMedia);
+      if (sourceMedia.action === 'extend') {
+        handleExtend(sourceMedia);
+      } else if (sourceMedia.action === 'regenerate') {
+        handleRegenerateItem(sourceMedia);
+      } else if (sourceMedia.url) {
+        const isVid = sourceMedia.type === 'video' || sourceMedia.isVideo || sourceMedia.url.endsWith('.mp4');
+        if (isVid) {
+          setV2vMode(true);
+          setImageMode(false);
+          setUploadedVideoUrl(sourceMedia.url);
+          setUploadedVideoName(sourceMedia.filename || 'Source Video');
+        } else {
+          setImageMode(true);
+          setV2vMode(false);
+          setUploadedImageUrl(sourceMedia.url);
+        }
+        if (sourceMedia.prompt) {
+          setPrompt(prev => prev || sourceMedia.prompt);
+        }
+      }
+    }
+  }, [sourceMedia, handleExtend, handleRegenerateItem]);
+
+  useEffect(() => {
+    const handleRegenEvent = (e) => {
+      const media = e.detail;
+      if (!media) return;
+      const isVid = media.type === 'video' || media.url?.endsWith('.mp4');
+      if (isVid) {
+        handleRegenerateItem(media);
+      }
+    };
+    const handleExtendEvent = (e) => {
+      const media = e.detail;
+      if (!media) return;
+      handleExtend(media);
+    };
+    window.addEventListener('mgp_regenerate', handleRegenEvent);
+    window.addEventListener('mgp_extend_video', handleExtendEvent);
+    return () => {
+      window.removeEventListener('mgp_regenerate', handleRegenEvent);
+      window.removeEventListener('mgp_extend_video', handleExtendEvent);
+    };
+  }, [handleRegenerateItem, handleExtend]);
 
   // ── derived UI values ────────────────────────────────────────────────────
   const isSeedance2Canvas =
@@ -1053,22 +1259,45 @@ export default function VideoStudio({
                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                       </svg>
                     </button>
-                    {isSeedance2 && (
-                      <button
-                        type="button"
-                        title="Extend this video using Seedance 2.0 Extend"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLastGenerationId(entry.id);
-                          handleExtend();
-                        }}
-                        className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-primary hover:text-black transition-all border border-white/10"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      title="Prolonger cette vidéo (continuation temporelle)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleExtend(entry);
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-cyan-300 hover:bg-cyan-500 hover:text-black transition-all border border-cyan-500/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Régénérer cette vidéo"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRegenerateItem(entry);
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-[#df9c43] hover:bg-[#df9c43] hover:text-black transition-all border border-[#df9c43]/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                        <path d="M16 21h5v-5"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Supprimer définitivement cette vidéo"
+                      onClick={(e) => handleDeleteItem(entry, e)}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                      </svg>
+                    </button>
                   </div>
 
                   {/* Prompt & Details */}
@@ -1076,6 +1305,33 @@ export default function VideoStudio({
                     <p className="text-white/70 text-xs line-clamp-3 leading-relaxed" title={entry.prompt}>
                       {entry.prompt || "No prompt provided"}
                     </p>
+
+                    {/* Telemetry Metrics Bar */}
+                    {entry.metrics && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-white/5 text-[9px] text-white/50 flex-wrap">
+                        {entry.metrics.generationTimeSeconds != null && (
+                          <span className="flex items-center gap-0.5 text-amber-400/90 font-mono">
+                            ⏱️ {entry.metrics.generationTimeSeconds}s
+                          </span>
+                        )}
+                        {entry.metrics.totalTokens != null && (
+                          <span className="flex items-center gap-0.5 text-cyan-400/90 font-mono">
+                            🪙 {entry.metrics.totalTokens} tk
+                          </span>
+                        )}
+                        {entry.metrics.cost != null && (
+                          <span className="flex items-center gap-0.5 text-emerald-400/90 font-mono">
+                            💰 {entry.metrics.cost}
+                          </span>
+                        )}
+                        {entry.metrics.computeDevice && (
+                          <span className="px-1 py-0.2 bg-white/5 rounded text-[8px] text-[#df9c43]/80 font-mono truncate max-w-[90px]">
+                            {entry.metrics.computeDevice.includes('GB10') ? '⚡ GB10' : '💻 sd.cpp'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
                       <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded border border-primary/20 whitespace-nowrap">
                         {entry.model?.replace("-", " ")}
@@ -1088,6 +1344,38 @@ export default function VideoStudio({
                           <span className="text-[10px] text-white/40">{entry.duration}s</span>
                         )}
                       </div>
+                    </div>
+
+                    {/* Quick Card Action Buttons */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-1 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExtend(entry);
+                        }}
+                        className="flex-1 py-1 px-2 rounded bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      >
+                        ⏩ Prolonger
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRegenerateItem(entry);
+                        }}
+                        className="flex-1 py-1 px-2 rounded bg-[#df9c43]/15 hover:bg-[#df9c43]/30 text-[#df9c43] border border-[#df9c43]/30 text-[10px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      >
+                        🔄 Régénérer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteItem(entry, e)}
+                        className="py-1 px-2 rounded bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/20 text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
+                        title="Supprimer"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1209,6 +1497,21 @@ export default function VideoStudio({
               </button>
             </div>
 
+            {/* Gallery picker button */}
+            <button
+              type="button"
+              data-testid="studio-gallery-picker"
+              title="Choisir une image source depuis la Galerie locale (DGX Spark)"
+              onClick={() => onOpenGalleryPicker?.('video')}
+              className="w-10 h-10 shrink-0 rounded-full border border-[#df9c43]/40 bg-[#df9c43]/10 hover:bg-[#df9c43]/20 text-[#df9c43] flex items-center justify-center transition-all cursor-pointer shadow-sm group"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                <rect width="18" height="18" x="3" y="3" rx="2"/>
+                <path d="M3 9h18"/>
+                <path d="M9 21V9"/>
+              </svg>
+            </button>
+
             {/* Video upload button */}
             <div className="relative">
               <input
@@ -1310,15 +1613,16 @@ export default function VideoStudio({
               <div className="relative">
                 <button
                   type="button"
+                  data-testid="video-model-selector"
                   onClick={toggleDropdown("model")}
                   className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] rounded-md transition-all border border-white/[0.03] group whitespace-nowrap"
                 >
-                  <div className="w-4 h-4 bg-[#d9ff00] rounded flex items-center justify-center shadow-lg shadow-[#d9ff00]/10">
+                  <div className="w-4 h-4 bg-[#df9c43] rounded flex items-center justify-center shadow-lg shadow-[#df9c43]/10">
                     <span className="text-[9px] font-bold text-black uppercase">
                       V
                     </span>
                   </div>
-                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                     {selectedModelName}
                   </span>
                   <svg
@@ -1344,6 +1648,7 @@ export default function VideoStudio({
                       selectedModel={selectedModel}
                       onSelect={handleModelSelect}
                       onClose={() => setOpenDropdown(null)}
+                      dynamicModels={dynamicModels}
                     />
                   </div>
                 )}
@@ -1375,7 +1680,7 @@ export default function VideoStudio({
                         ry="2"
                       />
                     </svg>
-                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                       {selectedAr}
                     </span>
                   </button>
@@ -1431,7 +1736,7 @@ export default function VideoStudio({
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    <span className="text-xs font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                    <span className="text-xs font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                       {selectedDuration}s
                     </span>
                   </button>
@@ -1486,7 +1791,7 @@ export default function VideoStudio({
                     >
                       <path d="M6 2L3 6v15a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" />
                     </svg>
-                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                       {selectedResolution || "720p"}
                     </span>
                   </button>
@@ -1528,7 +1833,7 @@ export default function VideoStudio({
               type="button"
               onClick={handleGenerate}
               disabled={generating}
-              className="bg-[#d9ff00] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#d9ff00]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#df9c43] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? (
                 <>

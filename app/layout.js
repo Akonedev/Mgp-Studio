@@ -7,8 +7,15 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Open Generative AI — Free AI Image & Video Studio',
-  description: 'Generate AI images and videos using 200+ models — Flux, Midjourney, Kling, Veo, Seedance and more. Free open-source alternative to Higgsfield AI.',
+  title: 'Mgp Studio — Môguô Puissant',
+  description: 'Mgp Studio (Môguô Puissant) — Studio d\'Intelligence Artificielle Générative & Cinéma multi-moteurs, propulsé par le supercalculateur DGX Spark GB10.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' }
+    ],
+    apple: '/favicon.svg'
+  }
 };
 
 export default function RootLayout({ children }) {

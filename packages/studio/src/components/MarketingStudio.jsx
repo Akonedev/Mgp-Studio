@@ -15,14 +15,14 @@ const SCROLLBAR_STYLE = `
     border-radius: 10px;
   }
   .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(217, 255, 0, 0.3);
+    background: rgba(223, 156, 67, 0.3);
   }
 `;
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 const CheckSvg = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" strokeWidth="4">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#df9c43" strokeWidth="4">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
@@ -231,13 +231,31 @@ function SimpleDropdown({ isOpen, title, options, selected, onSelect, onClose })
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
-export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }) {
+export default function MarketingStudio({ 
+  apiKey, 
+  droppedFiles, 
+  onFilesHandled,
+  sourceMedia,
+  onClearSourceMedia,
+  onOpenGalleryPicker
+}) {
   const PERSIST_KEY = "hg_marketing_studio_persistent";
   
   const [prompt, setPrompt] = useState("");
   const [productImage, setProductImage] = useState(null);
   const [avatarImage, setAvatarImage] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
+
+  // Consume injected source media from Gallery or another Studio
+  useEffect(() => {
+    if (sourceMedia && sourceMedia.url) {
+      console.log('[MarketingStudio] Ingesting sourceMedia:', sourceMedia);
+      setProductImage(sourceMedia.url);
+      if (sourceMedia.prompt) {
+        setPrompt(prev => prev || sourceMedia.prompt);
+      }
+    }
+  }, [sourceMedia]);
   
   const [params, setParams] = useState({
     ratio: "9:16",
@@ -249,9 +267,56 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
 
   const [history, setHistory] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [dropdown, setDropdown] = useState(null); // 'format' | 'avatar' | 'ratio' | 'res' | 'duration'
+  const [dropdown, setDropdown] = useState(null); // 'model' | 'format' | 'avatar' | 'ratio' | 'res' | 'duration'
   const [uploadProgress, setUploadProgress] = useState({ product: 0, avatar: 0, additional: 0 });
   const [fullscreenUrl, setFullscreenUrl] = useState(null);
+
+  // ── Dynamic models state ──
+  const [dynamicModels, setDynamicModels] = useState([]);
+  const [selectedModelId, setSelectedModelId] = useState("wan2.1_t2v_1.3B_bf16.safetensors");
+  const [selectedModelName, setSelectedModelName] = useState("Wan 2.1 1.3B (DGX Spark GB10)");
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchValidModels() {
+      try {
+        const res = await fetch("/api/providers?action=valid_models&mode=marketing");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.models) && data.models.length > 0 && isMounted) {
+            setDynamicModels(data.models);
+            let preferredModel = null;
+            try {
+              const raw = localStorage.getItem("mode_settings");
+              if (raw) {
+                const s = JSON.parse(raw);
+                if (s.marketing?.model) {
+                  preferredModel = data.models.find((m) => m.id === s.marketing.model);
+                } else if (s.video?.model) {
+                  preferredModel = data.models.find((m) => m.id === s.video.model);
+                }
+              }
+            } catch (e) {}
+
+            const chosen =
+              preferredModel ||
+              data.models.find((m) => m.id === selectedModelId) ||
+              data.models[0];
+            if (chosen) {
+              setSelectedModelId(chosen.id);
+              setSelectedModelName(chosen.name);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[MarketingStudio] Failed to load dynamic valid models:", err);
+      }
+    }
+    fetchValidModels();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const textareaRef = useRef(null);
 
@@ -329,7 +394,10 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
 
     setIsGenerating(true);
     try {
+      const selectedM = dynamicModels.find((m) => m.id === selectedModelId);
       const result = await generateMarketingStudioAd(apiKey, {
+        model: selectedModelId,
+        provider: selectedM?.providerId || "spark-comfy",
         prompt,
         aspect_ratio: params.ratio,
         duration: params.duration,
@@ -412,7 +480,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
                 <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full opacity-30 group-hover:opacity-60 transition-opacity duration-1000" />
                 <div className="relative w-24 h-24 md:w-32 md:h-32 bg-white/[0.02] rounded-[2rem] flex items-center justify-center border border-white/[0.05] overflow-hidden backdrop-blur-sm">
                   <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center border border-primary/10 relative z-10 transition-transform duration-500 group-hover:scale-110 shadow-inner">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" strokeWidth="1.5">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#df9c43" strokeWidth="1.5">
                       <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                       <line x1="8" y1="21" x2="16" y2="21" />
                       <line x1="12" y1="17" x2="12" y2="21" />
@@ -501,6 +569,65 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
                     }
                   }} 
                 />
+
+                {/* Gallery picker button */}
+                <button
+                  type="button"
+                  title="Choisir une image source depuis la Galerie locale (DGX Spark)"
+                  onClick={() => onOpenGalleryPicker?.('marketing')}
+                  className="w-10 h-10 shrink-0 rounded-full border border-[#df9c43]/40 bg-[#df9c43]/10 hover:bg-[#df9c43]/20 text-[#df9c43] flex items-center justify-center transition-all cursor-pointer shadow-sm group ml-1"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                    <path d="M3 9h18"/>
+                    <path d="M9 21V9"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Model Selector Button */}
+              <div className="relative">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDropdown(dropdown === 'model' ? null : 'model'); }}
+                  className={`flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.08] rounded border transition-all group whitespace-nowrap ${dropdown === 'model' ? 'border-primary/50' : 'border-white/5'}`}
+                >
+                  <div className="w-4 h-4 bg-primary/10 rounded flex items-center justify-center border border-primary/20">
+                    <span className="text-[8px] font-black text-primary uppercase">M</span>
+                  </div>
+                  <span className="text-sm font-bold text-white/70 group-hover:text-primary transition-colors max-w-[140px] truncate">
+                    {selectedModelName}
+                  </span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-20 group-hover:opacity-100 transition-opacity"><path d="M6 9l6 6 6-6" /></svg>
+                </button>
+                {dropdown === 'model' && (
+                  <div className="absolute bottom-[calc(100%+8px)] left-0 z-50 bg-[#111] border border-white/10 rounded-lg shadow-3xl p-2 custom-scrollbar w-64 max-h-60 overflow-y-auto">
+                    <div className="text-[10px] uppercase font-bold text-white/40 px-2 py-1">Valid Video Models</div>
+                    {dynamicModels.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedModelId(m.id);
+                          setSelectedModelName(m.name);
+                          setDropdown(null);
+                          try {
+                            const raw = localStorage.getItem("mode_settings") || "{}";
+                            const s = JSON.parse(raw);
+                            s.marketing = { providerId: m.providerId || "spark-comfy", model: m.id };
+                            localStorage.setItem("mode_settings", JSON.stringify(s));
+                            window.dispatchEvent(new Event("storage"));
+                          } catch (e) {}
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded text-xs transition-all hover:bg-white/10 flex flex-col gap-0.5 ${
+                          m.id === selectedModelId ? "text-primary font-bold bg-primary/10" : "text-white"
+                        }`}
+                      >
+                        <span className="font-semibold">{m.name}</span>
+                        {m.provider && <span className="text-[9px] text-[#df9c43]/70">{m.provider}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Format Button */}
@@ -574,7 +701,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="bg-primary text-black px-8 py-2.5 rounded font-bold text-base hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-glow disabled:opacity-50 disabled:grayscale z-10"
+              className="bg-primary text-black px-8 py-2.5 rounded font-bold text-base hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-glow disabled:opacity-50 disabled:grayscale z-10"
             >
               {isGenerating ? (
                 <>

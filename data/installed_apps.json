@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ai-headshot-generator",
+    "name": "AI Headshot Studio",
+    "repo": "https://github.com/SamurAIGPT/ai-headshot-generator",
+    "installed_path": "data/installed_apps/ai-headshot-generator",
+    "installed_at": "2026-09-13T20:40:40.000Z",
+    "status": "installed",
+    "port": 58110,
+    "spark_ready": true,
+    "workflow_imported": true
+  },
+  {
+    "id": "old-photo-restore",
+    "name": "Old Photo Restore",
+    "repo": "https://github.com/SamurAIGPT/old-photo-restore",
+    "installed_path": "/home/akone/Documents/Dev/01_Dev/03_Multimedia/Open-Generative-AI/data/installed_apps/old-photo-restore",
+    "installed_at": "2026-09-13T18:41:53.717Z",
+    "status": "installed",
+    "port": 58118,
+    "spark_ready": true,
+    "workflow_imported": true
+  },
+  {
+    "id": "ai-pet-portrait",
+    "name": "AI Pet Portrait",
+    "repo": "https://github.com/SamurAIGPT/ai-pet-portrait",
+    "installed_path": "/home/akone/Documents/Dev/01_Dev/03_Multimedia/Open-Generative-AI/data/installed_apps/ai-pet-portrait",
+    "installed_at": "2026-09-13T18:45:05.953Z",
+    "status": "installed",
+    "port": 58120,
+    "spark_ready": true,
+    "workflow_imported": true
+  },
+  {
+    "id": "nano-banana-generator",
+    "name": "Nano Banana Studio",
+    "repo": "https://github.com/SamurAIGPT/nano-banana-generator",
+    "installed_path": "/home/akone/Documents/Dev/01_Dev/03_Multimedia/Open-Generative-AI/data/installed_apps/nano-banana-generator",
+    "installed_at": "2026-09-13T18:57:13.594Z",
+    "status": "installed",
+    "port": 58111,
+    "spark_ready": true,
+    "workflow_imported": true
+  },
+  {
+    "id": "pet-product-studio",
+    "name": "Pet Product Studio",
+    "repo": "https://github.com/SamurAIGPT/pet-product-studio",
+    "installed_path": "/home/akone/Documents/Dev/01_Dev/03_Multimedia/Open-Generative-AI/data/installed_apps/pet-product-studio",
+    "installed_at": "2026-09-13T18:57:59.457Z",
+    "status": "installed",
+    "port": 58115,
+    "spark_ready": true,
+    "workflow_imported": true
+  }
+]

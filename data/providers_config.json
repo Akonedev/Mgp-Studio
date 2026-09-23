@@ -1,0 +1,467 @@
+{
+  "mode_settings": {
+    "text": {
+      "providerId": "minimax",
+      "model": "MiniMax-Text-01"
+    },
+    "image": {
+      "providerId": "spark-comfy",
+      "model": "DreamShaper_8_pruned.safetensors"
+    },
+    "video": {
+      "providerId": "minimax",
+      "model": "Hailuo-H3"
+    },
+    "audio": {
+      "providerId": "spark-comfy",
+      "model": "minimax_music3_dit_fp16.safetensors"
+    },
+    "avatar": {
+      "providerId": "spark-comfy",
+      "model": "wan2.2_ti2v_5B_fp16.safetensors"
+    },
+    "cinema": {
+      "providerId": "spark-comfy",
+      "model": "DreamShaper_8_pruned.safetensors"
+    },
+    "marketing": {
+      "providerId": "spark-comfy",
+      "model": "wan2.1_t2v_1.3B_bf16.safetensors"
+    },
+    "montage": {
+      "providerId": "spark-comfy",
+      "model": "wan2.2_ti2v_5B_fp16.safetensors"
+    },
+    "voice": {
+      "providerId": "spark-comfy",
+      "model": "fr-FR-HenriNeural"
+    }
+  },
+  "providers": [
+    {
+      "id": "spark-comfy",
+      "name": "ComfyUI (DGX Spark GB10)",
+      "type": "comfyui",
+      "baseUrl": "http://192.168.1.219:61009",
+      "apiKey": "",
+      "supportedModes": [
+        "image",
+        "video",
+        "audio",
+        "avatar",
+        "cinema",
+        "marketing",
+        "montage"
+      ],
+      "defaultModel": "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+      "models": [
+        "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+        "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+        "wan2.2_ti2v_5B_fp16.safetensors",
+        "wan2.1_t2v_1.3B_bf16.safetensors",
+        "DreamShaper_8_pruned.safetensors",
+        "ltx-2.5-audio-vae-bf16.safetensors",
+        "MiniMax-H3_FL2VA-NVFP4-HQ.safetensors",
+        "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+        "ltx-2.5-22b-distilled-transformer-nvfp4-comfy-v2.safetensors",
+        "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+        "minimax_h3_fl2va_pruned_nvfp4.safetensors",
+        "minimax_h3_fused_refdelta_r1024_turbo8_mystic07_int8_convrot.safetensors",
+        "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "minimax_music3_dit_fp16.safetensors",
+        "qwen_image_2512_fp8_e4m3fn.safetensors",
+        "qwen_image_edit_2511_int8_convrot.safetensors"
+      ],
+      "modelsByMode": {
+        "image": [
+          "DreamShaper_8_pruned.safetensors",
+          "qwen_image_2512_fp8_e4m3fn.safetensors",
+          "qwen_image_edit_2511_int8_convrot.safetensors"
+        ],
+        "video": [
+          "wan2.2_ti2v_5B_fp16.safetensors",
+          "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+          "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+          "wan2.1_t2v_1.3B_bf16.safetensors",
+          "ltx-2.5-22b-distilled-transformer-nvfp4-comfy-v2.safetensors",
+          "MiniMax-H3_FL2VA-NVFP4-HQ.safetensors"
+        ],
+        "audio": [
+          "minimax_music3_dit_fp16.safetensors",
+          "ltx-2.5-audio-vae-bf16.safetensors"
+        ],
+        "avatar": [
+          "wan2.2_ti2v_5B_fp16.safetensors",
+          "wan2.1_t2v_1.3B_bf16.safetensors"
+        ]
+      },
+      "description": "Serveur ComfyUI par défaut sur DGX Spark (NVIDIA Grace Blackwell GB10 128 Go)",
+      "status": "online",
+      "isCustom": false
+    },
+    {
+      "id": "local-sdcpp",
+      "name": "Local sd.cpp (Désactivé)",
+      "type": "local_engine",
+      "baseUrl": "local",
+      "apiKey": "local-spark",
+      "supportedModes": [],
+      "defaultModel": "z_image_turbo-Q4_K.gguf",
+      "models": [],
+      "description": "Désactivé — Évite l'utilisation du GPU hôte (RX 7900 XTX)",
+      "status": "disabled",
+      "isCustom": false
+    },
+    {
+      "id": "spark-vllm",
+      "name": "DGX Spark — vLLM (Qwen3-VL 30B)",
+      "type": "local_openai",
+      "baseUrl": "http://192.168.1.219:61005/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "qwen38",
+      "models": [
+        "qwen38"
+      ],
+      "description": "Moteur LLM & Vision vLLM sur DGX Spark GB10",
+      "status": "online",
+      "isCustom": false
+    },
+    {
+      "id": "spark-ollama",
+      "name": "DGX Spark — Ollama (Gemma 3)",
+      "type": "ollama",
+      "baseUrl": "http://192.168.1.219:61004",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "gemma3:4b",
+      "models": [
+        "gemma3:4b"
+      ],
+      "description": "Moteur Ollama hébergé sur le cluster Spark",
+      "status": "online",
+      "isCustom": false
+    },
+    {
+      "id": "local-lmstudio",
+      "name": "LM Studio Local (Host)",
+      "type": "local_openai",
+      "baseUrl": "http://localhost:1234/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "local-model",
+      "models": [
+        "local-model"
+      ],
+      "description": "Serveur LM Studio local sur port 1234",
+      "status": "ready",
+      "isCustom": false
+    },
+    {
+      "id": "local-comfyui",
+      "name": "ComfyUI Local (Désactivé)",
+      "type": "comfyui",
+      "baseUrl": "http://localhost:8188",
+      "apiKey": "",
+      "supportedModes": [],
+      "defaultModel": "v1-5-pruned-emaonly.safetensors",
+      "models": [],
+      "description": "Désactivé — Évite l'utilisation du GPU hôte (RX 7900 XTX)",
+      "status": "disabled",
+      "isCustom": false
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "type": "openrouter",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text",
+        "image"
+      ],
+      "defaultModel": "anthropic/claude-3.7-sonnet",
+      "models": [
+        "anthropic/claude-3.7-sonnet",
+        "deepseek/deepseek-r1",
+        "meta-llama/llama-3.3-70b-instruct",
+        "google/gemini-2.5-flash"
+      ],
+      "description": "Hub universel multi-fournisseurs (LLM & Image)",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI (GPT-4o & Sora)",
+      "type": "openai",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text",
+        "image",
+        "video"
+      ],
+      "defaultModel": "gpt-4o",
+      "models": [
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o3-mini",
+        "dall-e-3",
+        "sora"
+      ],
+      "modelsByMode": {
+        "text": [
+          "gpt-4o",
+          "gpt-4o-mini",
+          "o3-mini"
+        ],
+        "image": [
+          "dall-e-3"
+        ],
+        "video": [
+          "sora"
+        ]
+      },
+      "description": "Modèles multimodaux OpenAI",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic (Claude)",
+      "type": "anthropic",
+      "baseUrl": "https://api.anthropic.com/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "claude-3-7-sonnet-20250219",
+      "models": [
+        "claude-3-7-sonnet-20250219",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022"
+      ],
+      "description": "Modèles de réalisation scénaristique Claude",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "google",
+      "name": "Google (Gemini)",
+      "type": "google",
+      "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "apiKey": "",
+      "supportedModes": [
+        "text",
+        "image"
+      ],
+      "defaultModel": "gemini-2.5-flash",
+      "models": [
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "imagen-3.0"
+      ],
+      "modelsByMode": {
+        "text": [
+          "gemini-2.5-pro",
+          "gemini-2.5-flash"
+        ],
+        "image": [
+          "imagen-3.0"
+        ]
+      },
+      "description": "Modèles multimodaux Google DeepMind",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax AI (Hailuo)",
+      "type": "minimax",
+      "baseUrl": "https://api.minimax.chat/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text",
+        "video",
+        "audio"
+      ],
+      "defaultModel": "MiniMax-Text-01",
+      "models": [
+        "MiniMax-Text-01",
+        "abab6.5s-chat",
+        "abab6.5g-chat",
+        "abab6.5-chat",
+        "Hailuo-H3",
+        "video-01",
+        "music-01",
+        "speech-01-hd"
+      ],
+      "modelsByMode": {
+        "text": [
+          "MiniMax-Text-01",
+          "abab6.5s-chat",
+          "abab6.5g-chat",
+          "abab6.5-chat"
+        ],
+        "video": [
+          "Hailuo-H3",
+          "video-01",
+          "video-01-live2d"
+        ],
+        "audio": [
+          "music-01",
+          "speech-01-hd",
+          "speech-01-turbo"
+        ]
+      },
+      "description": "Moteur créatif MiniMax : LLM Text-01 pour textes & lyrics, Hailuo pour vidéo, Music-01 pour audio",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "z-ai",
+      "name": "Z.ai (Zhipu / CogVideoX)",
+      "type": "openai_compatible",
+      "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+      "apiKey": "",
+      "supportedModes": [
+        "text",
+        "video",
+        "image"
+      ],
+      "defaultModel": "glm-4-plus",
+      "models": [
+        "glm-4-plus",
+        "glm-4-flash",
+        "cogvideox-5b"
+      ],
+      "modelsByMode": {
+        "text": [
+          "glm-4-plus",
+          "glm-4-flash"
+        ],
+        "video": [
+          "cogvideox-5b"
+        ]
+      },
+      "description": "Modèles multimodaux GLM et CogVideoX",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "type": "openai_compatible",
+      "baseUrl": "https://api.deepseek.com/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "deepseek-chat",
+      "models": [
+        "deepseek-chat",
+        "deepseek-reasoner"
+      ],
+      "description": "Modèles de raisonnement technique et de scriptwriting",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "moonshot",
+      "name": "Moonshot AI (Kimi)",
+      "type": "openai_compatible",
+      "baseUrl": "https://api.moonshot.cn/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "moonshot-v1-32k",
+      "models": [
+        "moonshot-v1-32k",
+        "moonshot-v1-8k",
+        "moonshot-v1-128k"
+      ],
+      "description": "Moteur long contexte Kimi",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "x-ai",
+      "name": "x.ai (Grok)",
+      "type": "openai_compatible",
+      "baseUrl": "https://api.x.ai/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "grok-2",
+      "models": [
+        "grok-2",
+        "grok-2-mini"
+      ],
+      "description": "Moteur conversationnel et créatif xAI",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face Inference",
+      "type": "openai_compatible",
+      "baseUrl": "https://api-inference.huggingface.co/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text",
+        "image"
+      ],
+      "defaultModel": "meta-llama/Llama-3.3-70B-Instruct",
+      "models": [
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "black-forest-labs/FLUX.1-dev"
+      ],
+      "description": "Hub open-source Hugging Face",
+      "status": "ready",
+      "isCustom": false
+    },
+    {
+      "id": "opencode-go",
+      "name": "OpenCode Go",
+      "type": "openai_compatible",
+      "baseUrl": "https://opencode.ai/api/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "opencode-go-v1",
+      "models": [
+        "opencode-go-v1"
+      ],
+      "description": "Workflows optimisés OpenCode Go",
+      "status": "configurable",
+      "isCustom": false
+    },
+    {
+      "id": "opencode-zen",
+      "name": "OpenCode Zen",
+      "type": "openai_compatible",
+      "baseUrl": "https://zen.opencode.ai/v1",
+      "apiKey": "",
+      "supportedModes": [
+        "text"
+      ],
+      "defaultModel": "opencode-zen-v1",
+      "models": [
+        "opencode-zen-v1"
+      ],
+      "description": "Moteur d'exécution rapide OpenCode Zen",
+      "status": "configurable",
+      "isCustom": false
+    }
+  ]
+}

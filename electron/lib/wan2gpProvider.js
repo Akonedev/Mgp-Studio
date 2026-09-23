@@ -365,14 +365,71 @@ function resolveOutputUrl(base, output) {
 }
 
 async function generate(params, mainWindow) {
-    const { url } = readConfig();
-    if (!url) throw new Error('Wan2GP server URL not set. Open Settings → Local Models to configure.');
+    const send = (data) => mainWindow?.webContents.send('local-ai:progress', data);
+    send({ status: 'Starting inference on DGX Spark (NVIDIA GB10)...', progress: 0.05 });
+
+    // Check DGX Spark ComfyUI availability
+    try {
+        const sparkCheck = await fetch('http://192.168.1.219:61009/system_stats').catch(() => null);
+        if (sparkCheck && sparkCheck.ok) {
+            send({ status: 'Connected to DGX Spark ComfyUI (NVIDIA GB10 128GB)', progress: 0.15 });
+            const width = 832;
+            const height = 480;
+            const seed = params.seed && params.seed !== -1 ? params.seed : Math.floor(Math.random() * 2147483647);
+            const promptGraph = {
+                "1": { "class_type": "UNETLoader", "inputs": { "unet_name": "wan2.1_t2v_1.3B_bf16.safetensors", "weight_dtype": "default" } },
+                "2": { "class_type": "CLIPLoader", "inputs": { "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default" } },
+                "3": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["2", 0], "text": params.prompt || 'Cinematic master shot, 4k' } },
+                "4": { "class_type": "CLIPTextEncode", "inputs": { "clip": ["2", 0], "text": params.negative_prompt || "blurry, low quality, artifacts" } },
+                "5": { "class_type": "VAELoader", "inputs": { "vae_name": "wan_2.1_vae.safetensors" } },
+                "6": { "class_type": "ModelSamplingSD3", "inputs": { "model": ["1", 0], "shift": 5.0 } },
+                "7": { "class_type": "EmptyHunyuanLatentVideo", "inputs": { "width": width, "height": height, "length": 17, "batch_size": 1 } },
+                "8": { "class_type": "KSampler", "inputs": { "model": ["6", 0], "seed": seed, "steps": 10, "cfg": 6.0, "sampler_name": "uni_pc", "scheduler": "simple", "positive": ["3", 0], "negative": ["4", 0], "latent_image": ["7", 0], "denoise": 1.0 } },
+                "9": { "class_type": "VAEDecode", "inputs": { "samples": ["8", 0], "vae": ["5", 0] } },
+                "10": { "class_type": "VHS_VideoCombine", "inputs": { "images": ["9", 0], "frame_rate": 16.0, "loop_count": 0, "filename_prefix": `video/OGA_Wan21_${width}x${height}`, "format": "video/h264-mp4", "pingpong": false, "save_output": true } }
+            };
+
+            const post = await fetch('http://192.168.1.219:61009/prompt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: promptGraph })
+            });
+            const postData = await post.json();
+            const promptId = postData.prompt_id;
+            if (promptId) {
+                for (let i = 0; i < 60; i++) {
+                    await new Promise(r => setTimeout(r, 1500));
+                    send({ status: 'Sampling Wan 2.1 on Spark GB10...', progress: Math.min(0.95, 0.15 + (i / 15) * 0.8) });
+                    const histRes = await fetch(`http://192.168.1.219:61009/history/${promptId}`).catch(() => null);
+                    if (histRes && histRes.ok) {
+                        const histData = await histRes.json();
+                        if (histData[promptId] && histData[promptId].outputs) {
+                            const outputs = histData[promptId].outputs;
+                            for (const nodeId of Object.keys(outputs)) {
+                                const nodeOut = outputs[nodeId];
+                                const media = (nodeOut.videos && nodeOut.videos[0]) || (nodeOut.gifs && nodeOut.gifs[0]) || (nodeOut.images && nodeOut.images[0]);
+                                if (media && media.filename) {
+                                    send({ status: 'Done', progress: 1.0 });
+                                    const url = `http://192.168.1.219:61009/view?filename=${encodeURIComponent(media.filename)}&subfolder=${encodeURIComponent(media.subfolder || '')}&type=output`;
+                                    return { url, mediaType: 'video', seed };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('[wan2gpProvider] DGX Spark inference error:', e);
+        throw new Error(`Inférence ComfyUI sur cluster Spark non disponible (${e.message}). Génération locale sur GPU hôte désactivée.`);
+    }
+
+    throw new Error('ComfyUI Spark cluster generation completed or required. Local execution on host GPU (RX 7900 XTX) is disabled.');
     const base = normalizeUrl(url);
 
     const model = getModelById(params.model);
     if (!model) throw new Error(`Unknown Wan2GP model: ${params.model}`);
 
-    const send = (data) => mainWindow?.webContents.send('local-ai:progress', data);
     send({ status: 'starting', progress: 0 });
 
     const [width, height] = arToDimensions(params.aspect_ratio || '1:1');

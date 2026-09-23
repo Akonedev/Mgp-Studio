@@ -10,16 +10,20 @@
     "packages/Open-Poe-AI/packages/agents"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 58101",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 58101",
     "lint": "next lint",
     "build:studio": "npm run build -w studio",
     "build:workflow": "npm run build -w workflow-builder",
     "build:agent": "npm run build -w ai-agent",
     "build:packages": "npm run build:workflow && npm run build:agent && npm run build:studio",
     "setup": "git submodule update --init --recursive && npm install && npm run build:packages",
-    "vite:dev": "vite",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:dev:build": "docker compose -f docker-compose.dev.yml up -d --build",
+    "docker:prod": "docker compose up -d --build",
+    "vite:dev": "vite --port 58105",
     "vite:build": "vite build",
     "electron:dev": "npm run vite:build && electron .",
     "electron:build": "vite build && electron-builder --mac",
@@ -96,26 +100,27 @@
     }
   },
   "dependencies": {
+    "ai-agent": "file:./packages/Open-Poe-AI/packages/agents",
     "axios": "^1.7.0",
-    "next": "^15.0.0",
+    "next": "^16.3.5",
+    "page-agent": "^1.12.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.4.1",
     "studio": "*",
-    "workflow-builder": "file:./packages/Vibe-Workflow/packages/workflow-builder",
-    "ai-agent": "file:./packages/Open-Poe-AI/packages/agents"
+    "workflow-builder": "file:./packages/Vibe-Workflow/packages/workflow-builder"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/vite": "^4.1.18",
     "autoprefixer": "^10.4.24",
-    "electron": "^33.4.11",
-    "electron-builder": "^25.1.8",
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "^15.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.0",
-    "vite": "^5.4.0"
+    "vite": "^8.3.0"
   },
   "main": "electron/main.js"
 }

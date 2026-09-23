@@ -7,8 +7,7 @@ export class MuapiClient {
     }
 
     getKey() {
-        const key = window.__MUAPI_KEY__ || localStorage.getItem('muapi_key');
-        if (!key) throw new Error('API Key missing. Please set it in Settings.');
+        const key = (typeof window !== 'undefined' && window.__MUAPI_KEY__) || (typeof localStorage !== 'undefined' && localStorage.getItem('muapi_key')) || 'spark-local';
         return key;
     }
 

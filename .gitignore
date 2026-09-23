@@ -36,3 +36,33 @@ out/
 .env
 .env.*
 !.env.example
+
+# Local cache & large binaries
+chrome/
+.codegraph/
+graphify-out/
+docs/
+__pycache__/
+*.pyc
+daw_*.png
+.gitnexus/
+.claude/
+
+# Runtime outputs & user generation history
+public/outputs/*
+!public/outputs/.gitkeep
+app/outputs/*
+!app/outputs/.gitkeep
+data/installed_apps/
+data/generation_history.json
+data/music_history.json
+
+# Scratch & one-off test scripts
+scratch_*.js
+test_*.mjs
+test_*.js
+verify_*.mjs
+run_comprehensive_spark_test.js
+scripts/patch_*.py
+
+

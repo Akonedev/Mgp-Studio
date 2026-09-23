@@ -1,0 +1,3822 @@
+[
+  {
+    "workflow_id": "spark_minimax_music3",
+    "id": "spark_minimax_music3",
+    "name": "Musique MiniMax 3",
+    "description": "Composition de bandes originales et ambiances sonores cinématiques synchronisées.",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/H3 - 06 Musique (MiniMax Music3).json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_music_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "genre": "Cinematic Epic Orchestral",
+          "duration": 30
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_music3",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_display_audio",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "prompt",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "audio",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "audio_oga_oga_04_audio_minimaxmusic3",
+    "id": "audio_oga_oga_04_audio_minimaxmusic3",
+    "name": "OGA_04_Audio_MiniMaxMusic3",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (Audio/OGA/OGA_04_Audio_MiniMaxMusic3.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/OGA/OGA_04_Audio_MiniMaxMusic3.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "oga_09_music_acestep_15",
+    "id": "oga_09_music_acestep_15",
+    "name": "🎵 OGA 09 - ACE-Step 1.5 DiT (Musique Rapide)",
+    "description": "Génération de musique DiT turbo haute vitesse sur DGX Spark GB10. Contrôle BPM, tonalité, instruments et style.",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/OGA/OGA_09_Music_AceStep_15.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_music_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "genre": "90s Boom-Bap Hip-Hop",
+          "duration": 30,
+          "bpm": 85,
+          "key": "F Minor"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_music3",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "acestep_15",
+          "steps": 8
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_audio",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "prompt",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "audio",
+        "targetHandle": "audio"
+      }
+    ],
+    "created_at": "2026-09-15T15:00:00.000Z"
+  },
+  {
+    "workflow_id": "oga_10_music_minimax_h3",
+    "id": "oga_10_music_minimax_h3",
+    "name": "⚡ OGA 10 - MiniMax H3 Music 3 DiT",
+    "description": "Génération polyphonique orchestrale et moderne SOTA DiT sur DGX Spark GB10. Son studio 48kHz, arrangements riches.",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/OGA/OGA_10_Music_MiniMax_H3.json",
+    "thumbnail": "/assets/cinema/studio_film_65mm.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_music_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "genre": "Cinematic Epic Orchestral",
+          "duration": 30,
+          "bpm": 90,
+          "key": "D Minor"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_music3",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "minimax_h3",
+          "steps": 10
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_audio",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "prompt",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "audio",
+        "targetHandle": "audio"
+      }
+    ],
+    "created_at": "2026-09-15T15:00:00.000Z"
+  },
+  {
+    "workflow_id": "oga_11_music_yue2_vocal",
+    "id": "oga_11_music_yue2_vocal",
+    "name": "🎤 OGA 11 - YuE2 Vocal Song Studio",
+    "description": "Génération de chansons complètes avec paroles structurées ([Verse], [Chorus]), interprétation vocale humaine et accompagnement.",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/OGA/OGA_11_Music_YuE2_Vocal.json",
+    "thumbnail": "/assets/cinema/modular_8k_digital.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_music_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "genre": "Melodic French Pop / Soul",
+          "duration": 45,
+          "bpm": 100,
+          "key": "A Minor"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_music3",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "yue2_vocal",
+          "steps": 10
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_audio",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "prompt",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "audio",
+        "targetHandle": "audio"
+      }
+    ],
+    "created_at": "2026-09-15T15:00:00.000Z"
+  },
+  {
+    "workflow_id": "oga_12_music_sahelian_groove",
+    "id": "oga_12_music_sahelian_groove",
+    "name": "🌍 OGA 12 - Sahelian African Groove",
+    "description": "Compositions polyrythmiques saheliennes et ouest-africaines : kora, balafon, tama, djembe, guitare blues sahel et basses 808.",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/OGA/OGA_12_Music_Sahelian_Groove.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_music_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "genre": "Sahelian Afrobeats & Desert Blues",
+          "duration": 30,
+          "bpm": 110,
+          "key": "G Minor"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_music3",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "sahelian_groove",
+          "steps": 8
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_audio",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "prompt",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "audio",
+        "targetHandle": "audio"
+      }
+    ],
+    "created_at": "2026-09-15T15:00:00.000Z"
+  },
+  {
+    "workflow_id": "oga_13_music_hum_to_arrangement",
+    "id": "oga_13_music_hum_to_arrangement",
+    "name": "🎙️ OGA 13 - Audio Fredonné vers Arrangement IA",
+    "description": "Transformation de mélodies fredonnées au micro en arrangements complets multipistes (batterie, basse, claviers, solo lead).",
+    "category": "Audio & Musique Spark",
+    "spark_file": "Audio/OGA/OGA_13_Music_Hum_To_Arrangement.json",
+    "thumbnail": "/assets/cinema/modular_8k_digital.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_music_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "genre": "Arrangement complet multi-instruments",
+          "duration": 30,
+          "bpm": 120,
+          "key": "C Minor"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_music3",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "hum_to_arrangement",
+          "steps": 8
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_audio",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "prompt",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "audio",
+        "targetHandle": "audio"
+      }
+    ],
+    "created_at": "2026-09-15T15:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_image_sd15",
+    "id": "spark_image_sd15",
+    "name": "Image SD 1.5 DreamShaper",
+    "description": "Génération d'images haute vitesse (3.0s) optimisée sur NVIDIA Grace Blackwell GB10.",
+    "category": "Images Spark",
+    "spark_file": "Images/IMG - 01 SD1.5 DreamShaper.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "8k photorealistic portrait"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20,
+          "sampler": "dpmpp_2m_karras"
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_image",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "image",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "app_wf_pet_product_studio",
+    "id": "app_wf_pet_product_studio",
+    "name": "Pet Product Studio Pipeline",
+    "description": "Workflow IA officiel issu du template Pet Product Studio. Exécution directe sur supercalculateur DGX Spark GB10.",
+    "category": "Images Spark",
+    "app_id": "pet-product-studio",
+    "spark_file": "Images/OGA/OGA_01_Image_SD15_DreamShaper.json",
+    "thumbnail": "https://cdn.muapi.ai/apps/Pet_Product_Studio.jpg",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "cute dog next to modern pet product, cozy Scandinavian living room, sunlight, high-end commercial ad"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 832,
+          "height": 480
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "image",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T18:57:59.457Z"
+  },
+  {
+    "workflow_id": "zimage_t2i_hq",
+    "id": "zimage_t2i_hq",
+    "name": "🌟 Z-Image Turbo DiT (Texte-à-Image 1024px HQ)",
+    "description": "Diffusion Transformer haute résolution 1024x1024 avec rendu photoréaliste et détails extrêmes.",
+    "category": "Images Spark",
+    "spark_file": "Images/zimage_01_text_to_image.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Masterpiece portrait, ultra detailed, 8k resolution"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_zimage",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 1024,
+          "height": 1024,
+          "steps": 8
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "image",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.996Z"
+  },
+  {
+    "workflow_id": "spark_ltx25_t2v",
+    "id": "spark_ltx25_t2v",
+    "name": "Vidéo LTX 2.5 (T2V)",
+    "description": "Inférence Texte-à-Vidéo 22B NVFP4 sur DGX Spark GB10. Résolution 768x512 ou 1080p, audio latent intégré.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/LTX-2.5/LTX 2.5 - 01 Texte vers video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic tracking shot, 35mm anamorphic, golden hour"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 768,
+          "height": 512,
+          "frames": 49
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_ltx25_i2v",
+    "id": "spark_ltx25_i2v",
+    "name": "Vidéo LTX 2.5 (I2V)",
+    "description": "Animation haute fidélité d'une image de départ via LTX-2.5 22B NVFP4 sur DGX Spark.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/LTX-2.5/LTX 2.5 - 02 Image vers video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_i2v",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "motion_bucket": 127
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "image",
+        "targetHandle": "image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_ltx25_morph",
+    "id": "spark_ltx25_morph",
+    "name": "Vidéo LTX 2.5 (Morph)",
+    "description": "Génération de transition fluide entre une première et une dernière image clé (Morphing cinématique).",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/LTX-2.5/LTX 2.5 - 03 Premiere-derniere image.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_start",
+        "position": {
+          "x": 80,
+          "y": 100
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_image_end",
+        "position": {
+          "x": 80,
+          "y": 250
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_spark_ltx_interpolate",
+        "position": {
+          "x": 420,
+          "y": 175
+        },
+        "data": {}
+      },
+      {
+        "id": "4",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 175
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-3",
+        "source": "1",
+        "target": "3",
+        "sourceHandle": "image",
+        "targetHandle": "start_image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "image",
+        "targetHandle": "end_image"
+      },
+      {
+        "id": "e3-4",
+        "source": "3",
+        "target": "4",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "ltx_ltx_images",
+    "id": "ltx_ltx_images",
+    "name": "Ltx images",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (LTX/Ltx images.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/Ltx images.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "ltx_miniseries_miniseries_ltx_2_5_continuation",
+    "id": "ltx_miniseries_miniseries_ltx_2_5_continuation",
+    "name": "Miniseries LTX 2.5 - Continuation",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (LTX/Miniseries/Miniseries LTX 2.5 - Continuation.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/Miniseries/Miniseries LTX 2.5 - Continuation.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "spark_miniseries_ltx",
+    "id": "spark_miniseries_ltx",
+    "name": "Mini-Série LTX 2.5",
+    "description": "Production automatisée de mini-séries épisodiques avec cohérence de scène et découpage technique.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/Miniseries/Miniseries LTX 2.5.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_series_script",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "episodes": 3
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_series",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "script",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "ltx_oga_oga_02_video_ltx25_texttovideo",
+    "id": "ltx_oga_oga_02_video_ltx25_texttovideo",
+    "name": "🎞️ LTX-2.5 22B NVFP4 (Texte vers Vidéo 1080p)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (LTX/OGA/OGA_02_Video_LTX25_TextToVideo.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/OGA/OGA_02_Video_LTX25_TextToVideo.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "ltx_t2v_hq",
+    "id": "ltx_t2v_hq",
+    "name": "🎬 LTX-2.5 22B NVFP4 (Texte-à-Vidéo SOTA)",
+    "description": "Modèle 22B NVFP4 ultra-rapide (8 étapes distillées) sur DGX Spark GB10. Audio latent natif synchronisé, résolution 768x512 / 1080p.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/ltx/ltx_01_text_to_video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic tracking shot, 35mm anamorphic, golden hour"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 768,
+          "height": 480,
+          "frames": 25,
+          "steps": 8
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.990Z"
+  },
+  {
+    "workflow_id": "ltx_i2v_hq",
+    "id": "ltx_i2v_hq",
+    "name": "🎬 LTX-2.5 22B NVFP4 (Image-à-Vidéo SOTA)",
+    "description": "Animation d une image de départ en vidéo cinématique avec audio latent synchronisé sur DGX Spark GB10.",
+    "category": "Vidéo LTX-2.5 Spark",
+    "spark_file": "LTX/ltx/ltx_02_image_to_video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_ltx_i2v",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "motion_bucket": 127
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "image",
+        "targetHandle": "image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.996Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_h3_fl2va_2ref",
+    "id": "mgp_mgp_h3_fl2va_2ref",
+    "name": "💎 MGP Hailuo H3 Production (MGP_h3_fl2va_2ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_h3_fl2va_2ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_h3_fl2va_2ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_h3_t2v_0ref",
+    "id": "mgp_mgp_h3_t2v_0ref",
+    "name": "💎 MGP Hailuo H3 Production (MGP_h3_t2v_0ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_h3_t2v_0ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_h3_t2v_0ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_ltx_av_2ref",
+    "id": "mgp_mgp_ltx_av_2ref",
+    "name": "💎 MGP LTX-2.5 AV Synchronisé (MGP_ltx_av_2ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_ltx_av_2ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_ltx_av_2ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_ltx_t2v_0ref",
+    "id": "mgp_mgp_ltx_t2v_0ref",
+    "name": "💎 MGP LTX-2.5 AV Synchronisé (MGP_ltx_t2v_0ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_ltx_t2v_0ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_ltx_t2v_0ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_music3",
+    "id": "mgp_mgp_music3",
+    "name": "💎 MGP Music 3 Orchestration (MGP_music3)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_music3.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_music3.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_qwen_edit_3ref",
+    "id": "mgp_mgp_qwen_edit_3ref",
+    "name": "💎 MGP Qwen3 Multi-Modal Edit (MGP_qwen_edit_3ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_qwen_edit_3ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_qwen_edit_3ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_qwen_t2i",
+    "id": "mgp_mgp_qwen_t2i",
+    "name": "💎 MGP Qwen3 Multi-Modal Edit (MGP_qwen_t2i)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_qwen_t2i.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_qwen_t2i.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_wan22_t2v_0ref",
+    "id": "mgp_mgp_wan22_t2v_0ref",
+    "name": "💎 MGP Wan 2.2 SOTA Pipeline (MGP_wan22_t2v_0ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_wan22_t2v_0ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_wan22_t2v_0ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "mgp_mgp_wan22_ti2v_1ref",
+    "id": "mgp_mgp_wan22_ti2v_1ref",
+    "name": "💎 MGP Wan 2.2 SOTA Pipeline (MGP_wan22_ti2v_1ref)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MGP/MGP_wan22_ti2v_1ref.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "MGP SOTA Spark",
+    "spark_file": "MGP/MGP_wan22_ti2v_1ref.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_sd15",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_cs_cs_h3_references_image_video_audio_vertical_9_16",
+    "id": "minimax_h3_cs_cs_h3_references_image_video_audio_vertical_9_16",
+    "name": "CS - H3 references image video audio (vertical 9-16)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/CS/CS - H3 references image video audio (vertical 9-16).json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/CS/CS - H3 references image video audio (vertical 9-16).json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_accelerated",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_accelerated",
+    "name": "DIR - minimax h3 director accelerated",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax h3 director accelerated.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax h3 director accelerated.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_two_pass_accelerated",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_two_pass_accelerated",
+    "name": "DIR - minimax h3 director two-pass accelerated",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax h3 director two-pass accelerated.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax h3 director two-pass accelerated.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_external_groups_i2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_external_groups_i2v",
+    "name": "DIR - minimax_h3_director_external_groups_i2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_external_groups_i2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_external_groups_i2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_external_groups_r2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_external_groups_r2v",
+    "name": "DIR - minimax_h3_director_external_groups_r2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_external_groups_r2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_external_groups_r2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_fl2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_fl2v",
+    "name": "DIR - minimax_h3_director_fl2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_fl2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_fl2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_r2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_r2v",
+    "name": "DIR - minimax_h3_director_r2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_r2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_r2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_rv2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_rv2v",
+    "name": "DIR - minimax_h3_director_rv2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_rv2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_rv2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_t2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_t2v",
+    "name": "DIR - minimax_h3_director_t2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_t2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_t2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_dir_dir_minimax_h3_director_v2v",
+    "id": "minimax_h3_dir_dir_minimax_h3_director_v2v",
+    "name": "DIR - minimax_h3_director_v2v",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/DIR/DIR - minimax_h3_director_v2v.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/DIR/DIR - minimax_h3_director_v2v.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "spark_h3_t2v",
+    "id": "spark_h3_t2v",
+    "name": "Vidéo MiniMax H3 (T2V)",
+    "description": "Génération cinématique photoréaliste via Hailuo H3 Turbo 4-step sur supercalculateur DGX Spark.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 01 Texte vers video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Ultra realistic epic aerial city battle, IMAX 70mm"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 768,
+          "height": 432,
+          "steps": 4
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_h3_i2v",
+    "id": "spark_h3_i2v",
+    "name": "Vidéo MiniMax H3 (I2V)",
+    "description": "Animation de personnages et scènes réelles avec respect des textures via MiniMax H3.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 02 Image vers video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_i2v",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "image",
+        "targetHandle": "image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_h3_long",
+    "id": "spark_h3_long",
+    "name": "Vidéo MiniMax H3 (Longue)",
+    "description": "Continuation de scènes pour production de vidéos longues et séquences complètes sans rupture.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 03 Continuation (videos longues).json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_video_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_continuation",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "extend_sec": 4
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "video",
+        "targetHandle": "prev_video"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "minimax_h3_h3_h3_04_reference_vers_video",
+    "id": "minimax_h3_h3_h3_04_reference_vers_video",
+    "name": "H3 - 04 Reference vers video",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/H3/H3 - 04 Reference vers video.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 04 Reference vers video.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "spark_h3_multiref",
+    "id": "spark_h3_multiref",
+    "name": "Vidéo MiniMax H3 (Multi-Ref)",
+    "description": "Verrouillage de personnages récurrents à partir de multiples photos de référence (Continuité acteur).",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 05 Reference multi-images.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_actor_references",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "count": 3
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_multiref",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "images",
+        "targetHandle": "references"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "minimax_h3_h3_h3_07_longvideos_multi_plans",
+    "id": "minimax_h3_h3_h3_07_longvideos_multi_plans",
+    "name": "H3 - 07 Longvideos (multi-plans)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/H3/H3 - 07 Longvideos (multi-plans).json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 07 Longvideos (multi-plans).json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "spark_camera_lora",
+    "id": "spark_camera_lora",
+    "name": "Caméra LoRA (Higgsfield)",
+    "description": "Contrôle physique des trajectoires caméra (Orbit, Push-in, Crash Zoom, FPV Drone).",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/H3 - 08 Mouvements de camera (LoRA).json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_motion_preset",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "motion": "FPV Orbit & Fast Push"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_camera_engine",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "motion",
+        "targetHandle": "lora_motion"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-13T12:00:00.000Z"
+  },
+  {
+    "workflow_id": "h3_t2v_hq",
+    "id": "h3_t2v_hq",
+    "name": "⚡ MiniMax H3 FL2VA NVFP4 (Texte-à-Vidéo Turbo)",
+    "description": "DiT MiniMax H3 FL2VA NVFP4 HQ avec LoRA Turbo 8-step. Rendu d action rapide, mouvements de caméra fluides.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/h3_01_text_to_video.json",
+    "thumbnail": "/assets/cinema/studio_film_65mm.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Action trailer shot, sports car racing at night, neon lights"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 832,
+          "height": 480,
+          "frames": 39,
+          "steps": 8
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.996Z"
+  },
+  {
+    "workflow_id": "h3_i2v_hq",
+    "id": "h3_i2v_hq",
+    "name": "⚡ MiniMax H3 FL2VA NVFP4 (Image-à-Vidéo Turbo)",
+    "description": "Animation d une image de référence via MiniMax H3 FL2VA NVFP4 et LoRA Turbo 8-step.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/H3/h3_02_image_to_video.json",
+    "thumbnail": "/assets/cinema/studio_film_65mm.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_i2v",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "image",
+        "targetHandle": "image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.996Z"
+  },
+  {
+    "workflow_id": "minimax_h3_minimax_h3_context_loop_new",
+    "id": "minimax_h3_minimax_h3_context_loop_new",
+    "name": "MiniMax-H3-Context-Loop-NEW",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/MiniMax-H3-Context-Loop-NEW.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/MiniMax-H3-Context-Loop-NEW.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_minimax_h3_context_loop",
+    "id": "minimax_h3_minimax_h3_context_loop",
+    "name": "MiniMax-H3-Context-Loop",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/MiniMax-H3-Context-Loop.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/MiniMax-H3-Context-Loop.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_oga_oga_03_video_minimaxh3_texttovideo",
+    "id": "minimax_h3_oga_oga_03_video_minimaxh3_texttovideo",
+    "name": "OGA_03_Video_MiniMaxH3_TextToVideo",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/OGA/OGA_03_Video_MiniMaxH3_TextToVideo.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/OGA/OGA_03_Video_MiniMaxH3_TextToVideo.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_tl_tl_minimax_h3_basic_timeline_planning",
+    "id": "minimax_h3_tl_tl_minimax_h3_basic_timeline_planning",
+    "name": "TL - MiniMax H3 basic timeline planning",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/TL/TL - MiniMax H3 basic timeline planning.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/TL/TL - MiniMax H3 basic timeline planning.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_tl_tl_minimax_h3_long_video_motion_transfer_character_replacement_digital_human",
+    "id": "minimax_h3_tl_tl_minimax_h3_long_video_motion_transfer_character_replacement_digital_human",
+    "name": "TL - MiniMax H3 long video motion transfer + character replacement + digital human",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/TL/TL - MiniMax H3 long video motion transfer + character replacement + digital human.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/TL/TL - MiniMax H3 long video motion transfer + character replacement + digital human.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_tl_tl_minimax_h3_time_planning_prompt_generation",
+    "id": "minimax_h3_tl_tl_minimax_h3_time_planning_prompt_generation",
+    "name": "TL - MiniMax H3 time planning + prompt generation",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/TL/TL - MiniMax H3 time planning + prompt generation.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/TL/TL - MiniMax H3 time planning + prompt generation.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_tl_tl_minimax_h3_timeline_planning_split_nodes",
+    "id": "minimax_h3_tl_tl_minimax_h3_timeline_planning_split_nodes",
+    "name": "TL - MiniMax H3 timeline planning split nodes",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/TL/TL - MiniMax H3 timeline planning split nodes.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/TL/TL - MiniMax H3 timeline planning split nodes.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_tl_tl_minimax_timeline_plugin_built_in_finite_segmentation",
+    "id": "minimax_h3_tl_tl_minimax_timeline_plugin_built_in_finite_segmentation",
+    "name": "TL - MiniMax timeline plugin built-in finite segmentation",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/TL/TL - MiniMax timeline plugin built-in finite segmentation.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/TL/TL - MiniMax timeline plugin built-in finite segmentation.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_tl_tl_minimax_h3_r2v_timeline_director",
+    "id": "minimax_h3_tl_tl_minimax_h3_r2v_timeline_director",
+    "name": "TL - minimax h3 r2v timeline director",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/TL/TL - minimax h3 r2v timeline director.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/TL/TL - minimax h3 r2v timeline director.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "minimax_h3_ultra_speed_singularity_minimax_h3_workflow",
+    "id": "minimax_h3_ultra_speed_singularity_minimax_h3_workflow",
+    "name": "Ultra+Speed+Singularity+Minimax+H3+Workflow",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (MiniMax-H3/Ultra+Speed+Singularity+Minimax+H3+Workflow.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo MiniMax Hailuo H3",
+    "spark_file": "MiniMax-H3/Ultra+Speed+Singularity+Minimax+H3+Workflow.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_h3_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "wan_oga_oga_05_video_wan21_t2v",
+    "id": "wan_oga_oga_05_video_wan21_t2v",
+    "name": "🎥 Wan 2.1 1.3B Flash (Texte vers Vidéo)",
+    "description": "Pipeline ComfyUI officiel DGX Spark GB10 (Wan/OGA/OGA_05_Video_Wan21_T2V.json). Exécution native haute vitesse avec 128 Go VRAM unifiée.",
+    "category": "Vidéo Wan 2.1 & 2.2 SOTA",
+    "spark_file": "Wan/OGA/OGA_05_Video_Wan21_T2V.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic production shot, 8k uhd"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_wan22",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "steps": 20
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-18T19:00:00Z"
+  },
+  {
+    "workflow_id": "spark_wan22_ti2v",
+    "id": "spark_wan22_ti2v",
+    "name": "Vidéo Wan 2.2 (TI2V SOTA 5B)",
+    "description": "Génération vidéo cinématographique SOTA Wan 2.2 5B TI2V (espace latent 48 canaux) sur DGX Spark GB10. Résolution 832x480, 16 fps, MP4 H.264 en 18 secondes.",
+    "category": "Vidéo Wan 2.1 & 2.2 SOTA",
+    "spark_file": "Wan/OGA/OGA_06_Video_Wan22_TI2V.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic cyberpunk flying car gliding over futuristic neon towers, hyperdetailed, 4k"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_wan22_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 832,
+          "height": 480,
+          "frames": 49,
+          "fps": 16
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "sourceHandle": "text",
+        "target": "2",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "sourceHandle": "video",
+        "target": "3",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T02:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_wan22_14b_t2v",
+    "id": "spark_wan22_14b_t2v",
+    "name": "Vidéo Wan 2.2 14B High Quality (T2V)",
+    "description": "Génération vidéo cinématique grand format Wan 2.2 14B Text-to-Video FP8 sur DGX Spark GB10. Rendu photoréaliste, cohérence physique et dynamique de caméra avancée.",
+    "category": "Vidéo Wan 2.1 & 2.2 SOTA",
+    "spark_file": "Wan/OGA/OGA_07_Video_Wan22_14B_T2V.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "A majestic cinematic caravan traversing golden Sahel sand dunes under blazing sun, 8k, hyper-detailed, 35mm film"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_wan22_video",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+          "width": 1280,
+          "height": 720,
+          "frames": 81,
+          "fps": 16
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "sourceHandle": "text",
+        "target": "2",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "sourceHandle": "video",
+        "target": "3",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "workflow_id": "spark_wan22_14b_i2v",
+    "id": "spark_wan22_14b_i2v",
+    "name": "Vidéo Wan 2.2 14B High Quality (I2V)",
+    "description": "Animation et dynamisation d'image haute fidélité Wan 2.2 14B Image-to-Video FP8 sur DGX Spark GB10. Transformation d'image fixe en vidéo fluide avec maintien strict de l'identité visuelle.",
+    "category": "Vidéo Wan 2.1 & 2.2 SOTA",
+    "spark_file": "Wan/OGA/OGA_08_Video_Wan22_14B_I2V.json",
+    "thumbnail": "/assets/cinema/studio_digital_s35.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_wan22_i2v",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "model": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+          "width": 1280,
+          "height": 720,
+          "frames": 81,
+          "fps": 16
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "sourceHandle": "image",
+        "target": "2",
+        "targetHandle": "image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "sourceHandle": "video",
+        "target": "3",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "workflow_id": "wan_t2v_hq",
+    "id": "wan_t2v_hq",
+    "name": "🔥 Wan 2.2 5B FP16 HD (Texte-à-Vidéo SOTA 720p)",
+    "description": "Modèle Wan 2.2 5.4B FP16 avec CLIP UMT5-XXL FP8. Dénommage 25 étapes, 33-49 frames cinématiques, résolution 832x480 / 1280x720 HD.",
+    "category": "Vidéo Wan 2.1 & 2.2 SOTA",
+    "spark_file": "Wan/wan/wan_01_text_to_video.json",
+    "thumbnail": "/assets/cinema/studio_technicolor.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_text_prompt",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {
+          "prompt": "Cinematic master shot, 4k resolution, photorealistic, intricate detail"
+        }
+      },
+      {
+        "id": "2",
+        "type": "node_spark_wan22",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 832,
+          "height": 480,
+          "frames": 33,
+          "steps": 25,
+          "cfg": 5
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "text",
+        "targetHandle": "prompt"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.996Z"
+  },
+  {
+    "workflow_id": "wan_i2v_hq",
+    "id": "wan_i2v_hq",
+    "name": "🔥 Wan 2.2 5B FP16 HD (Image-à-Vidéo SOTA)",
+    "description": "Animation cinématique haute fidélité guidée par image de départ avec conditionnement latent start_image.",
+    "category": "Vidéo Wan 2.1 & 2.2 SOTA",
+    "spark_file": "Wan/wan/wan_02_image_to_video.json",
+    "thumbnail": "/assets/cinema/studio_technicolor.webp",
+    "is_owner": true,
+    "nodes": [
+      {
+        "id": "1",
+        "type": "node_image_input",
+        "position": {
+          "x": 80,
+          "y": 150
+        },
+        "data": {}
+      },
+      {
+        "id": "2",
+        "type": "node_spark_wan22_i2v",
+        "position": {
+          "x": 420,
+          "y": 150
+        },
+        "data": {
+          "width": 832,
+          "height": 480,
+          "frames": 33,
+          "steps": 25
+        }
+      },
+      {
+        "id": "3",
+        "type": "node_display_media",
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "data": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "image",
+        "targetHandle": "image"
+      },
+      {
+        "id": "e2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "video",
+        "targetHandle": "media"
+      }
+    ],
+    "created_at": "2026-09-14T03:36:48.996Z"
+  }
+]

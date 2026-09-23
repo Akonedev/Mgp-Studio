@@ -3,6 +3,7 @@ import { muapi } from '../lib/muapi.js';
 import { CameraControls } from './CameraControls.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTURE_EFFECT } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
+import { localAI, isLocalAIAvailable } from '../lib/localInferenceClient.js';
 
 export function CinemaStudio() {
     const container = document.createElement('div');
@@ -234,7 +235,7 @@ export function CinemaStudio() {
 
     // Generate Button
     const generateBtn = document.createElement('button');
-    generateBtn.className = 'h-[56px] px-8 bg-[#d9ff00] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.className = 'h-[56px] px-8 bg-[#df9c43] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
@@ -395,7 +396,7 @@ export function CinemaStudio() {
     const createActionBtn = (label, primary = false) => {
         const btn = document.createElement('button');
         btn.className = primary
-            ? 'bg-[#d9ff00] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
+            ? 'bg-[#df9c43] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
             : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
         btn.textContent = label;
         return btn;
@@ -417,7 +418,7 @@ export function CinemaStudio() {
         historyList.innerHTML = '';
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
-            thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-[#d9ff00] shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
+            thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-[#df9c43] shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
 
             thumb.innerHTML = `
                 <img src="${entry.url}" class="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity">
@@ -458,11 +459,11 @@ export function CinemaStudio() {
         // Highlight active history item
         if (thumbElement) {
             historyList.querySelectorAll('div').forEach(t => {
-                t.classList.remove('border-[#d9ff00]', 'shadow-glow-sm');
+                t.classList.remove('border-[#df9c43]', 'shadow-glow-sm');
                 t.classList.add('border-white/10');
             });
             thumbElement.classList.remove('border-white/10');
-            thumbElement.classList.add('border-[#d9ff00]', 'shadow-glow-sm');
+            thumbElement.classList.add('border-[#df9c43]', 'shadow-glow-sm');
         }
     };
 
@@ -538,7 +539,8 @@ export function CinemaStudio() {
         if (!basePrompt) return;
 
         const apiKey = localStorage.getItem('muapi_key');
-        if (!apiKey) {
+        const isLocal = isLocalAIAvailable();
+        if (!apiKey && !isLocal) {
             AuthModal(() => generateBtn.click());
             return;
         }
@@ -556,13 +558,24 @@ export function CinemaStudio() {
         );
 
         try {
-            const res = await muapi.generateImage({
-                model: 'nano-banana-pro',
-                prompt: finalPrompt,
-                aspect_ratio: currentSettings.aspect_ratio,
-                resolution: (resBtn.dataset.value || '1k').toLowerCase(),
-                negative_prompt: "blurry, low quality, distortion, bad composition"
-            });
+            let res;
+            if (isLocal && !apiKey) {
+                const localResult = await localAI.generate({
+                    model: 'realistic-vision-v51',
+                    prompt: finalPrompt,
+                    aspect_ratio: currentSettings.aspect_ratio,
+                    negative_prompt: "blurry, low quality, distortion, bad composition"
+                });
+                res = { url: localResult.url || localResult };
+            } else {
+                res = await muapi.generateImage({
+                    model: 'nano-banana-pro',
+                    prompt: finalPrompt,
+                    aspect_ratio: currentSettings.aspect_ratio,
+                    resolution: (resBtn.dataset.value || '1k').toLowerCase(),
+                    negative_prompt: "blurry, low quality, distortion, bad composition"
+                });
+            }
 
             if (res && res.url) {
                 // Save to history

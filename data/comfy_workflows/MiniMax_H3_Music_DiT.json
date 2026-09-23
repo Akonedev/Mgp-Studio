@@ -1,0 +1,34 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "minimax_music3_dit_fp16.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "MiniMaxMusicPromptT8",
+    "inputs": {
+      "prompt": "Epic cinematic orchestral hybrid, Hans Zimmer style, deep brass braams, taiko drums, rising strings, 90 BPM",
+      "lyrics": "",
+      "instrumental": true
+    }
+  },
+  "3": {
+    "class_type": "MiniMaxMusicSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "conditioning": ["2", 0],
+      "duration": 180,
+      "guidance_scale": 7.0,
+      "steps": 20,
+      "seed": 771239
+    }
+  },
+  "4": {
+    "class_type": "SaveAudio",
+    "inputs": {
+      "audio": ["3", 0],
+      "filename_prefix": "OGA_MiniMax_H3_Music"
+    }
+  }
+}

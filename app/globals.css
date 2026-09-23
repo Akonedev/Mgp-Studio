@@ -1,27 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #050505;
-  color: white;
+  background: #070605;
+  color: #f7ede2;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 :root {
-  --color-primary: #d9ff00;
-  --bg-app: #030303;
-  --bg-panel: #0a0a0a;
-  --bg-card: #111111;
-  --border-color: rgba(255,255,255,0.05);
+  /* Palette "Ocre / Sable du Sahel" - Chaleureuse, Minérale, Élégante */
+  --color-primary: #df9c43;
+  --color-primary-hover: #e8aa55;
+  --color-primary-glow: rgba(223, 156, 67, 0.25);
+  --color-ocre-dark: #b6762c;
+  --color-sand-light: #f5ebe0;
+  
+  --bg-app: #070605;
+  --bg-panel: #0d0b09;
+  --bg-card: #14110d;
+  --border-color: rgba(223, 156, 67, 0.12);
   --border-radius-xl: 0.75rem;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(20, 17, 13, 0.65);
+  --glass-border: rgba(223, 156, 67, 0.16);
 }
 
 .glass-panel {
@@ -30,9 +36,13 @@ body {
   border: 1px solid var(--glass-border);
 }
 
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(223, 156, 67, 0.2); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(223, 156, 67, 0.4); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(12px); }

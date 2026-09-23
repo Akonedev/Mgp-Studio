@@ -217,7 +217,12 @@ function Dropdown({ isOpen, items, selectedId, onSelect, onClose, anchorRef }) {
               : "text-white font-medium"
           }`}
         >
-          <div>{item.name}</div>
+          <div className="font-semibold">{item.name}</div>
+          {item.provider && (
+            <div className="text-[10px] text-[#df9c43]/80 font-medium mt-0.5">
+              {item.provider}
+            </div>
+          )}
           {item.description && (
             <div className="text-xs text-muted mt-0.5">
               {item.description.slice(0, 60)}...
@@ -321,14 +326,59 @@ export default function LipSyncStudio({
   historyItems,
   droppedFiles,
   onFilesHandled,
+  sourceMedia,
+  onClearSourceMedia,
+  onOpenGalleryPicker,
 }) {
   const PERSIST_KEY = "hg_lipsync_studio_persistent";
 
   // ── Mode & model state ──────────────────────────────────────────────────
   const [inputMode, setInputMode] = useState("image"); // 'image' | 'video'
 
-  const currentModels =
-    inputMode === "image" ? imageLipSyncModels : videoLipSyncModels;
+  const [dynamicModels, setDynamicModels] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchValidModels() {
+      try {
+        const res = await fetch('/api/providers?action=valid_models&mode=avatar');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.models) && data.models.length > 0 && isMounted) {
+            setDynamicModels(data.models);
+            let preferredModel = null;
+            try {
+              const raw = localStorage.getItem("mode_settings");
+              if (raw) {
+                const s = JSON.parse(raw);
+                if (s.avatar?.model) {
+                  preferredModel = data.models.find((m) => m.id === s.avatar.model);
+                }
+              }
+            } catch (e) {}
+
+            const chosen =
+              preferredModel ||
+              data.models.find((m) => m.id === selectedModelId) ||
+              data.models[0];
+            if (chosen) {
+              setSelectedModelId(chosen.id);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[LipSyncStudio] Failed to load dynamic valid models:", err);
+      }
+    }
+    fetchValidModels();
+    return () => {
+      isMounted = false;
+    };
+  }, [inputMode]);
+
+  const currentModels = dynamicModels.length > 0
+    ? dynamicModels
+    : (inputMode === "image" ? imageLipSyncModels : videoLipSyncModels);
   const firstModel = currentModels[0];
 
   const [selectedModelId, setSelectedModelId] = useState(firstModel?.id ?? "");
@@ -353,6 +403,24 @@ export default function LipSyncStudio({
   const [imageProgress, setImageProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
   const [audioProgress, setAudioProgress] = useState(0);
+
+  // Consume injected source media from Gallery or another Studio
+  useEffect(() => {
+    if (sourceMedia && sourceMedia.url) {
+      console.log('[LipSyncStudio] Ingesting sourceMedia:', sourceMedia);
+      if (sourceMedia.type === 'video') {
+        setInputMode('video');
+        setVideoUrl(sourceMedia.url);
+        setVideoName(sourceMedia.filename || 'Source Video');
+        setVideoState(UPLOAD_STATE.READY);
+      } else {
+        setInputMode('image');
+        setImageUrl(sourceMedia.url);
+        setImageName(sourceMedia.filename || 'Source Portrait');
+        setImageState(UPLOAD_STATE.READY);
+      }
+    }
+  }, [sourceMedia]);
 
   // ── Prompt ──────────────────────────────────────────────────────────────
   const [prompt, setPrompt] = useState("");
@@ -583,11 +651,23 @@ export default function LipSyncStudio({
   // ── Model selection ─────────────────────────────────────────────────────
   const handleModelSelect = (model) => {
     setSelectedModelId(model.id);
-    const resolutions = getResolutionsForLipSyncModel(model.id);
+    const resolutions = model.inputs?.resolution?.enum || getResolutionsForLipSyncModel(model.id);
     if (resolutions.length > 0) {
       setSelectedResolution(
         model.inputs?.resolution?.default ?? resolutions[0],
       );
+    }
+    try {
+      const raw = localStorage.getItem("mode_settings") || "{}";
+      const settings = JSON.parse(raw);
+      settings.avatar = {
+        providerId: model.providerId || "spark-comfy",
+        model: model.id,
+      };
+      localStorage.setItem("mode_settings", JSON.stringify(settings));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {
+      console.warn("[LipSyncStudio] Failed to persist mode setting:", e);
     }
   };
 
@@ -934,6 +1014,20 @@ export default function LipSyncStudio({
                 isVideo={false}
                 apiKey={apiKey}
               />
+
+              {/* Gallery picker button */}
+              <button
+                type="button"
+                title="Choisir un portrait ou une vidéo source depuis la Galerie locale (DGX Spark)"
+                onClick={() => onOpenGalleryPicker?.('lipsync')}
+                className="w-10 h-10 shrink-0 rounded-full border border-[#df9c43]/40 bg-[#df9c43]/10 hover:bg-[#df9c43]/20 text-[#df9c43] flex items-center justify-center transition-all cursor-pointer shadow-sm group"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                  <rect width="18" height="18" x="3" y="3" rx="2"/>
+                  <path d="M3 9h18"/>
+                  <path d="M9 21V9"/>
+                </svg>
+              </button>
             </div>
 
             {/* Prompt textarea */}
@@ -966,12 +1060,12 @@ export default function LipSyncStudio({
                   }}
                   className="flex items-center gap-2 px-2 py-1.5 bg-white/[0.03] hover:bg-white/[0.06] rounded-md transition-all border border-white/[0.03] group whitespace-nowrap"
                 >
-                  <div className="w-3.5 h-3.5 bg-[#d9ff00] rounded-sm flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 bg-[#df9c43] rounded-sm flex items-center justify-center">
                     <span className="text-[9px] font-black text-black">
                       S
                     </span>
                   </div>
-                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                     {selectedModel?.name ?? "Select model"}
                   </span>
                   <svg
@@ -1010,7 +1104,7 @@ export default function LipSyncStudio({
                     }}
                     className="flex items-center gap-2 px-2 py-1.5 bg-white/[0.03] hover:bg-white/[0.06] rounded-md transition-all border border-white/[0.03] group whitespace-nowrap"
                   >
-                    <span className="text-xs font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                    <span className="text-xs font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                       {selectedResolution}
                     </span>
                   </button>
@@ -1031,7 +1125,7 @@ export default function LipSyncStudio({
               type="button"
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="bg-[#d9ff00] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#d9ff00]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#df9c43] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
                 <>

@@ -1,0 +1,60 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "ace_step_v35_xl_turbo_bf16.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["1", 1],
+      "text": "90s hip-hop, gangsta rap, g-funk, dark atmospheric rap, slow tempo 80 BPM, minor key, haunting choir, gospel choir, orchestral strings, staccato strings, deep 808 bass, sparse drums, crispy snare clap, cinematic"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["1", 1],
+      "text": "[Verse 1]\nDans les rues de la ville quand la nuit se pose\nChaque battement résonne comme une métamorphose\n[Chorus]\nÉlève le tempo, ressens la basse\nLe son nous emporte et jamais ne trépasse"
+    }
+  },
+  "4": {
+    "class_type": "ACEStepAudioLatent",
+    "inputs": {
+      "duration_seconds": 180,
+      "sample_rate": 48000,
+      "channels": 2,
+      "instrumental": false
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "positive": ["2", 0],
+      "negative": ["3", 0],
+      "latent_image": ["4", 0],
+      "seed": 428912,
+      "steps": 12,
+      "cfg": 6.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1.0
+    }
+  },
+  "6": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": {
+      "samples": ["5", 0],
+      "vae": ["1", 2]
+    }
+  },
+  "7": {
+    "class_type": "SaveAudio",
+    "inputs": {
+      "audio": ["6", 0],
+      "filename_prefix": "OGA_ACEStep35_Music"
+    }
+  }
+}

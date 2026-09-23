@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { generateImage, uploadFile } from "../muapi.js";
+import { generateImage, generateVideo, uploadFile } from "../muapi.js";
 
 // ─── Constants (inlined from promptUtils) ───────────────────────────────────
 
@@ -439,12 +439,164 @@ function CameraControlsOverlay({
   );
 }
 
+// ─── Model & Workflow Dropdown ───────────────────────────────────────────────
+
+function CinemaModelDropdown({ models, selectedModelId, onSelect, onClose }) {
+  const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+
+  const filtered = models.filter((m) => {
+    const s = search.toLowerCase();
+    const matchesSearch =
+      m.name.toLowerCase().includes(s) ||
+      m.id.toLowerCase().includes(s) ||
+      (m.provider && m.provider.toLowerCase().includes(s));
+    if (!matchesSearch) return false;
+
+    if (activeTab === "all") return true;
+    if (activeTab === "workflows") return m.category === "workflow" || m.id.startsWith("spark_") || m.id.startsWith("app_wf_") || m.id.startsWith("OGA_");
+    if (activeTab === "video") return (m.type === "video" || m.mode === "video" || m.id.includes("wan") || m.id.includes("ltx")) && m.category !== "workflow";
+    if (activeTab === "image") return (m.type === "image" || m.mode === "image" || m.id.includes("sd") || m.id.includes("turbo") || m.id.includes("qwen_image")) && m.category !== "workflow";
+    if (activeTab === "director") return m.category === "director" || m.type === "director" || m.id.includes("director");
+    return true;
+  });
+
+  const getCategoryBadge = (m) => {
+    if (m.category === "workflow" || m.id.startsWith("spark_") || m.id.startsWith("app_wf_") || m.id.startsWith("OGA_")) {
+      return { label: "WKF", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" };
+    }
+    if (m.category === "director" || m.type === "director" || m.id.includes("director")) {
+      return { label: "DIR", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" };
+    }
+    if (m.type === "video" || m.mode === "video" || m.id.includes("wan") || m.id.includes("ltx")) {
+      return { label: "VID", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" };
+    }
+    return { label: "IMG", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" };
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-80 sm:w-96 md:w-[420px] max-h-[360px] bg-[#0d0d0d] border border-white/20 rounded-xl p-3 shadow-[0_20px_60px_rgba(0,0,0,0.95)] z-50">
+      {/* Search Bar */}
+      <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/5 focus-within:border-[#df9c43]/50 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white/40">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Filtrer modèles & workflows ComfyUI..."
+          value={search}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => setSearch(e.target.value)}
+          className="bg-transparent border-none text-xs text-white focus:outline-none w-full p-0 placeholder:text-white/30"
+          autoFocus
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setSearch(""); }}
+            className="text-white/40 hover:text-white text-xs"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* Category Tabs */}
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 border-b border-white/5 text-[10px] font-bold">
+        {[
+          { id: "all", label: "Tous" },
+          { id: "workflows", label: "🎬 Workflows" },
+          { id: "video", label: "⚡ Vidéo" },
+          { id: "image", label: "🖼️ Image" },
+          { id: "director", label: "🌐 Directeur" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            data-cinema-tab={tab.id}
+            onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id); }}
+            className={`px-2.5 py-1 rounded-md transition-all whitespace-nowrap ${
+              activeTab === tab.id
+                ? "bg-[#df9c43] text-black font-extrabold shadow-sm"
+                : "text-white/60 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Model List */}
+      <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar pr-1 max-h-52">
+        {filtered.length === 0 ? (
+          <div className="text-center py-6 text-xs text-white/30 italic">
+            Aucun modèle ou workflow trouvé pour cette recherche
+          </div>
+        ) : (
+          filtered.map((m) => {
+            const isSelected = m.id === selectedModelId;
+            const badge = getCategoryBadge(m);
+            return (
+              <button
+                key={m.id}
+                type="button"
+                data-cinema-model-item="true"
+                data-model-id={m.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(m);
+                  onClose();
+                }}
+                className={`w-full text-left p-2.5 rounded-lg transition-all flex items-center justify-between border ${
+                  isSelected
+                    ? "bg-[#df9c43]/15 border-[#df9c43]/40 text-white shadow-sm"
+                    : "border-transparent hover:border-white/10 hover:bg-white/5 text-white/80 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border shrink-0 ${badge.color}`}>
+                    {badge.label}
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-semibold truncate leading-tight">
+                      {m.name}
+                    </span>
+                    <div className="flex items-center gap-1.5 text-[9px] text-white/40 mt-0.5">
+                      <span className="text-[#df9c43]/80 font-medium truncate max-w-[150px]">
+                        {m.provider || "DGX Spark GB10"}
+                      </span>
+                      {m.category === "workflow" && (
+                        <span className="px-1 py-0.2 bg-purple-500/10 text-purple-300 rounded text-[8px]">
+                          ComfyUI WKF
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {isSelected && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#df9c43" strokeWidth="3" className="shrink-0 ml-2">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CinemaStudio({
   apiKey,
   onGenerationComplete,
   historyItems,
+  sourceMedia,
+  onClearSourceMedia,
+  onOpenGalleryPicker,
 }) {
   const PERSIST_KEY = "hg_cinema_studio_persistent";
 
@@ -470,13 +622,75 @@ export default function CinemaStudio({
   const imageInputRef = useRef(null);
   const [activeHistoryIndex, setactiveHistoryIndex] = useState(null);
 
+  // Consume injected source media from Gallery or another Studio
+  useEffect(() => {
+    if (sourceMedia && sourceMedia.url) {
+      console.log('[CinemaStudio] Ingesting sourceMedia:', sourceMedia);
+      setUploadedImage(sourceMedia.url);
+      if (sourceMedia.prompt) {
+        setSettings(prev => ({
+          ...prev,
+          prompt: prev.prompt || sourceMedia.prompt
+        }));
+      }
+    }
+  }, [sourceMedia]);
+
   // ── Internal history state (used when historyItems prop is not provided) ──
   const [internalHistory, setInternalHistory] = useState([]);
 
   // ── Dropdown state ──
-  const [openDropdown, setOpenDropdown] = useState(null); // 'ar' | 'res' | null
+  const [openDropdown, setOpenDropdown] = useState(null); // 'model' | 'ar' | 'res' | null
   const arBtnRef = useRef(null);
   const resBtnRef = useRef(null);
+  const modelBtnRef = useRef(null);
+
+  // ── Dynamic models state ──
+  const [dynamicModels, setDynamicModels] = useState([]);
+  const [selectedModelId, setSelectedModelId] = useState("DreamShaper_8_pruned.safetensors");
+  const [selectedModelName, setSelectedModelName] = useState("DreamShaper 8 SD 1.5 (Spark GB10)");
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchValidModels() {
+      try {
+        const res = await fetch("/api/providers?action=valid_models&mode=cinema");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.models) && data.models.length > 0 && isMounted) {
+            setDynamicModels(data.models);
+            let preferredModel = null;
+            try {
+              const raw = localStorage.getItem("mode_settings");
+              if (raw) {
+                const s = JSON.parse(raw);
+                if (s.cinema?.model) {
+                  preferredModel = data.models.find((m) => m.id === s.cinema.model);
+                } else if (s.image?.model) {
+                  preferredModel = data.models.find((m) => m.id === s.image.model);
+                }
+              }
+            } catch (e) {}
+
+            const chosen =
+              preferredModel ||
+              data.models.find((m) => m.id === selectedModelId) ||
+              data.models[0];
+            if (chosen) {
+              setSelectedModelId(chosen.id);
+              setSelectedModelName(chosen.name);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[CinemaStudio] Failed to load dynamic valid models:", err);
+      }
+    }
+    fetchValidModels();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // ── Textarea auto-grow ──
   const textareaRef = useRef(null);
@@ -588,19 +802,46 @@ export default function CinemaStudio({
     );
 
     try {
-      const res = await generateImage(apiKey, {
-        model: uploadedImage ? "nano-banana-pro-edit" : "nano-banana-pro",
-        prompt: finalPrompt,
-        aspect_ratio: settings.aspect_ratio,
-        resolution: resolution.toLowerCase(),
-        negative_prompt: "blurry, low quality, distortion, bad composition",
-        images_list: uploadedImage ? [uploadedImage] : [],
-      });
+      const selectedM = dynamicModels.find((m) => m.id === selectedModelId);
+      const isVideo =
+        selectedM?.type === "video" ||
+        selectedM?.mode === "video" ||
+        (selectedM?.category === "workflow" && (selectedModelId.includes("video") || selectedModelId.includes("wan") || selectedModelId.includes("ltx"))) ||
+        selectedModelId.includes("wan") ||
+        selectedModelId.includes("ltx") ||
+        selectedModelId.includes("seedance") ||
+        selectedModelId.includes("video");
+
+      let res;
+      if (isVideo) {
+        res = await generateVideo(apiKey, {
+          model: selectedModelId,
+          provider: selectedM?.providerId || "spark-comfy",
+          prompt: finalPrompt,
+          duration: 2,
+          resolution: resolution === "4K" ? "1280x720" : resolution === "2K" ? "960x544" : "832x480",
+          image_url: uploadedImage || undefined,
+        });
+      } else {
+        res = await generateImage(apiKey, {
+          model: selectedModelId,
+          provider: selectedM?.providerId || "spark-comfy",
+          prompt: finalPrompt,
+          aspect_ratio: settings.aspect_ratio,
+          resolution: resolution.toLowerCase(),
+          negative_prompt: "blurry, low quality, distortion, bad composition",
+          images_list: uploadedImage ? [uploadedImage] : [],
+          image_url: uploadedImage || undefined,
+        });
+      }
 
       if (res && res.url) {
         const entry = {
+          id: res.id || `cinema-${Date.now()}`,
           url: res.url,
+          type: isVideo ? "video" : "image",
           timestamp: Date.now(),
+          metrics: res.metrics,
           settings: {
             prompt: basePrompt,
             camera: settings.camera,
@@ -609,6 +850,8 @@ export default function CinemaStudio({
             aperture: settings.aperture,
             aspect_ratio: settings.aspect_ratio,
             resolution,
+            model: selectedModelId,
+            workflow: selectedM?.category === "workflow" ? selectedM.name : undefined,
           },
         };
 
@@ -622,17 +865,18 @@ export default function CinemaStudio({
         if (onGenerationComplete) {
           onGenerationComplete({
             url: res.url,
-            model: "nano-banana-pro",
+            model: selectedModelId,
             prompt: basePrompt,
-            type: "cinema",
+            type: isVideo ? "video" : "cinema",
+            metrics: res.metrics,
           });
         }
       } else {
-        throw new Error("No data returned");
+        throw new Error("No media returned from generation service");
       }
     } catch (e) {
       console.error(e);
-      alert("Generation Failed: " + e.message);
+      alert("Cinema Generation Failed: " + e.message);
     } finally {
       setIsGenerating(false);
     }
@@ -643,6 +887,9 @@ export default function CinemaStudio({
     isGenerating,
     onGenerationComplete,
     historyItems,
+    selectedModelId,
+    dynamicModels,
+    uploadedImage,
   ]);
 
   // ── Regenerate ──
@@ -673,6 +920,7 @@ export default function CinemaStudio({
 
   // ── Load history item ──
   const loadHistoryItem = (entry, idx) => {
+    const promptVal = entry.settings?.prompt || entry.prompt || "";
     if (entry.settings) {
       setSettings((prev) => ({
         ...prev,
@@ -681,19 +929,38 @@ export default function CinemaStudio({
         focal: entry.settings.focal ?? prev.focal,
         aperture: entry.settings.aperture ?? prev.aperture,
         aspect_ratio: entry.settings.aspect_ratio ?? prev.aspect_ratio,
-        prompt: entry.settings.prompt ?? prev.prompt,
+        prompt: promptVal,
       }));
       if (entry.settings.resolution) setResolution(entry.settings.resolution);
+    } else if (promptVal) {
+      setSettings((prev) => ({ ...prev, prompt: promptVal }));
+    }
 
-      // Sync textarea height
-      if (textareaRef.current) {
-        textareaRef.current.value = entry.settings.prompt || "";
-        textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height =
-          textareaRef.current.scrollHeight + "px";
-      }
+    // Sync textarea height
+    if (textareaRef.current) {
+      textareaRef.current.value = promptVal;
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + "px";
+      setTimeout(() => textareaRef.current?.focus(), 50);
     }
     setCanvasUrl(entry.url);
+  };
+
+  const handleDeleteItem = async (entry, e) => {
+    if (e) e.stopPropagation();
+    if (!confirm('Supprimer définitivement ce plan cinématographique ?')) return;
+    try {
+      if (entry?.id) {
+        await fetch(`/api/history?id=${entry.id}`, { method: 'DELETE' });
+      }
+      setHistory(prev => prev.filter(item => (entry.id ? item.id !== entry.id : item.url !== entry.url)));
+      if (canvasUrl === entry.url) {
+        resetToPrompt();
+      }
+    } catch (err) {
+      console.error('[CinemaStudio] Delete failed:', err);
+    }
   };
 
   const resetToPrompt = () => {
@@ -714,83 +981,181 @@ export default function CinemaStudio({
       <div className="flex-1 w-full max-w-7xl mx-auto overflow-y-auto custom-scrollbar pb-40 lg:pb-32 px-2">
         {history.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full pt-4 animate-fade-in-up">
-            {history.map((entry, idx) => (
-              <div
-                key={entry.timestamp ?? idx}
-                className="relative group rounded-lg overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-xl hover:border-[#d9ff00]/50 transition-all duration-300 flex flex-col cursor-pointer"
-                onClick={() => loadHistoryItem(entry, idx)}
-              >
-                <img
-                  src={entry.url}
-                  alt={`History item ${idx + 1}`}
-                  className="w-full aspect-[4/3] object-cover bg-black/40"
-                />
-                
-                {/* Overlay actions */}
-                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    type="button"
-                    title="Fullscreen"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFullscreenUrl(entry.url);
-                    }}
-                    className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-[#d9ff00] hover:text-black transition-all border border-white/10"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="15 3 21 3 21 9" />
-                      <polyline points="9 21 3 21 3 15" />
-                      <line x1="21" y1="3" x2="14" y2="10" />
-                      <line x1="3" y1="21" x2="10" y2="14" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    title="Download"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const response = await fetch(entry.url);
-                        const blob = await response.blob();
-                        const blobUrl = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = blobUrl;
-                        a.download = `cinema-shot-${entry.id || idx}.jpg`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(blobUrl);
-                      } catch {
-                        window.open(entry.url, "_blank");
-                      }
-                    }}
-                    className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-[#d9ff00] hover:text-black transition-all border border-white/10"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                    </svg>
-                  </button>
-                </div>
+            {history.map((entry, idx) => {
+              const isVideo = entry.type === "video" || entry.url?.endsWith(".mp4") || entry.url?.includes(".mp4");
+              return (
+                <div
+                  key={entry.timestamp ?? idx}
+                  className="relative group rounded-lg overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-xl hover:border-[#df9c43]/50 transition-all duration-300 flex flex-col cursor-pointer"
+                  onClick={() => loadHistoryItem(entry, idx)}
+                >
+                  {isVideo ? (
+                    <div className="relative w-full aspect-[4/3] bg-black/60 flex items-center justify-center overflow-hidden">
+                      <video
+                        src={entry.url}
+                        className="w-full h-full object-cover"
+                        controls={false}
+                        loop
+                        muted
+                        playsInline
+                        onMouseOver={(e) => e.target.play()}
+                        onMouseOut={(e) => {
+                          e.target.pause();
+                          e.target.currentTime = 0;
+                        }}
+                      />
+                      <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/70 border border-white/10 text-[9px] text-amber-400 font-bold flex items-center gap-1 z-10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        VIDEO
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={entry.url}
+                      alt={`History item ${idx + 1}`}
+                      className="w-full aspect-[4/3] object-cover bg-black/40"
+                    />
+                  )}
+                  
+                  {/* Overlay actions */}
+                  <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <button
+                      type="button"
+                      title="Fullscreen"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFullscreenUrl(entry.url);
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-[#df9c43] hover:text-black transition-all border border-white/10"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="15 3 21 3 21 9" />
+                        <polyline points="9 21 3 21 3 15" />
+                        <line x1="21" y1="3" x2="14" y2="10" />
+                        <line x1="3" y1="21" x2="10" y2="14" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Download"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const response = await fetch(entry.url);
+                          const blob = await response.blob();
+                          const blobUrl = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = blobUrl;
+                          a.download = `cinema-${isVideo ? "clip" : "shot"}-${entry.id || idx}.${isVideo ? "mp4" : "jpg"}`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(blobUrl);
+                        } catch {
+                          window.open(entry.url, "_blank");
+                        }
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-[#df9c43] hover:text-black transition-all border border-white/10"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Régénérer ou charger cette prise"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        loadHistoryItem(entry, idx);
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-[#df9c43] hover:bg-[#df9c43] hover:text-black transition-all border border-[#df9c43]/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                        <path d="M16 21h5v-5"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Supprimer définitivement ce plan"
+                      onClick={(e) => handleDeleteItem(entry, e)}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                      </svg>
+                    </button>
+                  </div>
 
-                {/* Details */}
-                <div className="p-3 bg-black/80 backdrop-blur-sm border-t border-white/5 flex-1 flex flex-col justify-between gap-2">
-                  <p className="text-white/70 text-xs line-clamp-3 leading-relaxed">
-                    {entry.settings?.prompt || "No prompt"}
-                  </p>
-                  <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
-                    <span className="text-[10px] font-bold text-[#d9ff00] px-2 py-0.5 bg-[#d9ff00]/10 rounded border border-[#d9ff00]/20">
-                      {entry.settings?.camera || "Standard"}
-                    </span>
-                    <div className="flex gap-2">
-                      <span className="text-[10px] text-white/40">{entry.settings?.lens || "35mm"}</span>
-                      {entry.settings?.aspect_ratio && (
-                        <span className="text-[10px] text-white/40">{entry.settings.aspect_ratio}</span>
-                      )}
+                  {/* Details */}
+                  <div className="p-3 bg-black/80 backdrop-blur-sm border-t border-white/5 flex-1 flex flex-col justify-between gap-2">
+                    <p className="text-white/70 text-xs line-clamp-2 leading-relaxed" title={entry.settings?.prompt || entry.prompt}>
+                      {entry.settings?.prompt || entry.prompt || "No prompt"}
+                    </p>
+
+                    {/* Telemetry Metrics Bar */}
+                    {(entry.metrics || entry.settings?.workflow) && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-white/5 text-[9px] text-white/50 flex-wrap">
+                        {entry.metrics?.generationTimeSeconds != null && (
+                          <span className="flex items-center gap-0.5 text-amber-400/90 font-mono">
+                            ⏱️ {entry.metrics.generationTimeSeconds}s
+                          </span>
+                        )}
+                        {entry.metrics?.totalTokens != null && (
+                          <span className="flex items-center gap-0.5 text-cyan-400/90 font-mono">
+                            🪙 {entry.metrics.totalTokens} tk
+                          </span>
+                        )}
+                        {entry.metrics?.cost != null && (
+                          <span className="flex items-center gap-0.5 text-emerald-400/90 font-mono">
+                            💰 {entry.metrics.cost}
+                          </span>
+                        )}
+                        <span className="px-1 py-0.2 bg-white/5 rounded text-[8px] text-[#df9c43]/80 font-mono truncate max-w-[100px]">
+                          {entry.metrics?.computeDevice?.includes('GB10') ? '⚡ GB10' : entry.metrics?.computeDevice ? '💻 sd.cpp' : '⚡ Spark'}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
+                      <span className="text-[10px] font-bold text-[#df9c43] px-2 py-0.5 bg-[#df9c43]/10 rounded border border-[#df9c43]/20">
+                        {entry.settings?.camera || "Standard"}
+                      </span>
+                      <div className="flex gap-2">
+                        <span className="text-[10px] text-white/40">{entry.settings?.lens || "35mm"}</span>
+                        {entry.settings?.aspect_ratio && (
+                          <span className="text-[10px] text-white/40">{entry.settings.aspect_ratio}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick Card Action Buttons */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-1 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          loadHistoryItem(entry, idx);
+                        }}
+                        className="flex-1 py-1 px-2 rounded bg-[#df9c43]/15 hover:bg-[#df9c43]/30 text-[#df9c43] border border-[#df9c43]/30 text-[10px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      >
+                        🔄 Régénérer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteItem(entry, e)}
+                        className="py-1 px-2 rounded bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/20 text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
+                        title="Supprimer"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in-up transition-all duration-700 min-h-[50vh]">
@@ -818,7 +1183,7 @@ export default function CinemaStudio({
       </div>
 
       {/* ── BOTTOM PROMPT BAR ── */}
-      <div className="absolute bottom-4 left-4 right-4 md:left-0 md:right-0 md:mx-auto md:max-w-[95%] lg:max-w-4xl z-30 transition-all duration-700 animate-fade-in-up">
+      <div className="absolute bottom-4 left-4 right-4 md:left-0 md:right-0 md:mx-auto md:max-w-[95%] lg:max-w-4xl z-40 transition-all duration-700 animate-fade-in-up">
         <div className="bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-md p-4 flex justify-between shadow-2xl items-end relative gap-2">
           {/* Left Column */}
           <div className="flex-1 flex flex-col gap-3 min-h-[80px] justify-between py-1">
@@ -894,6 +1259,22 @@ export default function CinemaStudio({
                 </button>
               </div>
 
+              {/* Gallery picker button */}
+              <div className="relative pt-0.5">
+                <button
+                  type="button"
+                  title="Choisir une image de référence depuis la Galerie (DGX Spark)"
+                  onClick={() => onOpenGalleryPicker?.('cinema')}
+                  className="w-10 h-10 shrink-0 rounded-full border border-[#df9c43]/40 bg-[#df9c43]/10 hover:bg-[#df9c43]/20 text-[#df9c43] flex items-center justify-center transition-all cursor-pointer shadow-sm group"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                    <path d="M3 9h18"/>
+                    <path d="M9 21V9"/>
+                  </svg>
+                </button>
+              </div>
+
               <textarea
                 ref={textareaRef}
                 placeholder="Describe your cinema scene..."
@@ -904,6 +1285,46 @@ export default function CinemaStudio({
             </div>
             <div className="flex justify-between gap-2">
               <div className="flex flex-wrap items-center gap-3">
+                {/* Model Selector Button */}
+                <div className="relative">
+                  <button
+                    ref={modelBtnRef}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.03] hover:bg-white/10 text-xs font-bold text-white/70 hover:text-[#df9c43] transition-colors rounded-md border border-white/[0.03]"
+                    onClick={() =>
+                      setOpenDropdown((d) => (d === "model" ? null : "model"))
+                    }
+                  >
+                    <div className="w-3.5 h-3.5 bg-[#df9c43] rounded-sm flex items-center justify-center">
+                      <span className="text-[9px] font-black text-black uppercase">C</span>
+                    </div>
+                    <span className="truncate max-w-[130px]">{selectedModelName}</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-40">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                  {openDropdown === "model" && (
+                    <div className="absolute bottom-[calc(100%+8px)] left-0 z-50">
+                      <CinemaModelDropdown
+                        models={dynamicModels}
+                        selectedModelId={selectedModelId}
+                        onSelect={(m) => {
+                          setSelectedModelId(m.id);
+                          setSelectedModelName(m.name);
+                          setOpenDropdown(null);
+                          try {
+                            const raw = localStorage.getItem("mode_settings") || "{}";
+                            const s = JSON.parse(raw);
+                            s.cinema = { providerId: m.providerId || "spark-comfy", model: m.id };
+                            localStorage.setItem("mode_settings", JSON.stringify(s));
+                            window.dispatchEvent(new Event("storage"));
+                          } catch (e) {}
+                        }}
+                        onClose={() => setOpenDropdown(null)}
+                      />
+                    </div>
+                  )}
+                </div>
+
                 {/* Aspect Ratio Button */}
                 <div className="relative">
                   <button
@@ -962,18 +1383,18 @@ export default function CinemaStudio({
                   className="flex flex-col items-start justify-center px-4 py-1.5 bg-white/[0.03] rounded-md border border-white/[0.03] hover:border-white/20 transition-all text-left flex-1 min-w-[100px] md:min-w-[160px] max-w-[240px] h-[50px] relative group overflow-hidden"
                   onClick={() => setIsOverlayOpen(true)}
                 >
-                  <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-[#d9ff00] rounded-full shadow-lg shadow-[#d9ff00]/20" />
+                  <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-[#df9c43] rounded-full shadow-lg shadow-[#df9c43]/20" />
                   <span className="text-[9px] font-bold text-white/30 uppercase truncate w-full tracking-wider group-hover:text-white transition-colors">
                     {settings.camera}
                   </span>
-                  <span className="text-xs font-semibold text-white/70 truncate w-full group-hover:text-[#d9ff00] transition-colors">
+                  <span className="text-xs font-semibold text-white/70 truncate w-full group-hover:text-[#df9c43] transition-colors">
                     {formatSummaryValue()}
                   </span>
                 </button>
 
                 {/* Generate Button */}
                 <button
-                  className="h-[50px] px-8 bg-[#d9ff00] text-black rounded-md font-medium text-sm hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#d9ff00]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-[50px] px-8 bg-[#df9c43] text-black rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isGenerating || !settings.prompt.trim()}
                   onClick={handleGenerate}
                 >
@@ -1010,12 +1431,22 @@ export default function CinemaStudio({
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
-          <img 
-            src={fullscreenUrl} 
-            alt="Fullscreen Preview" 
-            className="max-w-[95vw] max-h-[95vh] rounded-2xl shadow-2xl object-contain animate-scale-up" 
-            onClick={(e) => e.stopPropagation()}
-          />
+          {fullscreenUrl.endsWith('.mp4') || fullscreenUrl.includes('.mp4') ? (
+            <video 
+              src={fullscreenUrl} 
+              controls 
+              autoPlay
+              className="max-w-[95vw] max-h-[95vh] rounded-2xl shadow-2xl object-contain animate-scale-up" 
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <img 
+              src={fullscreenUrl} 
+              alt="Fullscreen Preview" 
+              className="max-w-[95vw] max-h-[95vh] rounded-2xl shadow-2xl object-contain animate-scale-up" 
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
         </div>
       )}  
       {/* ── Camera Controls Overlay ── */}

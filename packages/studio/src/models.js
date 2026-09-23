@@ -1,37 +1,63 @@
 // Auto-generated from models_dump.json
 export const t2iModels = [
   {
-    "id": "nano-banana",
-    "name": "Nano Banana",
-    "endpoint": "nano-banana",
+    "id": "DreamShaper_8_pruned.safetensors",
+    "name": "DreamShaper 8 SD 1.5 (Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
     "inputs": {
       "prompt": {
-        "examples": [
-          "A portrait of me in a modern living room. Change it so I’m dressed in 1950s attire with a polka-dot dress, while maintaining my face and hairstyle."
-        ],
-        "description": "Text prompt describing the image, what you want the final edited image to look like.",
+        "description": "Text prompt describing the image.",
         "type": "string",
         "title": "Prompt",
         "name": "prompt"
       },
       "aspect_ratio": {
         "enum": [
-          "1:1",
-          "3:4",
-          "4:3",
-          "9:16",
           "16:9",
+          "1:1",
+          "9:16",
+          "4:3",
           "3:2",
-          "2:3",
-          "5:4",
-          "4:5",
           "21:9"
         ],
         "title": "Aspect Ratio",
         "name": "aspect_ratio",
         "type": "string",
-        "description": "Aspect ratio of the output image.",
-        "default": "1:1"
+        "default": "16:9"
+      },
+      "resolution": {
+        "enum": ["768x512", "1024x1024", "1280x720"],
+        "title": "Resolution",
+        "name": "resolution",
+        "type": "string",
+        "default": "768x512"
+      }
+    }
+  },
+  {
+    "id": "qwen_image_2512_fp8_e4m3fn.safetensors",
+    "name": "Qwen Image 2512 FP8 (Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "inputs": {
+      "prompt": {
+        "description": "Text prompt describing the image.",
+        "type": "string",
+        "title": "Prompt",
+        "name": "prompt"
+      },
+      "aspect_ratio": {
+        "enum": [
+          "16:9",
+          "1:1",
+          "9:16",
+          "4:3",
+          "3:2",
+          "21:9"
+        ],
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "type": "string",
+        "default": "16:9"
       }
     }
   },
@@ -2199,6 +2225,61 @@ export const getAspectRatiosForModel = (modelId) => {
 // ==========================================
 export const t2vModels = [
   {
+    "id": "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+    "name": "Wan 2.2 14B High Quality T2V (DGX Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "Génération vidéo photoréaliste Wan 2.2 14B Text-to-Video FP8 sur DGX Spark GB10" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1", "4:3", "21:9"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "description": "Aspect ratio of the output video.", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "description": "Duration in seconds", "default": 3 },
+      "resolution": { "enum": ["1280x720", "1920x1080", "832x480"], "title": "Resolution", "name": "resolution", "type": "string", "description": "Resolution", "default": "1280x720" }
+    }
+  },
+  {
+    "id": "wan2.2_ti2v_5B_fp16.safetensors",
+    "name": "Wan 2.2 5B TI2V (DGX Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "Génération vidéo cinématographique Wan 2.2 5B TI2V sur DGX Spark GB10" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1", "4:3"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "description": "Aspect ratio of the output video.", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "description": "Duration in seconds", "default": 2 },
+      "resolution": { "enum": ["832x480", "1280x720"], "title": "Resolution", "name": "resolution", "type": "string", "description": "Resolution", "default": "832x480" }
+    }
+  },
+  {
+    "id": "wan2.1_t2v_1.3B_bf16.safetensors",
+    "name": "Wan 2.1 1.3B (DGX Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "Cinematic text-to-video Wan 2.1 1.3B on DGX Spark GB10" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "description": "Aspect ratio of the output video.", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "description": "Duration in seconds", "default": 2 },
+      "resolution": { "enum": ["832x480", "1280x720"], "title": "Resolution", "name": "resolution", "type": "string", "description": "Resolution", "default": "832x480" }
+    }
+  },
+  {
+    "id": "MiniMax-H3_FL2VA-NVFP4-HQ.safetensors",
+    "name": "MiniMax Hailuo H3 Turbo (Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "High quality video MiniMax H3 on DGX Spark GB10" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "description": "Aspect ratio of the output video.", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "description": "Duration in seconds", "default": 2 },
+      "resolution": { "enum": ["832x480", "1280x720"], "title": "Resolution", "name": "resolution", "type": "string", "description": "Resolution", "default": "832x480" }
+    }
+  },
+  {
+    "id": "ltx-2.5-22b-distilled-transformer-nvfp4-comfy-v2.safetensors",
+    "name": "LTX-2.5 22B NVFP4 (Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "LTX-2.5 22B video on DGX Spark GB10" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "description": "Aspect ratio of the output video.", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "description": "Duration in seconds", "default": 2 },
+      "resolution": { "enum": ["832x480", "1280x720"], "title": "Resolution", "name": "resolution", "type": "string", "description": "Resolution", "default": "832x480" }
+    }
+  },
+  {
     "id": "seedance-lite-t2v",
     "name": "Seedance Lite",
     "inputs": {
@@ -2633,13 +2714,38 @@ export const getResolutionsForVideoModel = (modelId) => {
 // Auto-generated from schema_data.json — Image to Image models
 export const i2iModels = [
   {
-    "id": "ai-image-upscaler",
-    "name": "AI Image Upscaler",
-    "endpoint": "ai-image-upscale",
-    "family": "tools",
+    "id": "qwen_image_edit_2511_int8_convrot.safetensors",
+    "name": "Qwen Image Edit (Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "family": "qwen",
     "imageField": "image_url",
-    "hasPrompt": false,
-    "inputs": {}
+    "hasPrompt": true,
+    "inputs": {
+      "aspect_ratio": {
+        "enum": ["16:9", "1:1", "9:16", "4:3", "3:2", "21:9"],
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "type": "string",
+        "default": "16:9"
+      }
+    }
+  },
+  {
+    "id": "DreamShaper_8_pruned.safetensors",
+    "name": "DreamShaper 8 SD 1.5 (Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "family": "sd15",
+    "imageField": "image_url",
+    "hasPrompt": true,
+    "inputs": {
+      "aspect_ratio": {
+        "enum": ["16:9", "1:1", "9:16", "4:3", "3:2", "21:9"],
+        "title": "Aspect Ratio",
+        "name": "aspect_ratio",
+        "type": "string",
+        "default": "16:9"
+      }
+    }
   },
   {
     "id": "ai-image-face-swap",
@@ -4938,6 +5044,32 @@ export const i2iModels = [
 
 // Auto-generated from schema_data.json — Image to Video models
 export const i2vModels = [
+  {
+    "id": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+    "name": "Wan 2.2 14B High Quality I2V (DGX Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "imageField": "image_url",
+    "hasPrompt": true,
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "Animation et dynamisation d'image avec Wan 2.2 14B FP8 sur DGX Spark" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1", "4:3", "21:9"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "default": 3 },
+      "resolution": { "enum": ["1280x720", "1920x1080", "832x480"], "title": "Resolution", "name": "resolution", "type": "string", "default": "1280x720" }
+    }
+  },
+  {
+    "id": "wan2.2_ti2v_5B_fp16.safetensors",
+    "name": "Wan 2.2 5B TI2V (DGX Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "imageField": "image_url",
+    "hasPrompt": true,
+    "inputs": {
+      "prompt": { "type": "string", "title": "Prompt", "name": "prompt", "description": "Animation d'image Wan 2.2 5B TI2V sur DGX Spark" },
+      "aspect_ratio": { "enum": ["16:9", "9:16", "1:1", "4:3"], "title": "Aspect Ratio", "name": "aspect_ratio", "type": "string", "default": "16:9" },
+      "duration": { "enum": [2, 3, 5], "title": "Duration", "name": "duration", "type": "int", "default": 2 },
+      "resolution": { "enum": ["832x480", "1280x720"], "title": "Resolution", "name": "resolution", "type": "string", "default": "832x480" }
+    }
+  },
   {
     "id": "ai-video-effects",
     "name": "AI Video Effects",
@@ -8250,6 +8382,24 @@ export const v2vModels = [
 // Video-based: existing video + audio → lipsync video
 export const lipsyncModels = [
   // ── Image + Audio → Video ──────────────────────────────────────────────────
+  {
+    "id": "wan2.1_t2v_1.3B_bf16.safetensors",
+    "name": "Wan 2.1 Lipsync (DGX Spark GB10)",
+    "provider": "DGX Spark — ComfyUI (GB10)",
+    "family": "wan",
+    "category": "image",
+    "hasPrompt": true,
+    "description": "Animate portrait image with Wan 2.1 audio on DGX Spark GB10.",
+    "inputs": {
+      "resolution": {
+        "type": "string",
+        "title": "Resolution",
+        "name": "resolution",
+        "enum": ["480p", "720p"],
+        "default": "480p"
+      }
+    }
+  },
   {
     "id": "infinitetalk-image-to-video",
     "name": "Infinite Talk",

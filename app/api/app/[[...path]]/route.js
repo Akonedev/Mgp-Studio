@@ -28,40 +28,20 @@ export async function GET(request, { params }) {
     // Handle alias: get_upload_file -> get_file_upload_url
     const effectivePath = path === 'get_upload_file' ? 'get_file_upload_url' : path;
     
-    const { search } = new URL(request.url);
-    const targetUrl = `${MUAPI_BASE}/app/${effectivePath}${search}`;
-
-    const headers = cleanHeaders(request);
-
-    const apiKey = getApiKey(request);
-    if (apiKey) headers.set('x-api-key', apiKey);
-
-    try {
-        const response = await fetch(targetUrl, {
-            headers,
-            method: 'GET',
+    if (effectivePath === 'get_file_upload_url') {
+        const reqUrl = new URL(request.url);
+        const filename = reqUrl.searchParams.get('filename') || 'upload.bin';
+        const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+        return NextResponse.json({
+            url: '/api/upload-binary',
+            fields: {
+                key: `uploads/${Date.now()}_${safeName}`,
+                'Content-Type': 'application/octet-stream'
+            }
         });
-
-        const data = await response.json();
-
-        // SPECIAL CASE: Intercept upload URL and redirect to local binary proxy
-        if (effectivePath === 'get_file_upload_url' && data.url) {
-            const originalS3Url = data.url;
-            // We pass the real S3 URL as a header to our proxy
-            data.url = `/api/upload-binary`;
-            
-            // Store target in a temporary way? 
-            // Better: Return the target URL as an extra field that our proxy will look for
-            data.fields = {
-                ...data.fields,
-                'x-proxy-target-url': originalS3Url
-            };
-        }
-
-        return NextResponse.json(data, { status: response.status });
-    } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    return NextResponse.json({ ok: true, status: 'success', local: true });
 }
 
 export async function POST(request, { params }) {

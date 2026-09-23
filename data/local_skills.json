@@ -1,0 +1,122 @@
+[
+  {
+    "id": "skill_camera_framing",
+    "slug": "camera-framing",
+    "name": "Plans de Caméra & Cadrage",
+    "category": "Cinematography",
+    "icon": "📐",
+    "description": "Maîtrise complète de l'échelle des plans cinématographiques : Très Gros Plan (ECU), Gros Plan (CU), Plan Rapproché Poitrine (MCU), Plan Américain (Cowboy), Plan Moyen (Full Shot), Plan Large (WS), et Plan d'Ensemble (EWS).",
+    "prompt_injection": "Utilise la terminologie précise des plans cinématographiques (Extreme Close-Up pour l'émotion oculaire, Cowboy Shot pour la tension corporelle, Wide Shot pour situer l'environnement). Définis toujours la focale (ex: 24mm pour les grands espaces, 85mm f/1.4 pour le portrait bokeh).",
+    "tags": ["framing", "optics", "lenses", "composition"],
+    "source": "Mgp Studio Cinematography Core",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_camera_movements",
+    "slug": "camera-movements",
+    "name": "Mouvements de Caméra & Trajectoires",
+    "category": "Cinematography",
+    "icon": "🎥",
+    "description": "Directives de mouvement physique de caméra pour modèles vidéo (Wan 2.2, LTX-2.5, MiniMax H3) : Dolly-in/out, Travelling latéral (Truck), Grue (Crane/Jib), Panoramique filé (Whip Pan), Orbit 360°, et Travelling compensé (Vertigo/Zolly).",
+    "prompt_injection": "Spécifie explicitement la cinématique caméra au début du prompt vidéo : 'Smooth forward dolly zoom', 'high-speed FPV drone dive', 'orbital tracking shot at eye-level'. Interdis les sauts de coupe abrupts.",
+    "tags": ["motion", "dolly", "crane", "fpv", "orbit", "video"],
+    "source": "Mgp Studio Cinematography Core",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_lighting_optics",
+    "slug": "lighting-optics",
+    "name": "Lumière & Optique Anamorphique",
+    "category": "Lighting",
+    "icon": "💡",
+    "description": "Éclairage volumétrique 3-points, Chiaroscuro dramatique, Rembrandt, Golden Hour rasante, néons cyberpunk et optiques anamorphiques ARRI/Cooke 2.39:1 avec bokeh ovale.",
+    "prompt_injection": "Intègre les schémas de lumière (volumetric god rays through dust, hard rim light, deep Chiaroscuro contrast, subtle Kodak 5219 35mm film grain, anamorphic streaks, ACEScc color graded).",
+    "tags": ["lighting", "anamorphic", "chiaroscuro", "bokeh", "color"],
+    "source": "Mgp Studio Cinematography Core",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_composition_artistic",
+    "slug": "composition-artistic",
+    "name": "Composition & Équilibre Artistique",
+    "category": "Art Direction",
+    "icon": "🎨",
+    "description": "Règle des tiers, spirale d'or Fibonacci, symétrie centrale kubrickienne, lignes de fuite dynamiques, et cadrage dans le cadre (frame within a frame).",
+    "prompt_injection": "Structure la composition de l'image : 'Leading perspective lines directing focus to the center', 'Kubrick one-point perspective symmetry', 'rule of thirds placement with negative space balance'.",
+    "tags": ["composition", "symmetry", "fibonacci", "art-direction"],
+    "source": "Mgp Studio Cinematography Core",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_mini_drama_scripting",
+    "slug": "mini-drama-scripting",
+    "name": "Scénarisation & Storyboard Mini-Drama",
+    "category": "Storytelling",
+    "icon": "🎭",
+    "description": "Structure narrative ultra-engageante pour formats courts (30s à 90s) : Hook visuel dans les 3 premières secondes, cliffhangers à rebondissements, découpage plan par plan numéroté.",
+    "prompt_injection": "Découpe l'histoire en plans numérotés [Plan 1 (0-3s), Plan 2 (3-8s), Plan 3 (8-15s)...]. Pour chaque plan, indique : action des personnages, mouvement caméra, échelle de plan, et émotion dominante.",
+    "tags": ["storyboard", "mini-drama", "tiktok", "reels", "script"],
+    "source": "Mgp Studio Story Lab",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_character_consistency",
+    "slug": "character-consistency",
+    "name": "Cohérence des Personnages & Wardrobe",
+    "category": "Consistency",
+    "icon": "👤",
+    "description": "Protocoles de verrouillage des traits du visage, morphologie, coiffure, cicatrices et garde-robe à travers des séquences multi-plans pour ComfyUI IP-Adapter et FaceID.",
+    "prompt_injection": "Définis une fiche personnage stricte avec des ancres invariantes : forme du visage, grain de peau, couleur des yeux, coiffure exacte, détails vestimentaires précis (couleur, tissu, coupe) et éclairage cohérent.",
+    "tags": ["character", "ip-adapter", "faceid", "consistency", "continuity"],
+    "source": "Mgp Studio Production Pipeline",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_voice_acting_direction",
+    "slug": "voice-acting-direction",
+    "name": "Direction de Voix & Dialogue LipSync",
+    "category": "Audio & Voice",
+    "icon": "🎙️",
+    "description": "Écriture de répliques naturelles avec sous-texte émotionnel, annotations de souffle, pauses dramatiques et tempo phonétique optimisé pour la synchronisation labiale (LipSync Studio).",
+    "prompt_injection": "Rédige des dialogues courts et percutants avec annotations de jeu : '[soupir las] Ne me dis pas que tu as encore oublié...', en veillant à la clarté phonétique des labiales (m, b, p) pour le lipsync.",
+    "tags": ["voice", "lipsync", "dialogue", "acting", "tts"],
+    "source": "Mgp Studio Audio Lab",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_sound_design_ost",
+    "slug": "sound-design-ost",
+    "name": "Design Sonore & Composition OST",
+    "category": "Audio & Voice",
+    "icon": "🎵",
+    "description": "Création de paysages sonores immersifs, effets Foley environnementaux (bruits de pas, écho de pluie, résonance métallique) et orchestration de thèmes musicaux pour MiniMax Music3.",
+    "prompt_injection": "Génère des prompts musicaux et sonores détaillés : 'Cinematic orchestral theme, minor key, building cello crescendo, low sub-bass impact, ambient rainfall with metallic reverb'.",
+    "tags": ["foley", "soundtrack", "ost", "music3", "sfx"],
+    "source": "Mgp Studio Audio Lab",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_color_grading_aces",
+    "slug": "color-grading-aces",
+    "name": "Étalonnage Numérique & ACEScc",
+    "category": "Color Grading",
+    "icon": "🎞️",
+    "description": "LUTs cinématiques, palette de couleurs complémentaires (Teal & Orange, Monochrome sépia, Vert Matrix désaturé, Rouge Fincher), température de couleur Kelvin et dynamique HDR.",
+    "prompt_injection": "Précise la colorimétrie : 'ACEScc color science, cinematic teal and warm amber split toning, desaturated skin tones with filmic highlight roll-off, deep crushed blacks'.",
+    "tags": ["color-grading", "lut", "aces", "film-emulation"],
+    "source": "Mgp Studio Post-Production",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  },
+  {
+    "id": "skill_multi_agent_orchestrator",
+    "slug": "multi-agent-orchestrator",
+    "name": "Orchestration & Pipeline Multi-Agents",
+    "category": "Orchestration",
+    "icon": "🕸️",
+    "description": "Coordination séquentielle et parallèle d'équipes d'agents experts : Scénariste -> Directeur Photo -> Générateur Visuel Spark -> Sound Designer -> Contrôleur Qualité.",
+    "prompt_injection": "Coordonne l'ensemble de l'équipe : délègue chaque sous-tâche à l'agent spécialisé, synthétise les résultats en un package unifié prêt pour le studio ComfyUI.",
+    "tags": ["orchestration", "multi-agent", "pipeline", "workflow"],
+    "source": "Mgp Studio Autonomous Engine",
+    "created_at": "2026-09-14T03:00:00.000Z"
+  }
+]

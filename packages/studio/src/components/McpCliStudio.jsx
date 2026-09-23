@@ -54,7 +54,7 @@ const EXAMPLES = [
 function CodeBlock({ children, className = '' }) {
   return (
     <pre
-      className={`text-[11.5px] font-mono text-[#d9ff00] bg-black/50 border border-white/5 rounded-md px-3 py-2 overflow-x-auto whitespace-pre ${className}`}
+      className={`text-[11.5px] font-mono text-[#df9c43] bg-black/50 border border-white/5 rounded-md px-3 py-2 overflow-x-auto whitespace-pre ${className}`}
     >
       {children}
     </pre>

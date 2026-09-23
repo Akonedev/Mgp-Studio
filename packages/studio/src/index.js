@@ -8,5 +8,7 @@ export { default as MarketingStudio } from './components/MarketingStudio';
 export { default as WorkflowStudio } from './components/WorkflowStudio';
 export { default as AgentStudio } from './components/AgentStudio';
 export { default as AppsStudio } from './components/AppsStudio';
-export { default as McpCliStudio } from './components/McpCliStudio';
+export { default as VoiceStudio } from './components/VoiceStudio';
+export { default as MontageStudio } from './components/MontageStudio';
+export { default as MusicStudio } from './components/MusicStudio';
 export * from './muapi';

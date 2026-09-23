@@ -1,0 +1,23 @@
+services:
+  open-generative-ai-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: open-generative-ai-dev
+    ports:
+      - "${DEV_PORT:-58103}:58101"
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - PORT=58101
+      - HOSTNAME=0.0.0.0
+    volumes:
+      # Mount host source code live for instant hot reload
+      - .:/app
+      # Isolate container-specific binaries and caches
+      - /app/node_modules
+      - /app/.next
+      - /app/packages/studio/node_modules
+      - /app/packages/Vibe-Workflow/packages/workflow-builder/node_modules
+      - /app/packages/Open-Poe-AI/packages/agents/node_modules
+    restart: unless-stopped

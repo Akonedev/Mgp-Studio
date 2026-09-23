@@ -73,7 +73,7 @@ Contains the `t2iModels` array.
 ## 4. UI & Styling (Tailwind v4)
 
 - **Theme:** Dark mode by default (`bg-app-bg` = `#050505`).
-- **Accent:** Neon Yellow-Green (`#d9ff00`) used for primary actions and glows.
+- **Accent:** Sahel Gold / Ocre (`#df9c43`, `#f5c277`, `#b6762c`) used for primary actions and glows.
 - **Glassmorphism:** Extensive use of `backdrop-blur` and `bg-white/5` or `bg-black/60` for panels, headers, and modals.
 - **Responsiveness:**
     - **Mobile:** Stacked layout, simplified controls, hidden sidebar.

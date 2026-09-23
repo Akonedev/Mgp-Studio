@@ -671,6 +671,11 @@ function ModelDropdown({ models, selectedModel, onSelect, onClose }) {
                 <span className="text-xs font-bold text-white tracking-tight">
                   {m.name}
                 </span>
+                {m.provider && (
+                  <span className="text-[10px] text-[#df9c43]/80 font-medium">
+                    {m.provider}
+                  </span>
+                )}
               </div>
             </div>
             {selectedModel === m.id && (
@@ -679,7 +684,7 @@ function ModelDropdown({ models, selectedModel, onSelect, onClose }) {
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#d9ff00"
+                stroke="#df9c43"
                 strokeWidth="4"
               >
                 <polyline points="20 6 9 17 4 12" />
@@ -720,7 +725,7 @@ function SimpleDropdown({ title, options, selected, onSelect, onClose }) {
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#d9ff00"
+                stroke="#df9c43"
                 strokeWidth="4"
               >
                 <polyline points="20 6 9 17 4 12" />
@@ -741,6 +746,9 @@ export default function ImageStudio({
   historyItems,
   droppedFiles,
   onFilesHandled,
+  sourceMedia,
+  onClearSourceMedia,
+  onOpenGalleryPicker,
 }) {
   const PERSIST_KEY = "hg_image_studio_persistent";
 
@@ -756,9 +764,65 @@ export default function ImageStudio({
     return resolutions[0] || null;
   });
   const [maxImages, setMaxImages] = useState(1);
+  const [dynamicModels, setDynamicModels] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchValidModels() {
+      try {
+        const mode = imageMode ? "i2i" : "image";
+        const res = await fetch(`/api/providers?action=valid_models&mode=${mode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.models) && data.models.length > 0 && isMounted) {
+            setDynamicModels(data.models);
+            let preferredModel = null;
+            try {
+              const raw = localStorage.getItem("mode_settings");
+              if (raw) {
+                const s = JSON.parse(raw);
+                if (s.image?.model) {
+                  preferredModel = data.models.find((m) => m.id === s.image.model);
+                }
+              }
+            } catch (e) {}
+
+            const chosen =
+              preferredModel ||
+              data.models.find((m) => m.id === selectedModelId) ||
+              data.models[0];
+            if (chosen) {
+              setSelectedModelId(chosen.id);
+              setSelectedModelName(chosen.name);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[ImageStudio] Failed to load dynamic valid models:", err);
+      }
+    }
+    fetchValidModels();
+    return () => {
+      isMounted = false;
+    };
+  }, [imageMode]);
 
   // ── Prompt / upload state ───────────────────────────────────────────────
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mgp_regenerate_target');
+        if (saved) {
+          const item = JSON.parse(saved);
+          if (item.type === 'image' || (!item.url?.endsWith('.mp4') && item.type !== 'video')) {
+            localStorage.removeItem('mgp_regenerate_target');
+            return item.prompt || "";
+          }
+        }
+      } catch (e) {}
+    }
+    return "";
+  });
   const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
 
   // ── UI state ────────────────────────────────────────────────────────────
@@ -772,6 +836,28 @@ export default function ImageStudio({
   const [activeHistoryIdx, setActiveHistoryIdx] = useState(0);
   const [batchSize, setBatchSize] = useState(1);
   const [localHistory, setLocalHistory] = useState([]); // [{id,url,prompt,model,aspect_ratio,timestamp}]
+
+  // Load existing image generations from API on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadApiHistory() {
+      try {
+        const res = await fetch('/api/history?type=image');
+        const data = await res.json();
+        if (isMounted && data.ok && Array.isArray(data.history) && data.history.length > 0) {
+          setLocalHistory(prev => {
+            const existingIds = new Set(prev.map(p => p.id || p.url));
+            const fresh = data.history.filter(h => !existingIds.has(h.id || h.url));
+            return [...prev, ...fresh];
+          });
+        }
+      } catch (err) {
+        console.error('[ImageStudio] Failed to load history:', err);
+      }
+    }
+    loadApiHistory();
+    return () => { isMounted = false; };
+  }, []);
 
   // Use prop history if provided, otherwise local
   const history = historyItems ?? localHistory;
@@ -907,13 +993,23 @@ export default function ImageStudio({
   }, [droppedFiles, onFilesHandled, processDroppedImages]);
 
   // ── Derived: current model lists & helpers ───────────────────────────────
-  const currentModels = imageMode ? i2iModels : t2iModels;
-  const currentAspectRatios = imageMode
-    ? getAspectRatiosForI2IModel(selectedModelId)
-    : getAspectRatiosForModel(selectedModelId);
-  const currentResolutions = imageMode
-    ? getResolutionsForI2IModel(selectedModelId)
-    : getResolutionsForModel(selectedModelId);
+  const currentModels = dynamicModels.length > 0
+    ? dynamicModels
+    : (imageMode ? i2iModels : t2iModels);
+  const currentAspectRatios = (() => {
+    const found = currentModels.find((m) => m.id === selectedModelId);
+    if (found?.inputs?.aspect_ratio?.enum) return found.inputs.aspect_ratio.enum;
+    return imageMode
+      ? getAspectRatiosForI2IModel(selectedModelId)
+      : getAspectRatiosForModel(selectedModelId);
+  })();
+  const currentResolutions = (() => {
+    const found = currentModels.find((m) => m.id === selectedModelId);
+    if (found?.inputs?.resolution?.enum) return found.inputs.resolution.enum;
+    return imageMode
+      ? getResolutionsForI2IModel(selectedModelId)
+      : getResolutionsForModel(selectedModelId);
+  })();
   const currentQualityField = imageMode
     ? getQualityFieldForI2IModel(selectedModelId)
     : getQualityFieldForModel(selectedModelId);
@@ -935,9 +1031,9 @@ export default function ImageStudio({
       setUploadedImageUrls(newUrls);
 
       if (!imageMode) {
-        const firstI2I = i2iModels[0];
-        const ars = getAspectRatiosForI2IModel(firstI2I.id);
-        const resolutions = getResolutionsForI2IModel(firstI2I.id);
+        const firstI2I = dynamicModels.length > 0 ? dynamicModels[0] : i2iModels[0];
+        const ars = firstI2I?.inputs?.aspect_ratio?.enum || getAspectRatiosForI2IModel(firstI2I.id);
+        const resolutions = firstI2I?.inputs?.resolution?.enum || getResolutionsForI2IModel(firstI2I.id);
         setImageMode(true);
         setSelectedModelId(firstI2I.id);
         setSelectedModelName(firstI2I.name);
@@ -946,35 +1042,110 @@ export default function ImageStudio({
         setMaxImages(getMaxImagesForI2IModel(firstI2I.id));
       }
     },
-    [imageMode],
+    [imageMode, dynamicModels],
   );
 
   const handleUploadClear = useCallback(() => {
     setUploadedImageUrls([]);
     setImageMode(false);
-    const firstT2I = t2iModels[0];
-    const ars = getAspectRatiosForModel(firstT2I.id);
-    const resolutions = getResolutionsForModel(firstT2I.id);
+    const firstT2I = dynamicModels.length > 0 ? dynamicModels[0] : t2iModels[0];
+    const ars = firstT2I?.inputs?.aspect_ratio?.enum || getAspectRatiosForModel(firstT2I.id);
+    const resolutions = firstT2I?.inputs?.resolution?.enum || getResolutionsForModel(firstT2I.id);
     setSelectedModelId(firstT2I.id);
     setSelectedModelName(firstT2I.name);
     setSelectedAr(ars[0] || "1:1");
     setSelectedQuality(resolutions[0] || null);
     setMaxImages(1);
+  }, [dynamicModels]);
+
+  const handleRegenerateItem = useCallback((entry) => {
+    if (!entry) return;
+    if (entry.prompt) setPrompt(entry.prompt);
+    if (entry.model) {
+      setSelectedModelId(entry.model);
+      setSelectedModelName(entry.modelName || entry.model);
+    }
+    if (entry.resolution) setSelectedQuality(entry.resolution);
+    if (entry.aspect_ratio || entry.ar) setSelectedAr(entry.aspect_ratio || entry.ar);
+    setTimeout(() => textareaRef.current?.focus(), 50);
   }, []);
+
+  const handleUseAsSourceItem = useCallback((entry) => {
+    if (!entry?.url) return;
+    handleUploadSelect({ url: entry.url, urls: [entry.url] });
+    if (entry.prompt) {
+      setPrompt(entry.prompt);
+    }
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  }, [handleUploadSelect]);
+
+  const handleDeleteItem = useCallback(async (entry, e) => {
+    if (e) e.stopPropagation();
+    if (!confirm('Supprimer définitivement cette image de l\'historique ?')) return;
+    try {
+      if (entry?.id) {
+        await fetch(`/api/history?id=${entry.id}`, { method: 'DELETE' });
+      }
+      setLocalHistory(prev => prev.filter(item => item.id !== entry.id && item.url !== entry.url));
+    } catch (err) {
+      console.error('[ImageStudio] Delete item failed:', err);
+    }
+  }, []);
+
+  // Consume injected source media from Gallery or another Studio
+  useEffect(() => {
+    if (sourceMedia) {
+      console.log('[ImageStudio] Ingesting sourceMedia:', sourceMedia);
+      if (sourceMedia.action === 'regenerate') {
+        handleRegenerateItem(sourceMedia);
+      } else if (sourceMedia.url) {
+        handleUploadSelect({ url: sourceMedia.url, urls: [sourceMedia.url] });
+        if (sourceMedia.prompt) {
+          setPrompt(prev => prev || sourceMedia.prompt);
+        }
+      }
+    }
+  }, [sourceMedia, handleUploadSelect, handleRegenerateItem]);
+
+  useEffect(() => {
+    const handleRegenEvent = (e) => {
+      const media = e.detail;
+      if (!media) return;
+      const isImg = media.type === 'image' || (!media.url?.endsWith('.mp4') && media.type !== 'video');
+      if (isImg) {
+        handleRegenerateItem(media);
+      }
+    };
+    window.addEventListener('mgp_regenerate', handleRegenEvent);
+    return () => window.removeEventListener('mgp_regenerate', handleRegenEvent);
+  }, [handleRegenerateItem]);
 
   // ── Model selection ──────────────────────────────────────────────────────
   const handleModelSelect = (m) => {
-    const ars = imageMode
+    const ars = m.inputs?.aspect_ratio?.enum || (imageMode
       ? getAspectRatiosForI2IModel(m.id)
-      : getAspectRatiosForModel(m.id);
-    const resolutions = imageMode
+      : getAspectRatiosForModel(m.id));
+    const resolutions = m.inputs?.resolution?.enum || (imageMode
       ? getResolutionsForI2IModel(m.id)
-      : getResolutionsForModel(m.id);
+      : getResolutionsForModel(m.id));
     setSelectedModelId(m.id);
     setSelectedModelName(m.name);
     setSelectedAr(ars[0] || "1:1");
     setSelectedQuality(resolutions[0] || null);
     if (imageMode) setMaxImages(getMaxImagesForI2IModel(m.id));
+
+    try {
+      const raw = localStorage.getItem("mode_settings") || "{}";
+      const settings = JSON.parse(raw);
+      settings.image = {
+        providerId: m.providerId || "spark-comfy",
+        model: m.id,
+      };
+      localStorage.setItem("mode_settings", JSON.stringify(settings));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {
+      console.warn("[ImageStudio] Failed to update mode_settings:", e);
+    }
   };
 
   // ── History helpers ──────────────────────────────────────────────────────
@@ -1028,9 +1199,12 @@ export default function ImageStudio({
     try {
       const results = await Promise.all(
         Array.from({ length: batchSize }).map(async () => {
+          const selectedM = currentModels.find((m) => m.id === selectedModelId);
+          const providerId = selectedM?.providerId || "spark-comfy";
           if (imageMode) {
             const genParams = {
               model: selectedModelId,
+              provider: providerId,
               images_list: uploadedImageUrls,
               image_url: uploadedImageUrls[0],
               aspect_ratio: selectedAr,
@@ -1043,6 +1217,7 @@ export default function ImageStudio({
           } else {
             const genParams = {
               model: selectedModelId,
+              provider: providerId,
               prompt: prompt.trim(),
               aspect_ratio: selectedAr,
             };
@@ -1063,6 +1238,7 @@ export default function ImageStudio({
             model: selectedModelId,
             aspect_ratio: selectedAr,
             timestamp: new Date().toISOString(),
+            metrics: res.metrics,
           };
           addToHistory(entry);
           onGenerationComplete?.({
@@ -1070,6 +1246,7 @@ export default function ImageStudio({
             model: selectedModelId,
             prompt: prompt.trim(),
             type: "image",
+            metrics: res.metrics,
           });
         }
       });
@@ -1140,20 +1317,120 @@ export default function ImageStudio({
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                     </svg>
                   </button>
-                </div>
-
-                {/* Prompt & Details */}
-                <div className="p-3 bg-black/80 backdrop-blur-sm border-t border-white/5 flex-1 flex flex-col justify-between gap-2">
-                  <p className="text-white/70 text-xs line-clamp-3 leading-relaxed" title={entry.prompt}>
-                    {entry.prompt || "No prompt provided"}
-                  </p>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded border border-primary/20">
-                      {entry.model?.replace("-", " ")}
-                    </span>
-                    <span className="text-[10px] text-white/40">{entry.aspect_ratio}</span>
+                  <button
+                    type="button"
+                    title="Utiliser comme source (Image-to-Image / Variation)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUseAsSourceItem(entry);
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-emerald-300 hover:bg-emerald-500 hover:text-black transition-all border border-emerald-500/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Régénérer cette image"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRegenerateItem(entry);
+                      }}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-[#df9c43] hover:bg-[#df9c43] hover:text-black transition-all border border-[#df9c43]/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                        <path d="M16 21h5v-5"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      title="Supprimer définitivement cette image"
+                      onClick={(e) => handleDeleteItem(entry, e)}
+                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/30"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                      </svg>
+                    </button>
                   </div>
-                </div>
+
+                  {/* Prompt & Details */}
+                  <div className="p-3 bg-black/80 backdrop-blur-sm border-t border-white/5 flex-1 flex flex-col justify-between gap-2">
+                    <p className="text-white/70 text-xs line-clamp-3 leading-relaxed" title={entry.prompt}>
+                      {entry.prompt || "No prompt provided"}
+                    </p>
+
+                    {/* Telemetry Metrics Bar */}
+                    {entry.metrics && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-white/5 text-[9px] text-white/50 flex-wrap">
+                        {entry.metrics.generationTimeSeconds != null && (
+                          <span className="flex items-center gap-0.5 text-amber-400/90 font-mono">
+                            ⏱️ {entry.metrics.generationTimeSeconds}s
+                          </span>
+                        )}
+                        {entry.metrics.totalTokens != null && (
+                          <span className="flex items-center gap-0.5 text-cyan-400/90 font-mono">
+                            🪙 {entry.metrics.totalTokens} tk
+                          </span>
+                        )}
+                        {entry.metrics.cost != null && (
+                          <span className="flex items-center gap-0.5 text-emerald-400/90 font-mono">
+                            💰 {entry.metrics.cost}
+                          </span>
+                        )}
+                        {entry.metrics.computeDevice && (
+                          <span className="px-1 py-0.2 bg-white/5 rounded text-[8px] text-[#df9c43]/80 font-mono truncate max-w-[90px]">
+                            {entry.metrics.computeDevice.includes('GB10') ? '⚡ GB10' : '💻 sd.cpp'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded border border-primary/20">
+                        {entry.model?.replace("-", " ")}
+                      </span>
+                      <span className="text-[10px] text-white/40">{entry.aspect_ratio}</span>
+                    </div>
+
+                    {/* Quick Card Action Buttons */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-1 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUseAsSourceItem(entry);
+                        }}
+                        className="flex-1 py-1 px-2 rounded bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      >
+                        🖼️ Source
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRegenerateItem(entry);
+                        }}
+                        className="flex-1 py-1 px-2 rounded bg-[#df9c43]/15 hover:bg-[#df9c43]/30 text-[#df9c43] border border-[#df9c43]/30 text-[10px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      >
+                        🔄 Régénérer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteItem(entry, e)}
+                        className="py-1 px-2 rounded bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/20 text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
+                        title="Supprimer"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
               </div>
             ))}
           </div>
@@ -1209,6 +1486,20 @@ export default function ImageStudio({
               onClear={handleUploadClear}
               initialUrls={uploadedImageUrls}
             />
+            {/* Gallery picker button */}
+            <button
+              type="button"
+              data-testid="studio-gallery-picker"
+              title="Choisir une image source depuis la Galerie locale (DGX Spark)"
+              onClick={() => onOpenGalleryPicker?.('image')}
+              className="w-10 h-10 shrink-0 rounded-full border border-[#df9c43]/40 bg-[#df9c43]/10 hover:bg-[#df9c43]/20 text-[#df9c43] flex items-center justify-center transition-all cursor-pointer shadow-sm group"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                <rect width="18" height="18" x="3" y="3" rx="2"/>
+                <path d="M3 9h18"/>
+                <path d="M9 21V9"/>
+              </svg>
+            </button>
             <div className="flex-1 flex flex-col gap-2">
               <textarea
                 ref={textareaRef}
@@ -1236,10 +1527,10 @@ export default function ImageStudio({
                   }}
                   className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] rounded-md transition-all border border-white/[0.03] group whitespace-nowrap"
                 >
-                  <div className="w-4 h-4 bg-[#d9ff00] rounded flex items-center justify-center">
+                  <div className="w-4 h-4 bg-[#df9c43] rounded flex items-center justify-center">
                     <span className="text-[9px] font-bold text-black uppercase">G</span>
                   </div>
-                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                     {selectedModelName}
                   </span>
                   <svg
@@ -1284,7 +1575,7 @@ export default function ImageStudio({
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-40 text-white">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                   </svg>
-                  <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                  <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                     {selectedAr}
                   </span>
                 </button>
@@ -1319,7 +1610,7 @@ export default function ImageStudio({
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-40 text-white">
                       <path d="M6 2L3 6v15a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" />
                     </svg>
-                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#d9ff00] transition-colors">
+                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#df9c43] transition-colors">
                       {selectedQuality || currentResolutions[0]}
                     </span>
                   </button>
@@ -1350,7 +1641,7 @@ export default function ImageStudio({
                     onClick={() => setBatchSize(num)}
                     className={`w-7 h-7 flex items-center justify-center rounded-md text-[10px] font-black transition-all ${
                       batchSize === num
-                        ? "bg-[#d9ff00] text-black shadow-lg shadow-[#d9ff00]/20"
+                        ? "bg-[#df9c43] text-black shadow-lg shadow-[#df9c43]/20"
                         : "text-white/40 hover:text-white/80 hover:bg-white/5"
                     }`}
                   >
@@ -1365,7 +1656,7 @@ export default function ImageStudio({
               type="button"
               onClick={handleGenerate}
               disabled={generating}
-              className="bg-[#d9ff00] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#d9ff00]/10 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+              className="bg-[#df9c43] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed z-10"
             >
               {generating ? (
                 <>

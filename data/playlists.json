@@ -1,0 +1,42 @@
+[
+  {
+    "id": "pl_1789457589474",
+    "name": "SOTA Master Hits 2026",
+    "description": "Playlist personnalisée Music Studio",
+    "coverUrl": "/assets/cinema/studio_digital_s35.webp",
+    "created_at": "2026-09-15T07:33:09.474Z",
+    "songs": []
+  },
+  {
+    "id": "pl_1789456754193",
+    "name": "SOTA Master Hits 2026",
+    "description": "Playlist personnalisée Music Studio",
+    "coverUrl": "/assets/cinema/studio_digital_s35.webp",
+    "created_at": "2026-09-15T07:19:14.193Z",
+    "songs": []
+  },
+  {
+    "id": "pl_1789456673321",
+    "name": "SOTA Master Hits 2026",
+    "description": "Playlist personnalisée Music Studio",
+    "coverUrl": "/assets/cinema/studio_digital_s35.webp",
+    "created_at": "2026-09-15T07:17:53.321Z",
+    "songs": []
+  },
+  {
+    "id": "pl_favorites",
+    "name": "Favoris Studio IA",
+    "description": "Sélection des meilleures créations musicales générées avec ACE-Step 1.5 DiT",
+    "coverUrl": "/assets/cinema/studio_digital_s35.webp",
+    "created_at": "2026-09-15T07:17:43.665Z",
+    "songs": []
+  },
+  {
+    "id": "pl_amapiano",
+    "name": "Amapiano & Deep Grooves",
+    "description": "Sélection log drums puissants et polyrythmies modernes",
+    "coverUrl": "/assets/cinema/modular_8k_digital.webp",
+    "created_at": "2026-09-15T07:17:43.665Z",
+    "songs": []
+  }
+]

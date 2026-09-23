@@ -1,0 +1,72 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_music3_dit_fp16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "minimax_music3_text_encoder_pruned_int8_convrot.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_music3_dav.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "MiniMaxMusic3TextEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "caption": "Full musical band arrangement based on hummed melody: acoustic drums, electric bass, keyboards, brass and lead theme",
+      "lyrics": "",
+      "seed": 55102,
+      "max_duration": 30.0,
+      "cfg_scale": 1.5,
+      "top_k": 50
+    }
+  },
+  "5": {
+    "class_type": "EmptyMiniMaxMusic3LatentAudio",
+    "inputs": {
+      "seconds": 30.0,
+      "batch_size": 1
+    }
+  },
+  "6": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "positive": ["4", 0],
+      "negative": ["4", 0],
+      "latent_image": ["5", 0],
+      "seed": 55102,
+      "steps": 8,
+      "cfg": 1.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    }
+  },
+  "7": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": {
+      "samples": ["6", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "8": {
+    "class_type": "SaveAudioMP3",
+    "inputs": {
+      "audio": ["7", 0],
+      "filename_prefix": "audio/OGA_Music_Hum_Arrangement_Spark",
+      "quality": "V0"
+    }
+  }
+}

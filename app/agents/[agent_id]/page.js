@@ -15,56 +15,39 @@ export async function generateMetadata({ params }) {
   };
 }
 
-const BASE_URL = 'https://api.muapi.ai';
+import fs from 'fs';
+import path from 'path';
 
-async function fetchAgentDetails(agentId, apiKey) {
-  if (!apiKey) return null;
-  
-  // Try fetching by slug first
+function fetchAgentDetails(agentId) {
   try {
-    console.log(`[AgentPage] Fetching agent by slug: ${agentId}`);
-    const res = await fetch(
-      `${BASE_URL}/agents/by-slug/${agentId}`,
-      {
-        cache: "no-store",
-        headers: { "x-api-key": apiKey },
-      }
-    );
-    if (res.ok) return await res.json();
-    
-    // If by-slug fails, try fetching by direct ID (if it looks like a UUID)
-    if (agentId.length > 20) {
-      console.log(`[AgentPage] Fetch by slug failed, trying by ID: ${agentId}`);
-      const resId = await fetch(
-        `${BASE_URL}/agents/${agentId}`,
-        {
-          cache: "no-store",
-          headers: { "x-api-key": apiKey },
-        }
-      );
-      if (resId.ok) return await resId.json();
+    const agentsPath = path.join(process.cwd(), 'data', 'local_agents.json');
+    if (fs.existsSync(agentsPath)) {
+      const agents = JSON.parse(fs.readFileSync(agentsPath, 'utf-8'));
+      const found = agents.find(a => a.id === agentId || a.slug === agentId);
+      if (found) return found;
     }
-    
-    console.warn(`[AgentPage] Failed to fetch agent details for: ${agentId}`);
-    return null;
-  } catch (error) {
-    console.error("[AgentPage] Fetch error:", error);
-    return null;
+  } catch (e) {
+    console.error('[AgentPage] Error reading local agents:', e);
   }
+  return {
+    id: agentId,
+    slug: agentId,
+    name: agentId.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    description: 'Expert Assistant local pour la production cinématographique et vidéo.',
+    avatar: '🎬',
+    system_prompt: 'Tu es un assistant expert en production vidéo et scénarisation pour Open-Generative-AI.'
+  };
 }
 
-async function fetchUserData(apiKey) {
-  if (!apiKey) return null;
-  try {
-    const res = await fetch(`${BASE_URL}/api/v1/account/balance`, {
-      cache: "no-store",
-      headers: { "x-api-key": apiKey },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+function fetchUserData() {
+  return {
+    user: {
+      username: 'Studio User',
+      name: 'Studio User',
+      email: 'user@spark.local'
+    },
+    balance: 'Illimité (DGX Spark)'
+  };
 }
 
 export default async function AgentPage({ params }) {

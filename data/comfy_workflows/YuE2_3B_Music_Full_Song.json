@@ -1,0 +1,48 @@
+{
+  "1": {
+    "class_type": "YuE2ModelLoader",
+    "inputs": {
+      "model_path": "YuE2-3B-bf16.safetensors",
+      "tokenizer_path": "m-a-p/YuE2-3B",
+      "device": "cuda:0",
+      "dtype": "bfloat16"
+    }
+  },
+  "2": {
+    "class_type": "YuE2PromptEnhancerT8",
+    "inputs": {
+      "genre": "Synthwave, 80s Retro Electronic, Dark Synth",
+      "mood": "Nostalgic, Energetic, Cyberpunk Night Drive",
+      "bpm": 120,
+      "key": "A minor",
+      "instruments": "Analog synths, Roland TR-808, sidechain bass, arpeggiator",
+      "lyric_structure": "[Verse 1] Neon lights through the rain\n[Chorus] Speeding down the midnight highway"
+    }
+  },
+  "3": {
+    "class_type": "YuE2SongSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "prompt_meta": ["2", 0],
+      "max_duration_sec": 210,
+      "temperature": 0.85,
+      "top_p": 0.95,
+      "repetition_penalty": 1.15,
+      "seed": 981240
+    }
+  },
+  "4": {
+    "class_type": "YuE2AudioDecoder",
+    "inputs": {
+      "audio_tokens": ["3", 0],
+      "sample_rate": 44100
+    }
+  },
+  "5": {
+    "class_type": "SaveAudio",
+    "inputs": {
+      "audio": ["4", 0],
+      "filename_prefix": "OGA_YuE2_FullSong"
+    }
+  }
+}

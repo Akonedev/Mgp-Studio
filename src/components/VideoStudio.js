@@ -176,7 +176,7 @@ export function VideoStudio() {
 
     const videoReadyEl = document.createElement('div');
     videoReadyEl.className = 'hidden items-center justify-center w-full h-full';
-    videoReadyEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><polyline points="7 10 10 13 15 8" stroke="#d9ff00" stroke-width="2.5"/></svg>`;
+    videoReadyEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><polyline points="7 10 10 13 15 8" stroke="#df9c43" stroke-width="2.5"/></svg>`;
 
     videoPickerBtn.appendChild(videoFileInput);
     videoPickerBtn.appendChild(videoIconEl);
@@ -492,7 +492,7 @@ export function VideoStudio() {
             const makeModelItem = (m, isV2V = false) => {
                 const item = document.createElement('div');
                 item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${selectedModel === m.id ? 'bg-white/5 border-white/5' : ''}`;
-                const iconColor = isV2V ? 'bg-orange-500/10 text-orange-400' : m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400' : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400' : m.id.includes('sora') ? 'bg-rose-500/10 text-rose-400' : 'bg-primary/10 text-primary';
+                const iconColor = isV2V ? 'bg-orange-500/10 text-orange-400' : m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400' : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400' : m.id.includes('sora') ? 'bg-[#df9c43]/10 text-[#df9c43]' : 'bg-primary/10 text-primary';
                 item.innerHTML = `
                     <div class="flex items-center gap-3.5">
                          <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
@@ -501,7 +501,7 @@ export function VideoStudio() {
                             ${isV2V ? '<span class="text-[9px] text-orange-400/70">Upload a video to use</span>' : ''}
                          </div>
                     </div>
-                    ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -578,7 +578,7 @@ export function VideoStudio() {
                         </div>
                         <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 transition-opacity">${r}</span>
                     </div>
-                     ${selectedAr === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                     ${selectedAr === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -601,7 +601,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100">${d}s</span>
-                     ${selectedDuration === d ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                     ${selectedDuration === d ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -623,7 +623,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 capitalize">${q}</span>
-                    ${selectedQuality === q ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    ${selectedQuality === q ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -646,7 +646,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100">${r}</span>
-                     ${selectedResolution === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                     ${selectedResolution === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -668,7 +668,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 capitalize">${m}</span>
-                    ${selectedMode === m ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    ${selectedMode === m ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -691,7 +691,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100">${e}</span>
-                    ${selectedEffectName === e ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    ${selectedEffectName === e ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (ev) => {
                     ev.stopPropagation();

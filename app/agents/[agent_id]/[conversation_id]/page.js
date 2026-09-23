@@ -14,78 +14,43 @@ export async function generateMetadata({ params }) {
   };
 }
 
-const BASE_URL = 'https://api.muapi.ai';
+import fs from 'fs';
+import path from 'path';
 
-async function fetchAgentDetails(agentId, apiKey) {
-  if (!apiKey) return null;
+function fetchAgentDetails(agentId) {
   try {
-    const res = await fetch(
-      `${BASE_URL}/agents/by-slug/${agentId}`,
-      {
-        cache: "no-store",
-        headers: { "x-api-key": apiKey },
-      }
-    );
-    if (res.ok) return await res.json();
-    
-    if (agentId.length > 20) {
-      const resId = await fetch(
-        `${BASE_URL}/agents/${agentId}`,
-        {
-          cache: "no-store",
-          headers: { "x-api-key": apiKey },
-        }
-      );
-      if (resId.ok) return await resId.json();
+    const agentsPath = path.join(process.cwd(), 'data', 'local_agents.json');
+    if (fs.existsSync(agentsPath)) {
+      const agents = JSON.parse(fs.readFileSync(agentsPath, 'utf-8'));
+      const found = agents.find(a => a.id === agentId || a.slug === agentId);
+      if (found) return found;
     }
-    return null;
-  } catch {
-    return null;
+  } catch (e) {
+    console.error('[ConvPage] Error reading local agents:', e);
   }
+  return {
+    id: agentId,
+    slug: agentId,
+    name: agentId.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    description: 'Expert Assistant local pour la production cinématographique et vidéo.',
+    avatar: '🎬',
+    system_prompt: 'Tu es un assistant expert en production vidéo et scénarisation pour Open-Generative-AI.'
+  };
 }
 
-async function fetchHistory(agentId, conversationId, apiKey) {
-  if (!apiKey) return null;
-  try {
-    // Try by slug first
-    const res = await fetch(
-      `${BASE_URL}/agents/by-slug/${agentId}/${conversationId}`,
-      {
-        cache: "no-store",
-        headers: { "x-api-key": apiKey },
-      }
-    );
-    if (res.ok) return await res.json();
-    
-    // Fallback to direct agent ID if needed
-    if (agentId.length > 20) {
-      const resId = await fetch(
-        `${BASE_URL}/agents/${agentId}/${conversationId}`,
-        {
-          cache: "no-store",
-          headers: { "x-api-key": apiKey },
-        }
-      );
-      if (resId.ok) return await resId.json();
-    }
-    return null;
-  } catch {
-    return null;
-  }
+function fetchHistory(agentId, conversationId) {
+  return null;
 }
 
-async function fetchUserData(apiKey) {
-  if (!apiKey) return null;
-  try {
-    const res = await fetch(`${BASE_URL}/api/v1/account/balance`, {
-      cache: "no-store",
-      headers: { "x-api-key": apiKey },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+function fetchUserData() {
+  return {
+    user: {
+      username: 'Studio User',
+      name: 'Studio User',
+      email: 'user@spark.local'
+    },
+    balance: 'Illimité (DGX Spark)'
+  };
 }
 
 export default async function AgentConversationPage({ params }) {

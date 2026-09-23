@@ -1,44 +1,64 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 export async function POST(request) {
     try {
         const formData = await request.formData();
         
-        // Extract the original S3 target URL we injected earlier
-        const targetUrl = formData.get('x-proxy-target-url');
-        
-        if (!targetUrl) {
-            return NextResponse.json({ error: 'Missing proxy target URL' }, { status: 400 });
+        // 1. Check for direct file upload
+        const file = formData.get('file');
+        const key = formData.get('key');
+
+        if (file && typeof file === 'object' && file.name) {
+            const rawName = file.name || 'upload';
+            const ext = path.extname(rawName) || '.png';
+            const safeBaseName = path.basename(rawName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+            const finalFilename = key ? path.basename(key) : `${Date.now()}_${safeBaseName}${ext}`;
+            const targetPath = path.join(UPLOADS_DIR, finalFilename);
+
+            const buffer = Buffer.from(await file.arrayBuffer());
+            fs.writeFileSync(targetPath, buffer);
+
+            const publicUrl = `/uploads/${finalFilename}`;
+            console.log(`[UploadBinary] Saved file locally: ${publicUrl} (${buffer.length} bytes)`);
+
+            return NextResponse.json({
+                success: true,
+                url: publicUrl,
+                filename: finalFilename,
+                size: buffer.length,
+                mime: file.type || 'application/octet-stream'
+            }, { status: 200 });
         }
 
-        // Reconstruct the FormData for S3 (excluding our internal proxy marker)
-        const s3FormData = new FormData();
-        
-        // S3 is very sensitive to field ordering. We must ensure 'file' is likely last
-        // or at least that all signature fields come before what S3 expects.
-        // The original library code appends 'file' last, so iterating should preserve that.
-        for (const [key, value] of formData.entries()) {
-            if (key !== 'x-proxy-target-url') {
-                s3FormData.append(key, value);
+        // 2. Fallback: Proxy to S3 if x-proxy-target-url is present
+        const targetUrl = formData.get('x-proxy-target-url');
+        if (targetUrl) {
+            const s3FormData = new FormData();
+            for (const [k, value] of formData.entries()) {
+                if (k !== 'x-proxy-target-url') {
+                    s3FormData.append(k, value);
+                }
+            }
+            const s3Response = await fetch(targetUrl, {
+                method: 'POST',
+                body: s3FormData,
+            });
+            if (s3Response.ok || s3Response.status === 204) {
+                return new Response(null, { status: 204 });
             }
         }
 
-        // Perform the server-to-server POST to S3
-        // This bypasses browser CORS/Preflight security entirely
-        const s3Response = await fetch(targetUrl, {
-            method: 'POST',
-            body: s3FormData,
-        });
-
-        if (s3Response.ok || s3Response.status === 204) {
-            return new Response(null, { status: 204 });
-        } else {
-            const errorText = await s3Response.text();
-            console.error('S3 Proxy Error:', errorText);
-            return new Response(errorText, { status: s3Response.status });
-        }
+        return NextResponse.json({ error: 'Fichier manquant dans la requête' }, { status: 400 });
     } catch (error) {
-        console.error('Upload Proxy Exception:', error);
+        console.error('[UploadBinary] Exception:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
