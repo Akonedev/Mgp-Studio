@@ -811,6 +811,135 @@ function encodeWavStereo(leftSamples, rightSamples, sampleRate = 48000) {
   return buffer;
 }
 
+// ── Helper to encode Tracks with Notes to Standard MIDI File (SMF Type 1, Chapter 14.6) ──
+function encodeStandardMidiFile(tracks, bpm = 120) {
+  const ticksPerQuarterNote = 480;
+
+  // Helper for variable-length quantity (VLQ)
+  function writeVLQ(value) {
+    const bytes = [];
+    let buffer = value & 0x7f;
+    while ((value >>= 7) > 0) {
+      buffer <<= 8;
+      buffer |= 0x80;
+      buffer += (value & 0x7f);
+    }
+    while (true) {
+      bytes.push(buffer & 0xff);
+      if (buffer & 0x80) buffer >>= 8;
+      else break;
+    }
+    return bytes;
+  }
+
+  // 1. Conductor Track (Track 0: Tempo & Signature)
+  const conductorEvents = [];
+  // Tempo Meta Event (0xFF 0x51 0x03)
+  const mpqn = Math.round(60000000 / bpm);
+  conductorEvents.push(0x00, 0xff, 0x51, 0x03, (mpqn >> 16) & 0xff, (mpqn >> 8) & 0xff, mpqn & 0xff);
+  // Time Signature 4/4 (0xFF 0x58 0x04 0x04 0x02 0x18 0x08)
+  conductorEvents.push(0x00, 0xff, 0x58, 0x04, 0x04, 0x02, 0x18, 0x08);
+  // End of Track (0xFF 0x2F 0x00)
+  conductorEvents.push(0x00, 0xff, 0x2f, 0x00);
+
+  const midiTracksData = [];
+
+  // 2. Iterate each track that contains notes
+  let channel = 0;
+  for (const trk of tracks) {
+    const allNotes = [];
+    for (const clip of trk.clips || []) {
+      const clipStartBeat = (clip.startBar - 1) * 4;
+      for (const note of clip.notes || []) {
+        const startBeat = (note.startBeat || 1) - 1 + clipStartBeat;
+        const durBeats = note.durationBeats || 1;
+        const startTick = Math.round(startBeat * ticksPerQuarterNote);
+        const endTick = Math.round((startBeat + durBeats) * ticksPerQuarterNote);
+        const pitch = typeof note.pitch === "number" ? note.pitch : 60;
+        const velocity = Math.min(127, Math.max(1, note.velocity || 90));
+        allNotes.push({ tick: startTick, type: "on", pitch, velocity });
+        allNotes.push({ tick: endTick, type: "off", pitch, velocity: 0 });
+      }
+    }
+
+    if (allNotes.length === 0) continue;
+
+    // Sort events by tick
+    allNotes.sort((a, b) => a.tick - b.tick || (a.type === "off" ? -1 : 1));
+
+    const trkEvents = [];
+    // Track Name Meta Event
+    const nameStr = trk.name || `Track ${channel + 1}`;
+    const nameBytes = [];
+    for (let i = 0; i < nameStr.length; i++) {
+      nameBytes.push(nameStr.charCodeAt(i) & 0x7f);
+    }
+    trkEvents.push(0x00, 0xff, 0x03, ...writeVLQ(nameBytes.length), ...nameBytes);
+
+    let lastTick = 0;
+    const ch = channel % 16;
+    for (const ev of allNotes) {
+      const delta = Math.max(0, ev.tick - lastTick);
+      lastTick = ev.tick;
+      const vlqDelta = writeVLQ(delta);
+      const status = ev.type === "on" ? (0x90 | ch) : (0x80 | ch);
+      trkEvents.push(...vlqDelta, status, ev.pitch & 0x7f, ev.velocity & 0x7f);
+    }
+
+    // End of Track
+    trkEvents.push(0x00, 0xff, 0x2f, 0x00);
+    midiTracksData.push(trkEvents);
+    channel++;
+  }
+
+  // Fallback if no notes present
+  if (midiTracksData.length === 0) {
+    const defaultEvents = [];
+    const nameBytes = [83, 116, 117, 100, 105, 111]; // "Studio"
+    defaultEvents.push(0x00, 0xff, 0x03, nameBytes.length, ...nameBytes);
+    defaultEvents.push(0x00, 0x90, 60, 95);
+    defaultEvents.push(...writeVLQ(ticksPerQuarterNote), 0x80, 60, 0);
+    defaultEvents.push(0x00, 0xff, 0x2f, 0x00);
+    midiTracksData.push(defaultEvents);
+  }
+
+  const numTracks = 1 + midiTracksData.length;
+  const chunks = [];
+
+  // Header chunk: 'MThd', length 6, format 1, numTracks, division
+  chunks.push(
+    0x4d, 0x54, 0x68, 0x64,
+    0x00, 0x00, 0x00, 0x06,
+    0x00, 0x01,
+    (numTracks >> 8) & 0xff, numTracks & 0xff,
+    (ticksPerQuarterNote >> 8) & 0xff, ticksPerQuarterNote & 0xff
+  );
+
+  // Conductor Track chunk
+  chunks.push(
+    0x4d, 0x54, 0x72, 0x6b,
+    (conductorEvents.length >> 24) & 0xff,
+    (conductorEvents.length >> 16) & 0xff,
+    (conductorEvents.length >> 8) & 0xff,
+    conductorEvents.length & 0xff,
+    ...conductorEvents
+  );
+
+  // Data Track chunks
+  for (const trkBytes of midiTracksData) {
+    chunks.push(
+      0x4d, 0x54, 0x72, 0x6b,
+      (trkBytes.length >> 24) & 0xff,
+      (trkBytes.length >> 16) & 0xff,
+      (trkBytes.length >> 8) & 0xff,
+      trkBytes.length & 0xff,
+      ...trkBytes
+    );
+  }
+
+  return new Uint8Array(chunks);
+}
+
 // ── Realistic Demo Songs with Separated 4 Stems (Real Demucs Audio Files) ──
 const DEMO_SONGS_LIST = [
   {
@@ -3632,6 +3761,21 @@ export function MusicStudioDaw({
     setStatusHint("Export WAV stéréo 48kHz terminé avec succès !");
   }, [tracks, loopStartBar, loopEndBar, bpm, selectedTrack]);
 
+  // ── MIDI File Export (Real Binary Standard MIDI File SMF Type 1 - Chapter 14.6) ──
+  const handleExportMidi = useCallback(() => {
+    const midiBytes = encodeStandardMidiFile(tracks, bpm);
+    const blob = new Blob([midiBytes], { type: "audio/midi" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(selectedTrack?.title || "Projet_DAW").replace(/\s+/g, "_")}_Export.mid`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setStatusHint(`Export Standard MIDI File Type 1 (.mid) généré pour ${tracks.length} pistes !`);
+  }, [tracks, bpm, selectedTrack]);
+
   // ── Project Actions ──
   const handleNewProject = useCallback(() => {
     if (typeof window !== "undefined" && !window.confirm("Créer un nouveau projet vide ? Tous les changements non sauvegardés seront réinitialisés.")) {
@@ -5886,19 +6030,15 @@ export function MusicStudioDaw({
                     <span className="text-[10px] text-zinc-500 font-mono">Ctrl+Shift+B</span>
                   </button>
                   <button
+                    data-testid="menu-btn-export-midi"
                     onClick={() => {
                       setOpenMenu(null);
-                      const midiBlob = new Blob([JSON.stringify({ notes: pianoRollNotes })], { type: "audio/midi" });
-                      const url = URL.createObjectURL(midiBlob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `${selectedTrack?.title || "Projet"}_MIDI.mid`;
-                      a.click();
-                      setStatusHint("Export MIDI généré et téléchargé");
+                      handleExportMidi();
                     }}
                     className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
                   >
-                    <span>Exporter MIDI</span>
+                    <span>Exporter MIDI (.mid)...</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">SMF Type 1</span>
                   </button>
                   <button
                     onClick={() => { setOpenMenu(null); handleSaveProject(); }}
@@ -11029,6 +11169,17 @@ export function MusicStudioDaw({
                 className="px-4 py-2 bg-[#252525] hover:bg-[#303030] text-zinc-300 font-semibold rounded-lg transition text-xs"
               >
                 Annuler
+              </button>
+              <button
+                data-testid="btn-confirm-export-midi"
+                onClick={() => {
+                  setIsExportAudioModalOpen(false);
+                  handleExportMidi();
+                }}
+                className="px-4 py-2 bg-[#1c1c1c] hover:bg-[#252525] border border-amber-500/40 text-amber-300 font-bold rounded-lg transition text-xs flex items-center gap-1.5"
+              >
+                <Music size={13} />
+                <span>Exporter MIDI (.mid)</span>
               </button>
               <button
                 data-testid="btn-confirm-export-wav"
