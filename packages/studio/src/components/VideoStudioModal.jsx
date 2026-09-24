@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   X, Play, Pause, Download, Video, Circle, BarChart2, Waves, Disc,
   Box, Activity, Grid, Aperture, Type, Volume2, Music, Sparkles,
-  Sliders, FileText, Layers, Loader2, Cpu, CheckCircle2, RefreshCw
+  Sliders, FileText, Layers, Loader2, Cpu, CheckCircle2, RefreshCw, Zap
 } from "lucide-react";
 
 // Columns / Mirror icon
@@ -45,10 +45,27 @@ export const COMFYUI_WORKFLOWS = [
   { id: "ltx_t2v_high_quality.json", name: "LTX-2.5 Fast Music Visualizer", desc: "Génération express haute fidélité" }
 ];
 
-export const VideoStudioModal = ({ isOpen, onClose, song }) => {
+export const VideoStudioModal = ({
+  isOpen,
+  onClose,
+  song,
+  bpm = 118,
+  musicalKey = "E Minor",
+  markers = [],
+  activeProjectTitle = "Sahel Symphony",
+  onSyncPlay,
+  onSyncPause,
+  onSyncSeek,
+  dawCurrentTime = 0
+}) => {
   // Active Tab: 'presets' | 'style' | 'text' | 'fx' | 'ai_comfy'
-  const [activeTab, setActiveTab] = useState("presets");
+  const [activeTab, setActiveTab] = useState("ai_comfy");
   const [preset, setPreset] = useState("Classic NCS");
+
+  // Audio-Visual Synchronization & System Protection
+  const [dawSyncActive, setDawSyncActive] = useState(true);
+  const [ecoHardwareGuard, setEcoHardwareGuard] = useState(true); // Anti-saturation for running tasks
+  const [isSparkBusy, setIsSparkBusy] = useState(false);
 
   // AI Video & ComfyUI Settings
   const [selectedVideoModel, setSelectedVideoModel] = useState("wan2.1");
@@ -215,9 +232,35 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
       });
       ctx.restore();
 
-      // Visualizer Center Ring / Elements
+      // DAW Tempo Sync pulse & grid
+      const effectiveBpm = dawSyncActive ? (bpm || song?.bpm || 118) : (song?.bpm || 120);
+      const beatPeriodSec = 60 / effectiveBpm;
+      const beatPhase = (currentTime % beatPeriodSec) / beatPeriodSec;
+      const isBeatAccent = isPlaying && beatPhase < 0.12;
+
+      // Visualizer Center Ring / Elements with DAW Beat Pulse Boost
       const avgBass = (freqData[0] + freqData[1] + freqData[2] + freqData[3]) / 4;
-      const radius = 100 + (avgBass / 255) * (fxShake ? 14 : 6);
+      const beatBoost = isBeatAccent ? 16 : 0;
+      const radius = 100 + (avgBass / 255) * (fxShake ? 14 : 6) + beatBoost;
+
+      // DAW Synchronization HUD Overlay
+      if (dawSyncActive) {
+        ctx.save();
+        ctx.font = "bold 11px monospace";
+        ctx.fillStyle = "#df9c43";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+        ctx.shadowBlur = 4;
+        ctx.fillText(`⚡ SYNC DAW: ${effectiveBpm} BPM • ${musicalKey} • ${activeProjectTitle}`, 24, 28);
+
+        // Find active section marker from DAW cue markers
+        const curBar = Math.floor(currentTime * (effectiveBpm / 240)) + 1;
+        const activeMarker = (markers || []).slice().reverse().find(m => curBar >= (m.bar || 1));
+        if (activeMarker) {
+          ctx.fillStyle = activeMarker.color || "#06b6d4";
+          ctx.fillText(`SECTION: ${activeMarker.name.toUpperCase()} (Mesure ${curBar})`, 24, 46);
+        }
+        ctx.restore();
+      }
 
       // Preset 1: Classic NCS (Dots ring around circular artwork)
       if (preset === "Classic NCS" || preset === "Pulse") {
@@ -416,26 +459,38 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
     }
   };
 
-  // Handle SOTA Video Generation via ComfyUI / DGX Spark
+  // Handle SOTA Video Generation via ComfyUI / DGX Spark with Hardware Anti-Saturation
   const handleGenerateAIVideo = async () => {
+    if (isSparkBusy) {
+      alert("Une génération GPU est déjà active sur le DGX Spark. Mode protection activé pour préserver les projets en cours.");
+      return;
+    }
     setIsGeneratingAIVideo(true);
+    setIsSparkBusy(true);
     setAiVideoProgress(15);
+    const effectiveBpm = dawSyncActive ? (bpm || song?.bpm || 118) : (song?.bpm || 120);
+
     try {
       const resp = await fetch("/api/comfy?action=generate_video", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Hardware-Guard": ecoHardwareGuard ? "eco-active" : "standard"
+        },
         body: JSON.stringify({
           prompt: videoPrompt,
           negative: videoNegativePrompt,
           model: selectedVideoModel,
           workflow: selectedComfyWorkflow,
           aspect_ratio: aspectRatio,
-          bpm: song?.bpm || 120,
+          bpm: effectiveBpm,
           beatKickSensitivity: beatKickSensitivity,
           motionAmplitude: motionAmplitude,
           cameraMotion: cameraMotion,
-          length: videoLengthSec * 16,
-          fps: 16
+          length: ecoHardwareGuard ? Math.min(10, videoLengthSec) * 16 : videoLengthSec * 16,
+          fps: ecoHardwareGuard ? 16 : 24,
+          hardware_guard: ecoHardwareGuard,
+          low_vram: ecoHardwareGuard
         })
       });
 
@@ -455,7 +510,8 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
             action: "render_visualizer_video",
             trackId: song?.id,
             prompt: videoPrompt,
-            model: selectedVideoModel
+            model: selectedVideoModel,
+            eco_mode: ecoHardwareGuard
           })
         });
         const vData = await vResp.json();
@@ -476,6 +532,7 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
       setAiVideoProgress(100);
     } finally {
       setIsGeneratingAIVideo(false);
+      setIsSparkBusy(false);
     }
   };
 
@@ -516,7 +573,8 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors md:hidden"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center"
+              title="Fermer le Studio Vidéo"
             >
               <X size={18} />
             </button>
@@ -564,6 +622,51 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
                     <span className="font-semibold text-[11px] text-[#eaaf5d]">Serveur ComfyUI</span>
                   </div>
                   <span className="text-[10px] font-mono text-zinc-400">{comfyStatus}</span>
+                </div>
+
+                {/* DAW Synchronization & DGX Spark Anti-Saturation Guard */}
+                <div className="p-3 bg-[#181513] border border-[#df9c43]/30 rounded-xl space-y-2.5 shadow-inner">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Zap size={14} className={dawSyncActive ? "text-[#df9c43]" : "text-zinc-500"} />
+                      <div>
+                        <span className="font-bold text-[11px] text-zinc-200 block">Synchronisation DAW</span>
+                        <span className="text-[10px] font-mono text-zinc-400">
+                          {bpm || 118} BPM • {musicalKey || "E Minor"} • {activeProjectTitle || "Sahel Symphony"}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setDawSyncActive(!dawSyncActive)}
+                      className={`px-2 py-1 rounded text-[10px] font-bold transition ${
+                        dawSyncActive
+                          ? "bg-[#df9c43] text-black shadow-[0_0_8px_rgba(223,156,67,0.4)]"
+                          : "bg-white/10 text-zinc-400 hover:bg-white/15"
+                      }`}
+                    >
+                      {dawSyncActive ? "SYNC ON" : "SYNC OFF"}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                      <Cpu size={14} className={ecoHardwareGuard ? "text-emerald-400" : "text-amber-400"} />
+                      <div>
+                        <span className="font-bold text-[11px] text-zinc-200 block">Protection Matérielle DGX</span>
+                        <span className="text-[9px] text-zinc-400">Anti-saturation GPU & tâches de fond</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setEcoHardwareGuard(!ecoHardwareGuard)}
+                      className={`px-2 py-1 rounded text-[10px] font-bold transition ${
+                        ecoHardwareGuard
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                          : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                      }`}
+                    >
+                      {ecoHardwareGuard ? "MODE ÉCO" : "STANDARD"}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Video Model Selector */}

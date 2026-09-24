@@ -82,7 +82,7 @@ import {
 } from "lucide-react";
 import { VideoStudioModal } from "./VideoStudioModal";
 import { DemucsModal } from "./DemucsModal";
-import { MusicStudioDaw, STUDIO_DEMO_TRACKS } from "./MusicStudioDaw";
+import { MusicStudioDaw, STUDIO_DEMO_TRACKS, SAHEL_SYMPHONY_TRACKS } from "./MusicStudioDaw";
 import { CuratedStyleModal } from "./CuratedStyleModal";
 import {
   MUSIC_STYLES_CATALOG,
@@ -764,7 +764,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
   const [addInstrumentPrompt, setAddInstrumentPrompt] = useState("");
   const [isAddingInstrument, setIsAddingInstrument] = useState(false);
 
-  const [dawTracks, setDawTracks] = useState(() => STUDIO_DEMO_TRACKS);
+  const [dawTracks, setDawTracks] = useState(() => SAHEL_SYMPHONY_TRACKS);
 
   // Audio References
   const audioRef = useRef(null);
@@ -6543,6 +6543,9 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
           song={selectedTrack}
+          bpm={selectedTrack?.bpm || 118}
+          musicalKey={selectedTrack?.key || "E Minor"}
+          activeProjectTitle="Sahel Symphony"
         />
       )}
 

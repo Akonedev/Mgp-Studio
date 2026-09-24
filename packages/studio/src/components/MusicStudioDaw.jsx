@@ -88,7 +88,7 @@ import MusicStudioTakeLanesComping, { DEFAULT_STUDIO_TAKES } from "./MusicStudio
 import MusicStudioPianoRollOperators from "./MusicStudioPianoRollOperators";
 import MusicStudioPopupBrowser from "./MusicStudioPopupBrowser";
 import MusicStudioTheGridModular from "./MusicStudioTheGridModular";
-import MusicStudioDeviceRack, { deviceAudioEngine } from "./MusicStudioDeviceRack";
+import MusicStudioDeviceRack, { deviceAudioEngine, AudioVoiceManager } from "./MusicStudioDeviceRack";
 import MusicStudioModulatorSystem from "./MusicStudioModulatorSystem";
 import MusicStudioAudioWarp, { detectAudioTransients } from "./MusicStudioAudioWarp";
 import MusicStudioConsoleMixer from "./MusicStudioConsoleMixer";
@@ -119,6 +119,7 @@ class DawWebAudioEngine {
     this.bufferCache = new Map(); // url -> AudioBuffer
     this.loadingPromises = new Map();
     this.analyserData = new Uint8Array(128);
+    this.voiceManager = new AudioVoiceManager(24);
   }
 
   init() {
@@ -147,6 +148,12 @@ class DawWebAudioEngine {
     if (!url || !this.ctx) return null;
     if (this.bufferCache.has(url)) return this.bufferCache.get(url);
     if (this.loadingPromises.has(url)) return this.loadingPromises.get(url);
+
+    // Evict oldest buffer if cache exceeds 32 items to preserve memory
+    if (this.bufferCache.size >= 32) {
+      const oldestKey = this.bufferCache.keys().next().value;
+      if (oldestKey) this.bufferCache.delete(oldestKey);
+    }
 
     const promise = (async () => {
       try {
@@ -254,6 +261,9 @@ class DawWebAudioEngine {
   }
 
   stopAllSources() {
+    if (this.voiceManager) {
+      this.voiceManager.stopAllVoices();
+    }
     for (const [_, chain] of this.trackNodes) {
       if (chain.sourceNodes) {
         for (const src of chain.sourceNodes) {
@@ -328,6 +338,15 @@ class DawWebAudioEngine {
             clipGain.connect(chain.gainNode);
             src.start(now, offsetInBuffer, remainingSec);
             chain.sourceNodes.push(src);
+
+            if (this.voiceManager) {
+              this.voiceManager.allocateVoice({
+                trackId: trk.id,
+                gainNode: clipGain,
+                sourceNode: src,
+                priority: trk.type === "bass" || trk.type === "hybrid" ? 3 : trk.type === "drums" ? 2 : 1
+              });
+            }
           } catch (err) {
             console.warn("[DawWebAudioEngine] Error starting buffer source:", err);
           }
@@ -357,6 +376,15 @@ class DawWebAudioEngine {
             clipGain.connect(chain.gainNode);
             src.start(startTimestamp, 0, clipDurSec);
             chain.sourceNodes.push(src);
+
+            if (this.voiceManager) {
+              this.voiceManager.allocateVoice({
+                trackId: trk.id,
+                gainNode: clipGain,
+                sourceNode: src,
+                priority: trk.type === "bass" || trk.type === "hybrid" ? 3 : trk.type === "drums" ? 2 : 1
+              });
+            }
           } catch (err) {
             console.warn("[DawWebAudioEngine] Error scheduling buffer source:", err);
           }
@@ -2804,6 +2832,467 @@ export const STUDIO_DEMO_TRACKS = [
   }
 ];
 
+// ════════════════════════════════════════════════════════════════════════════════
+// SHOWCASE MULTI-TRACK PROJECT: "Sahel Symphony" (118 BPM, E Minor, Amapiano / Afro-Tech)
+// Complete Bitwig SOTA Demonstration: The Grid Chebyshev, Expressions MPE, Comping, Next Actions
+// ════════════════════════════════════════════════════════════════════════════════
+export const SAHEL_SYMPHONY_TRACKS = [
+  // 1. Group: Rhythm & Percussions
+  {
+    id: "grp_sahel_rhythm",
+    name: "Rhythm & Percussions",
+    isGroup: true,
+    collapsed: false,
+    color: "#f59e0b",
+    type: "drums",
+    volume: 88,
+    pan: 0,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-1.5 dB",
+    clips: []
+  },
+  {
+    id: "trk_sahel_logdrum",
+    name: "Amapiano Log Drum",
+    groupId: "grp_sahel_rhythm",
+    type: "hybrid",
+    color: "#f59e0b",
+    volume: 92,
+    pan: 0,
+    mute: false,
+    solo: false,
+    armed: true,
+    frozen: false,
+    db: "+0.5 dB",
+    automationLanes: getDefaultAutomationLanes("trk_sahel_logdrum", "bass", "Amapiano Log Drum"),
+    deviceChain: [
+      {
+        id: "d_log_syn",
+        name: "Polymer Log Synth",
+        type: "Instrument",
+        category: "Synth",
+        enabled: true,
+        params: { sub: 95, pitchDecay: 82, glide: 65, drive: 45 }
+      },
+      {
+        id: "d_cheb_drive",
+        name: "Chebyshev Saturator",
+        type: "Audio FX",
+        category: "Distortion",
+        enabled: true,
+        params: { order: 3, drive: 60, harmonicBlend: 75, wet: 80 }
+      },
+      {
+        id: "d_log_vca",
+        name: "VCA Compressor",
+        type: "Audio FX",
+        category: "Dynamics",
+        enabled: true,
+        params: { threshold: -16, ratio: 4.5, attack: 15, release: 120 }
+      }
+    ],
+    modulators: [
+      {
+        id: "mod_log_parseq",
+        type: "parSeq8",
+        name: "ParSeq Pitch Accents",
+        config: {
+          steps: [0.8, 0.2, 0.9, 0.4, 0.85, 0.3, 0.95, 0.5],
+          rateSync: "1/8",
+          smoothing: 20
+        },
+        targets: [{ targetParam: "pitchDecay", targetName: "Log Pitch Decay", depth: 40 }]
+      }
+    ],
+    clips: [
+      {
+        id: "c_log_1",
+        name: "Log Drum Intro Pattern",
+        startBar: 1,
+        bars: 8,
+        color: "#f59e0b",
+        operators: { chance: 100, recurrence: { cycleLength: 2, activeOnCycles: [1, 2] } },
+        nextAction: { condition: "loopEnd", action: "next", probability: 1.0 }
+      },
+      {
+        id: "c_log_2",
+        name: "Log Drum Main Drop (118 BPM)",
+        startBar: 9,
+        bars: 16,
+        color: "#f59e0b",
+        operators: { chance: 100, recurrence: { cycleLength: 4, activeOnCycles: [1, 2, 3, 4] } },
+        nextAction: { condition: "loopEnd", action: "repeat", probability: 0.85, altAction: "next" }
+      },
+      {
+        id: "c_log_3",
+        name: "Log Drum Double-Time Roll",
+        startBar: 25,
+        bars: 8,
+        color: "#f59e0b",
+        operators: { chance: 90, recurrence: { cycleLength: 2, activeOnCycles: [1] } }
+      }
+    ]
+  },
+  {
+    id: "trk_sahel_percs",
+    name: "Polyrhythm Percs & Shakers",
+    groupId: "grp_sahel_rhythm",
+    type: "audio",
+    isAudio: true,
+    color: "#10b981",
+    volume: 84,
+    pan: -15,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-2.5 dB",
+    automationLanes: getDefaultAutomationLanes("trk_sahel_percs", "drums", "Percs"),
+    deviceChain: [
+      {
+        id: "d_perc_eq",
+        name: "EQ-5 Parametric",
+        type: "Audio FX",
+        category: "EQ",
+        enabled: true,
+        params: { lowCut: 140, midGain: 1.5, highAir: 3.5 }
+      },
+      {
+        id: "d_perc_delay",
+        name: "Delay+ Polyrhythm 3:4",
+        type: "Audio FX",
+        category: "Delay",
+        enabled: true,
+        params: { time: "3/16", feedback: 35, pingPong: true, mix: 25 }
+      }
+    ],
+    clips: [
+      {
+        id: "c_perc_1",
+        name: "Konga & Gourd Shaker Groove",
+        startBar: 1,
+        bars: 8,
+        color: "#10b981",
+        isAudio: true,
+        waveformKey: "konga_loop_1",
+        slipOffset: 0
+      },
+      {
+        id: "c_perc_2",
+        name: "Afro Polyrhythm 3:4 Claps",
+        startBar: 9,
+        bars: 16,
+        color: "#10b981",
+        isAudio: true,
+        waveformKey: "konga_loop_2",
+        slipOffset: 0
+      },
+      {
+        id: "c_perc_3",
+        name: "Shaker Ghost Fill",
+        startBar: 25,
+        bars: 8,
+        color: "#10b981",
+        isAudio: true,
+        waveformKey: "konga_loop_1",
+        slipOffset: 0.25
+      }
+    ]
+  },
+
+  // 2. Group: Harmonics & Modular Synth
+  {
+    id: "grp_sahel_melodic",
+    name: "Harmonics & Modular Synth",
+    isGroup: true,
+    collapsed: false,
+    color: "#ec4899",
+    type: "instruments",
+    volume: 86,
+    pan: 0,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-2.0 dB",
+    clips: []
+  },
+  {
+    id: "trk_sahel_grid_lead",
+    name: "Chebyshev Modular Lead",
+    groupId: "grp_sahel_melodic",
+    type: "instruments",
+    color: "#ec4899",
+    volume: 88,
+    pan: 10,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-1.0 dB",
+    automationLanes: getDefaultAutomationLanes("trk_sahel_grid_lead", "instruments", "Chebyshev Modular Lead"),
+    deviceChain: [
+      {
+        id: "d_grid_cheb",
+        name: "The Grid: Chebyshev Lead",
+        type: "Instrument",
+        category: "The Grid",
+        enabled: true,
+        params: { harmonicOrder: 3, cutoffHz: 2600, resonance: 62, feedback: 20, drive: 40 }
+      },
+      {
+        id: "d_flanger",
+        name: "Flanger+ Harmonic",
+        type: "Audio FX",
+        category: "Modulation",
+        enabled: true,
+        params: { rate: "1/4", depth: 55, feedback: 30 }
+      }
+    ],
+    modulators: [
+      {
+        id: "mod_grid_polynom",
+        type: "polynom",
+        name: "Non-Linear Transfer",
+        config: { a: 0.8, b: 0, c: 0.3, d: 0 },
+        targets: [{ targetParam: "harmonicOrder", targetName: "Chebyshev Order", depth: 50 }]
+      },
+      {
+        id: "mod_grid_4stage",
+        type: "fourStage",
+        name: "4-Stage Modular Env",
+        config: { stage1: 0.2, stage2: 0.8, stage3: 0.5, stage4: 0.0, rateSync: "1/4" },
+        targets: [{ targetParam: "cutoffHz", targetName: "Filter Cutoff", depth: 65 }]
+      }
+    ],
+    clips: [
+      {
+        id: "c_grid_1",
+        name: "E Min Pentatonic Riff",
+        startBar: 9,
+        bars: 8,
+        color: "#ec4899",
+        operators: { chance: 100, recurrence: { cycleLength: 2, activeOnCycles: [1, 2] } }
+      },
+      {
+        id: "c_grid_2",
+        name: "Modular Solo & 32nd Trills",
+        startBar: 17,
+        bars: 16,
+        color: "#ec4899",
+        operators: { chance: 95, velocitySpread: 12 }
+      }
+    ]
+  },
+  {
+    id: "trk_sahel_mpe_pad",
+    name: "Sahel Atmosphere MPE Pad",
+    groupId: "grp_sahel_melodic",
+    type: "instruments",
+    color: "#8b5cf6",
+    volume: 80,
+    pan: 0,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-4.0 dB",
+    automationLanes: getDefaultAutomationLanes("trk_sahel_mpe_pad", "instruments", "Sahel Atmosphere MPE Pad"),
+    deviceChain: [
+      {
+        id: "d_mpe_synth",
+        name: "Polysynth MPE",
+        type: "Instrument",
+        category: "Synth",
+        enabled: true,
+        params: { timbreSensitivity: 80, pressureResonance: 70, pitchBendRange: 48, spread: 60 }
+      },
+      {
+        id: "d_space_reverb",
+        name: "Space+ Convolution Reverb",
+        type: "Audio FX",
+        category: "Reverb",
+        enabled: true,
+        params: { decay: 4.8, size: 90, damping: 30, mix: 42 }
+      }
+    ],
+    modulators: [
+      {
+        id: "mod_mpe_expr",
+        type: "expressionsMpe",
+        name: "Timbre CC74 & Pressure",
+        config: { timbreMod: 85, pressureMod: 75, velocityCurve: "dynamic" },
+        targets: [{ targetParam: "timbreSensitivity", targetName: "MPE Filter Brightness", depth: 70 }]
+      }
+    ],
+    clips: [
+      {
+        id: "c_mpe_1",
+        name: "Sahelian Sunset Chords (E min9)",
+        startBar: 1,
+        bars: 16,
+        color: "#8b5cf6"
+      },
+      {
+        id: "c_mpe_2",
+        name: "C Maj7 -> D sus4 Warmth",
+        startBar: 17,
+        bars: 16,
+        color: "#8b5cf6"
+      }
+    ]
+  },
+
+  // 3. Group: Sahelian Vocals & Spectral FX
+  {
+    id: "grp_sahel_vocals_fx",
+    name: "Sahelian Vocals & Spectral FX",
+    isGroup: true,
+    collapsed: false,
+    color: "#df9c43",
+    type: "audio",
+    volume: 86,
+    pan: 0,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-1.8 dB",
+    clips: []
+  },
+  {
+    id: "trk_sahel_vocal_comping",
+    name: "Sahelian Chants (Take Comping)",
+    groupId: "grp_sahel_vocals_fx",
+    type: "audio",
+    isAudio: true,
+    color: "#df9c43",
+    volume: 86,
+    pan: 0,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-1.8 dB",
+    automationLanes: getDefaultAutomationLanes("trk_sahel_vocal_comping", "vocals", "Sahelian Chants"),
+    deviceChain: [
+      {
+        id: "d_voc_eq",
+        name: "EQ+ Precision",
+        type: "Audio FX",
+        category: "EQ",
+        enabled: true,
+        params: { highPass: 160, warmth: 2.5, air: 4 }
+      },
+      {
+        id: "d_voc_comp",
+        name: "Compressor Opto",
+        type: "Audio FX",
+        category: "Dynamics",
+        enabled: true,
+        params: { threshold: -18, ratio: 3.2, gain: 4 }
+      }
+    ],
+    takeLanes: [
+      {
+        id: "take_lane_1",
+        name: "Take 1 (Main Studio Clean)",
+        color: "#df9c43",
+        active: false,
+        clips: [{ id: "t1_c1", startBar: 9, bars: 16, name: "Take 1 Chant Lead", score: 85 }]
+      },
+      {
+        id: "take_lane_2",
+        name: "Take 2 (Falsetto High Harmony)",
+        color: "#f5c277",
+        active: true,
+        clips: [{ id: "t2_c1", startBar: 9, bars: 8, name: "Take 2 High Resonance", score: 96 }]
+      },
+      {
+        id: "take_lane_3",
+        name: "Take 3 (Ancestral Call & Response)",
+        color: "#eab308",
+        active: true,
+        clips: [{ id: "t3_c1", startBar: 17, bars: 8, name: "Take 3 Vibrato Climax", score: 98 }]
+      }
+    ],
+    compSegments: [
+      { id: "comp_seg_1", takeLaneId: "take_lane_2", startBar: 9, endBar: 17, crossfadeMs: 25 },
+      { id: "comp_seg_2", takeLaneId: "take_lane_3", startBar: 17, endBar: 25, crossfadeMs: 30 }
+    ],
+    clips: [
+      {
+        id: "c_voc_comp",
+        name: "Comped Sahel Master Vocal",
+        startBar: 9,
+        bars: 16,
+        color: "#df9c43",
+        isAudio: true,
+        waveformKey: "vocal_master_comp",
+        fadeInBars: 0.5,
+        fadeOutBars: 1.0
+      }
+    ]
+  },
+  {
+    id: "trk_sahel_spectral_fx",
+    name: "Spectral Suite FX Riser",
+    groupId: "grp_sahel_vocals_fx",
+    type: "audio",
+    isAudio: true,
+    color: "#06b6d4",
+    volume: 76,
+    pan: 20,
+    mute: false,
+    solo: false,
+    armed: false,
+    frozen: false,
+    db: "-6.0 dB",
+    automationLanes: getDefaultAutomationLanes("trk_sahel_spectral_fx", "audio", "Spectral Suite FX Riser"),
+    deviceChain: [
+      {
+        id: "d_spec_split",
+        name: "Transient Split",
+        type: "Audio FX",
+        category: "Spectral Suite",
+        enabled: true,
+        params: { sensitivity: 85, transientGain: 4, tonalGain: -3 }
+      },
+      {
+        id: "d_spec_delay",
+        name: "Delay+ Spectral Space",
+        type: "Audio FX",
+        category: "Delay",
+        enabled: true,
+        params: { time: "1/4D", feedback: 55, stereoWidth: 95 }
+      }
+    ],
+    clips: [
+      {
+        id: "c_spec_riser",
+        name: "Spectral Shimmer Riser (Bar 7-8)",
+        startBar: 7,
+        bars: 2,
+        color: "#06b6d4",
+        isAudio: true,
+        fadeInBars: 1.5
+      },
+      {
+        id: "c_spec_tail",
+        name: "Tonal Reverb Tail (Bar 23-26)",
+        startBar: 23,
+        bars: 4,
+        color: "#06b6d4",
+        isAudio: true,
+        fadeOutBars: 2.0
+      }
+    ]
+  }
+];
+
 export function MusicStudioDaw({
   tracks: initialTracks = [],
   availableTracks = [],
@@ -3066,14 +3555,25 @@ export function MusicStudioDaw({
   // ── Multi-Project Tabs State (Section 2.1.1 & 14.4, p. 55 & 438) ──
   const [openProjects, setOpenProjects] = useState(() => [
     {
+      id: "proj_sahel_symphony",
+      title: "Sahel Symphony",
+      bpm: 118.0,
+      musicalKey: "E Minor",
+      timeSignature: "4/4",
+      tracks: SAHEL_SYMPHONY_TRACKS,
+      selectedTrackId: "trk_sahel_logdrum"
+    },
+    {
       id: "proj_ferrous",
       title: "Ferrous Rhythm",
       bpm: 172.0,
       musicalKey: "F# minor",
-      timeSignature: "4/4"
+      timeSignature: "4/4",
+      tracks: STUDIO_DEMO_TRACKS,
+      selectedTrackId: "drums"
     }
   ]);
-  const [activeProjectId, setActiveProjectId] = useState("proj_ferrous");
+  const [activeProjectId, setActiveProjectId] = useState("proj_sahel_symphony");
   const [exportSettings, setExportSettings] = useState({
     format: "wav",
     range: "all",
@@ -3105,9 +3605,9 @@ export function MusicStudioDaw({
   const [isRecording, setIsRecording] = useState(false);
   const [isLooping, setIsLooping] = useState(true);
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
-  const [bpm, setBpm] = useState(172.0);
+  const [bpm, setBpm] = useState(118.0);
   const [timeSignature, setTimeSignature] = useState("4/4");
-  const [musicalKey, setMusicalKey] = useState("F Minor");
+  const [musicalKey, setMusicalKey] = useState("E Minor");
   const [currentBar, setCurrentBar] = useState(1);
   const [currentBeat, setCurrentBeat] = useState(1);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
@@ -3118,7 +3618,7 @@ export function MusicStudioDaw({
   // ── Tracks & Project State ──
   const [tracks, setTracks] = useState(() => {
     if (initialTracks && initialTracks.length > 0) return initialTracks;
-    return STUDIO_DEMO_TRACKS;
+    return SAHEL_SYMPHONY_TRACKS;
   });
 
   const toggleGroupCollapse = useCallback((groupId) => {
@@ -3176,9 +3676,9 @@ export function MusicStudioDaw({
   }, [initialTracks]);
 
   // Active Selected Track & Clip
-  const [selectedTrackId, setSelectedTrackId] = useState("drums");
-  const [selectedClipId, setSelectedClipId] = useState("c_md_1");
-  const [selectedDeviceId, setSelectedDeviceId] = useState("d_dm");
+  const [selectedTrackId, setSelectedTrackId] = useState("trk_sahel_logdrum");
+  const [selectedClipId, setSelectedClipId] = useState("c_log_1");
+  const [selectedDeviceId, setSelectedDeviceId] = useState("d_log_syn");
   const [activeSceneIndex, setActiveSceneIndex] = useState(null);
 
   // ── Atom H1 & H2: Profil Tactile & Menu Radial (Chapitre 18) ──
@@ -4240,8 +4740,10 @@ export function MusicStudioDaw({
   const dawprojectFileInputRef = useRef(null);
 
   const handleExportDawproject = useCallback(() => {
+    const activeProj = openProjects.find((p) => p.id === activeProjectId);
+    const projTitle = activeProj?.title || selectedTrack?.title || "Sahel_Symphony";
     const projectData = {
-      title: selectedTrack?.title || "Projet_Music_Studio",
+      title: projTitle,
       bpm,
       musicalKey,
       timeSignature,
@@ -4253,14 +4755,14 @@ export function MusicStudioDaw({
       trackModulators
     };
     try {
-      const filename = `${(selectedTrack?.title || "Projet_Music_Studio").replace(/\s+/g, "_")}.dawproject`;
+      const filename = `${projTitle.replace(/\s+/g, "_")}.dawproject`;
       downloadDawproject(projectData, filename);
       setStatusHint(`Projet exporté avec succès au format officiel Bitwig DAWproject 1.0 container (${filename})`);
     } catch (e) {
       console.warn("DAWproject export error:", e);
       setStatusHint("Erreur lors de l'export DAWproject");
     }
-  }, [selectedTrack, bpm, musicalKey, timeSignature, tracks, markers, loopStartBar, loopEndBar, pianoRollNotes, trackModulators]);
+  }, [openProjects, activeProjectId, selectedTrack, bpm, musicalKey, timeSignature, tracks, markers, loopStartBar, loopEndBar, pianoRollNotes, trackModulators]);
 
   const handleImportDawprojectFile = useCallback(async (e) => {
     const file = e.target.files?.[0];

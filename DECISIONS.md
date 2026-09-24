@@ -514,4 +514,38 @@
   3. Extension de `MusicStudioInspectorPanel.jsx` avec le panneau complet des Actions Suivantes (Play Next, Play Previous, Play First, Play Last, Play Random, Repeat, Stop), condition de mesures, probabilité ($0-100\%$), action de repli alternative et quantification de lancement ($1/16$ à $4\text{ Bars}$).
 - **Justification** : Conformité stricte aux Chapitres 2.3.2, 5.1.6 et 6.2.5.3 de la documentation officielle Bitwig Studio French.
 
+## 36. Projet Vitrine Multi-Pistes Sahel Symphony (Amapiano/Afro-Tech 118 BPM, E Minor)
+- **Problème** : Pour valider de bout en bout l'intégration des fonctionnalités avancées (The Grid, modulateurs MPE, comping vocal, saturation Chebyshev et export .dawproject), un projet de référence complet multi-pistes était requis par l'utilisateur.
+- **Décisions d'Architecture** :
+  1. Configuration de `SAHEL_SYMPHONY_TRACKS` avec 6 pistes réparties en 3 groupes thématiques :
+     - *Groupe 1 : Rythmique & Percussions* (`trk_sahel_logdrum` avec Polymer synthé log drum, saturateur Chebyshev et ParSeq-8 ; `trk_sahel_percs` avec shaker/conga, Delay+ polyrythmique 3:4 et EQ-5).
+     - *Groupe 2 : Harmoniques & Synthèse Modulaire* (`trk_sahel_grid_lead` avec patch The Grid harmonique impaire $T_3(x) = 4x^3 - 3x$, enveloppe 4-Stage, modulateur Polynom ; `trk_sahel_mpe_pad` avec polysynth MPE, CC74 Timbre et Space+ Reverb).
+     - *Groupe 3 : Voix Sahéliennes & FX Spectraux* (`trk_sahel_vocal_comping` avec 3 pistes de prises [Take 1, Take 2, Take 3], crossfades égaux et segments compés ; `trk_sahel_spectral_fx` avec Transient Split et Delay+ dub).
+  2. Pré-chargement automatique de `proj_sahel_symphony` dans les onglets de projets de `MusicStudioDaw.jsx` et `MusicStudio.jsx`.
+- **Justification** : Projet de référence concret, zéro mock, calculs DSP réels et conformité DAWproject.
+
+## 37. Synchronisation Audio-Visuelle Vidéo/Cinéma & Garde-Fou Anti-Saturation DGX Spark
+- **Problème** : L'extension cinéma et vidéo requiert un verrouillage temporel frame-exact sur le tempo et la tonalité de la DAW active, tout en interdisant formellement de saturer le matériel (GPU NVIDIA GB10 de la DGX Spark) qui héberge d'autres tâches concurrentes.
+- **Décisions d'Architecture** :
+  1. Raccordement de `VideoStudioModal.jsx` à la DAW avec props `bpm = 118`, `musicalKey = "E Minor"`, `markers` et `activeProjectTitle = "Sahel Symphony"`.
+  2. Boucle de rendu Canvas vidéo avec pulsation visuelle rythmée ($T_{beat} = 60 / \text{BPM}$), watermark HUD `⚡ SYNC DAW: 118 BPM • E Minor • Sahel Symphony` et indicateur de cue de section (`SECTION: INTRO (Mesure 1)`).
+  3. Garde-fou matériel anti-saturation Spark (`ecoHardwareGuard = true`) : limitation stricte de la prévisualisation à 10 secondes (160 frames au lieu de 720+), réduction de fréquence à 16 fps, injection des headers `X-Hardware-Guard: eco-active` et verrou de concurrence mono-tâche (`isSparkBusy`).
+- **Justification** : Respect des directives strictes utilisateur "Attention à ne pas saturer les systèmes des projets sont en cours", synchronisation frame-accurate temps réel.
+
+## 38. Profils Contrôleurs Matériels MIDI Bidirectionnels & Support MPE 5D
+- **Problème** : Les artistes utilisent des contrôleurs physiques variés (Novation Launchpad, Akai APC40 mkII, Roli Seaboard / Arturia MPE) qui nécessitent des profils matériels spécifiques pour l'assignation des matrices de pads, faders, crossfader et expressions 5D.
+- **Décisions d'Architecture** :
+  1. Implémentation de `HARDWARE_CONTROLLER_PROFILES` dans `MusicStudioMidiMappings.jsx` avec profils `novation_launchpad` (matrice 8x8 avec mode Programmeur SysEx), `akai_apc40` (matrice 5x8 + faders + crossfader assignable), et `roli_arturia_mpe` (bandeaux 5D d'expression Glide, Slide CC74, Press).
+  2. Écouteur Web MIDI multi-commandes supportant Note-On (`0x90`), Note-Off (`0x80`), Pitch Bend (`0xE0`) avec calcul asymétrique 14-bit (normalisation 8191/8192 pour amplitude exacte $\pm 48$ demi-tons), Channel Pressure (`0xD0`) et Control Change (`0xB0`).
+- **Justification** : Support standard du Chapitre 15 Bitwig Studio et de la spécification MIDI Manufacturers Association MPE.
+
+## 39. Gestionnaire de Voix Polyphoniques `AudioVoiceManager` & Cache LRU Anti-Saturation Mémoire
+- **Problème** : L'accumulation de pistes, de voix d'oscillateurs et de tampons audio volumineux dans le Web Audio API risque de provoquer des saturations mémoire (OOM) ou des décrochages de la boucle de rendu audio (buffer underrun / clicks).
+- **Décisions d'Architecture** :
+  1. Création de `AudioVoiceManager` dans `MusicStudioDeviceRack.jsx` et `MusicStudioDaw.jsx` limitant la polyphonie active à 16 voix (rack) et 24 voix (arrangeur).
+  2. Algorithme de vol de voix dynamique pondéré par priorité : les sons percussifs et basses sont protégés, tandis que les nappes anciennes sont volées en premier avec fondu de sortie exponentiel anti-clic de 8 ms (`exponentialRampToValueAtTime`).
+  3. Cache mémoire AudioBuffer LRU (Least Recently Used) borné à 32 tampons dans `DawWebAudioEngine` pour libérer automatiquement les ressources mémoire inactives.
+- **Justification** : Performances optimales temps réel dans le navigateur, absence de coupure ou clic audio parasite, empreinte mémoire maîtrisée.
+
+
 

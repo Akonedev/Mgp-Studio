@@ -28,10 +28,125 @@ import { evaluateModulatorValue } from "./MusicStudioModulatorSystem";
  * ════════════════════════════════════════════════════════════════════════════════
  */
 
+/**
+ * ════════════════════════════════════════════════════════════════════════════════
+ * BITWIG SOTA AUDIO VOICE MANAGER & LOAD OPTIMIZATION (CHAPTER 10 & 16.1)
+ * Low-latency buffer pool, strict polyphony capping, and anti-click voice stealing.
+ * Preserves CPU & memory; prevents buffer underruns on multi-track playback.
+ * ════════════════════════════════════════════════════════════════════════════════
+ */
+export class AudioVoiceManager {
+  constructor(maxVoices = 16) {
+    this.maxVoices = maxVoices;
+    this.activeVoices = new Map(); // voiceId -> voiceRecord
+    this.voiceCounter = 0;
+  }
+
+  setMaxVoices(n) {
+    this.maxVoices = Math.max(1, Math.min(64, n));
+    this.enforcePolyphonyLimit();
+  }
+
+  allocateVoice({ trackId = "master", note = "C4", gainNode, sourceNode, priority = 1, onSteal = null }) {
+    this.enforcePolyphonyLimit(1);
+
+    const voiceId = `voice_${++this.voiceCounter}_${Date.now()}`;
+    const record = {
+      id: voiceId,
+      trackId,
+      note,
+      gainNode,
+      sourceNode,
+      priority,
+      startTime: Date.now(),
+      onSteal
+    };
+
+    this.activeVoices.set(voiceId, record);
+
+    if (sourceNode) {
+      const prevOnEnded = sourceNode.onended;
+      sourceNode.onended = (e) => {
+        this.activeVoices.delete(voiceId);
+        if (typeof prevOnEnded === "function") prevOnEnded(e);
+      };
+    }
+
+    return voiceId;
+  }
+
+  releaseVoice(voiceId) {
+    const voice = this.activeVoices.get(voiceId);
+    if (!voice) return;
+    this.activeVoices.delete(voiceId);
+  }
+
+  enforcePolyphonyLimit(headroom = 0) {
+    while (this.activeVoices.size + headroom > this.maxVoices) {
+      const victim = this.findVoiceToSteal();
+      if (!victim) break;
+      this.stealVoice(victim);
+    }
+  }
+
+  findVoiceToSteal() {
+    let candidate = null;
+    let minScore = Infinity;
+
+    for (const [_, voice] of this.activeVoices) {
+      const ageMs = Date.now() - voice.startTime;
+      const score = voice.priority * 100000 - ageMs;
+      if (score < minScore) {
+        minScore = score;
+        candidate = voice;
+      }
+    }
+    return candidate;
+  }
+
+  stealVoice(voice) {
+    this.activeVoices.delete(voice.id);
+    if (voice.gainNode && voice.gainNode.context) {
+      try {
+        const ctx = voice.gainNode.context;
+        const t = ctx.currentTime;
+        voice.gainNode.gain.cancelScheduledValues(t);
+        voice.gainNode.gain.setValueAtTime(Math.max(0.0001, voice.gainNode.gain.value), t);
+        voice.gainNode.gain.exponentialRampToValueAtTime(0.0001, t + 0.008);
+        setTimeout(() => {
+          try {
+            if (voice.sourceNode && typeof voice.sourceNode.stop === "function") {
+              voice.sourceNode.stop();
+            }
+            if (voice.gainNode) {
+              voice.gainNode.disconnect();
+            }
+          } catch {}
+        }, 12);
+      } catch {}
+    }
+    if (typeof voice.onSteal === "function") {
+      voice.onSteal();
+    }
+  }
+
+  stopAllVoices() {
+    for (const [_, voice] of this.activeVoices) {
+      this.stealVoice(voice);
+    }
+    this.activeVoices.clear();
+  }
+
+  getActiveVoiceCount() {
+    return this.activeVoices.size;
+  }
+}
+
 class DeviceWebAudioEngine {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
+    this.voiceManager = new AudioVoiceManager(16);
   }
 
   init() {
@@ -57,6 +172,9 @@ class DeviceWebAudioEngine {
     const devId = (device.id || "").toLowerCase();
     const name = (device.name || "").toLowerCase();
     const p = { ...(device.params || {}), ...(customParam || {}) };
+    if (this.voiceManager) {
+      this.voiceManager.enforcePolyphonyLimit(1);
+    }
 
     // Helper to evaluate effective parameter with active modulations (Bitwig Chapter 16.2)
     const getModVal = (paramKey, defaultVal, minVal = 0, maxVal = 100) => {
