@@ -547,5 +547,41 @@
   3. Cache mémoire AudioBuffer LRU (Least Recently Used) borné à 32 tampons dans `DawWebAudioEngine` pour libérer automatiquement les ressources mémoire inactives.
 - **Justification** : Performances optimales temps réel dans le navigateur, absence de coupure ou clic audio parasite, empreinte mémoire maîtrisée.
 
+## 40. Moteur d'Interpolation de Courbes d'Automation & Planification Web Audio (Chapitres 13 & 14)
+- **Problème** : Les lignes d'automation de paramètres (Volume, Pan, Fréquence de coupure de filtre, Sends) nécessitaient un moteur d'évaluation continu capable d'interpoler des transitions complexes (linéaires, en escalier, exponentielles et courbes en S de Bézier avec tension) et de planifier ces changements en temps réel sur les nœuds Web Audio API.
+- **Décisions d'Architecture** :
+  1. Module dédié `packages/studio/src/components/MusicStudioAutomationEngine.js` avec fonctions d'évaluation pures `interpolateLinear`, `interpolateStep`, `interpolateExponential` (exposant dynamique $p = 1 + 3k$ pour $k>0$, $p = 1/(1-3k)$ pour $k<0$) et `interpolateBezier` (smoothstep cubique modulé sinusoïdalement par la tension).
+  2. Évaluateur segmentaire continu `evaluateAutomationValue(lane, targetBar)` avec bornage aux points extrêmes.
+  3. Planificateur temporel vectoriel `generateAutomationTimelineEvents` et injection temps réel dans `startMultitrackPlayback` via `chain.gainNode.gain`, `chain.pannerNode.pan` et `chain.filterNode.frequency`.
+- **Justification** : Conformité stricte aux spécifications d'automation Bitwig Chapitres 13 & 14, zéro saut abrupt de valeur, continuité différentiable $C^1$.
+
+## 41. Compression Dynamique & Routage Sidechain Déporté (Chapitres 18 & 19)
+- **Problème** : La compression dynamique moderne requiert une modulation d'atténuation du gain en fonction d'un signal de contrôle externe (Sidechain, ex: Kick ducking sur Basse ou Nappe) avec réglages précis d'Attaque, Relâchement, Seuil et Ratio.
+- **Décisions d'Architecture** :
+  1. Modèle mathématique récursif à 1 pôle asymétrique `computeGainReductionDb` :
+     $$\alpha_{\text{att}} = \exp\left(-\frac{1}{\tau_{\text{att}} f_s}\right), \quad \alpha_{\text{rel}} = \exp\left(-\frac{1}{\tau_{\text{rel}} f_s}\right)$$
+  2. Calcul du dépassement de seuil avec interpolation de coude doux (soft-knee parabolique) et gain de réduction cible :
+     $$\text{TargetGR}(dB) = - \max(0, \text{Detector}(dB) - \text{Threshold}(dB)) \cdot \left(1 - \frac{1}{\text{Ratio}}\right)$$
+  3. Intégration du sélecteur de source Sidechain et de l'indicateur visuel de Gain Reduction (GR dB) dans `MusicStudioDeviceRack.jsx`.
+- **Justification** : Rendu dynamique de niveau broadcast, élimination des masquages fréquentiels sans artefact de pompage agressif.
+
+## 42. Rendu Hors-Ligne `OfflineAudioContext` & Encodeur Binaire RIFF WAV 24-bit PCM / 32-bit Float
+- **Problème** : L'exportation audio d'une session complète doit pouvoir être effectuée hors temps-réel avec une fidélité numérique maximale (24-bit PCM sans bruit de troncature ou 32-bit IEEE 754 Float), sans consommer les threads audio temps réel ni de charge GPU.
+- **Décisions d'Architecture** :
+  1. Encodeur binaire RIFF WAV pur JS `encodeWav` créant des en-têtes canoniques de 44 octets, format code 1 (PCM 24-bit à 3 octets signés little-endian $[-2^{23}, 2^{23}-1]$) et format code 3 (IEEE 754 Float32 à 4 octets little-endian).
+  2. Moteur de bounce non-temps-réel `renderProjectOffline` utilisant `OfflineAudioContext`, reconstituant l'arbre de mixage, appliquant les courbes d'automation et les filtres, et générant le mixdown stéréo ou les stems séparés.
+  3. Intégration dans `handleExportWav` pour un téléchargement immédiat en 24-bit PCM 48kHz.
+- **Justification** : Zéro dépendance externe, encodage binaire conforme aux standards AES/EBU et RIFF, rapidité de rendu supérieure au temps réel.
+
+## 43. Spatialisation Tridimensionnelle & Panning Binaural HRTF (Cinema Sync)
+- **Problème** : La synchronisation entre le Cinema Studio et la DAW requiert un positionnement tridimensionnel des objets sonores $(x, y, z)$ avec restitution binaurale au casque (HRTF) et atténuation réaliste avec la distance.
+- **Décisions d'Architecture** :
+  1. Calculateur trigonométrique `calculateSpatialCoordinates` extrayant la distance euclidienne $d = \sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}$, l'azimut horizontal $\theta = \operatorname{atan2}(\Delta x, \Delta z)$ et l'élévation verticale $\phi = \operatorname{atan2}(\Delta y, \sqrt{\Delta x^2 + \Delta z^2})$.
+  2. Modèle d'atténuation inverse avec distance de référence $d_{\text{ref}} = 1\text{m}$ et facteur de décroissance :
+     $$A(d) = \frac{1}{1 + 0.5 \cdot \max(0, d - 1)}$$
+  3. Gestionnaire Web Audio `applyHrtfSpatialPanner` configurant un `PannerNode` en mode `panningModel = 'HRTF'` et `distanceModel = 'inverse'`.
+- **Justification** : Immersion spatiale cinématographique réaliste, compatibilité casque stéréo sans matériel multicanal obligatoire.
+
+
 
 

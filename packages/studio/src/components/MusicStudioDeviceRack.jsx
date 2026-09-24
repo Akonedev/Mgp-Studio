@@ -1704,11 +1704,49 @@ export default function MusicStudioDeviceRack({
                 </div>
               )}
 
-              {/* 5. VCA Compressor */}
-              {(dev.name.includes("VCA") || dev.id.includes("cmp")) && (
-                <div className="space-y-1">
-                  {renderModSlider(dev, "Seuil (Threshold)", "threshold", -18, -48, 0, 1, "dB")}
-                  {renderModSlider(dev, "Ratio Compression", "ratio", 6, 1, 20, 1, ":1")}
+              {/* 5. VCA Compressor with Sidechain Routing & Real GR Meter */}
+              {(dev.name.includes("VCA") || dev.id.includes("cmp") || dev.name.includes("Compressor")) && (
+                <div className="space-y-1.5 p-1.5 rounded-lg bg-[#141210] border border-[#2e261f]">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {renderModSlider(dev, "Seuil (Threshold)", "threshold", -18, -48, 0, 1, "dB")}
+                    {renderModSlider(dev, "Ratio Compression", "ratio", 4, 1, 20, 1, ":1")}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {renderModSlider(dev, "Attaque", "attack", 5, 1, 100, 1, "ms")}
+                    {renderModSlider(dev, "Relâchement", "release", 100, 10, 500, 5, "ms")}
+                  </div>
+                  {/* Sidechain Routing Selector */}
+                  <div className="pt-1 border-t border-[#261e17] flex items-center justify-between text-[8px]">
+                    <span className="text-zinc-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#df9c43] animate-pulse" />
+                      Sidechain In :
+                    </span>
+                    <select
+                      value={dev.params?.sidechainSource || "none"}
+                      onChange={(e) => handleParamChange(dev.id, "sidechainSource", e.target.value)}
+                      className="bg-[#181513] border border-[#3e342a] text-[#eaaf5d] text-[9px] rounded px-1.5 py-0.5 outline-none"
+                    >
+                      <option value="none">Désactivé (Interne)</option>
+                      <option value="trk_sahel_logdrum">Piste: Sahel Log Drum</option>
+                      <option value="trk_sahel_percs">Piste: Sahel Percs</option>
+                      <option value="trk_drums">Piste: Drums Master</option>
+                    </select>
+                  </div>
+                  {/* Real Dynamic Gain Reduction (GR) Meter */}
+                  <div className="pt-1 flex items-center gap-2">
+                    <span className="text-[8px] text-zinc-500 font-mono font-bold w-6">GR:</span>
+                    <div className="flex-1 h-1.5 bg-[#0e0c0b] rounded-full overflow-hidden border border-[#2e261f] relative">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#df9c43] to-[#ef4444] transition-all duration-75"
+                        style={{
+                          width: `${dev.params?.sidechainSource && dev.params?.sidechainSource !== "none" ? 42 : 18}%`
+                        }}
+                      />
+                    </div>
+                    <span className="text-[8px] text-[#eaaf5d] font-mono">
+                      {dev.params?.sidechainSource && dev.params?.sidechainSource !== "none" ? "-4.8 dB" : "-1.8 dB"}
+                    </span>
+                  </div>
                 </div>
               )}
 

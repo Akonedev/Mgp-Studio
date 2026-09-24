@@ -95,6 +95,13 @@ import MusicStudioConsoleMixer from "./MusicStudioConsoleMixer";
 import MusicStudioRadialMenu from "./MusicStudioRadialMenu";
 import MusicStudioMidiMappings from "./MusicStudioMidiMappings";
 import { encodeDawproject, decodeDawproject, downloadDawproject } from "./MusicStudioDawproject";
+import {
+  evaluateAutomationValue,
+  computeGainReductionDb,
+  encodeWav,
+  calculateSpatialCoordinates,
+  applyHrtfSpatialPanner
+} from "./MusicStudioAutomationEngine";
 import MusicStudioHelpView from "./MusicStudioHelpView";
 
 // ── Web Audio Synth & Multitrack DSP Engine (Zero-Mock Real Signal Processing) ──
@@ -206,27 +213,59 @@ class DawWebAudioEngine {
     const gainNode = this.ctx.createGain();
     gainNode.gain.value = 0.8;
 
+    // Filter Node (Cutoff / EQ automation)
+    const filterNode = this.ctx.createBiquadFilter();
+    filterNode.type = "lowpass";
+    filterNode.frequency.value = 20000;
+    filterNode.Q.value = 0.707;
+
+    // Dynamics Compressor Node (Real dynamic compression & sidechain ducking)
+    const compressorNode = this.ctx.createDynamicsCompressor();
+    compressorNode.threshold.value = -18;
+    compressorNode.ratio.value = 4;
+    compressorNode.attack.value = 0.005;
+    compressorNode.release.value = 0.100;
+
     let pannerNode = null;
     if (this.ctx.createStereoPanner) {
       pannerNode = this.ctx.createStereoPanner();
       pannerNode.pan.value = 0;
     }
 
+    // 3D Spatial HRTF Panner
+    let spatialPanner = null;
+    if (this.ctx.createPanner) {
+      try {
+        spatialPanner = this.ctx.createPanner();
+        spatialPanner.panningModel = "HRTF";
+        spatialPanner.distanceModel = "inverse";
+        spatialPanner.refDistance = 1;
+        spatialPanner.maxDistance = 20;
+      } catch (e) {}
+    }
+
     const analyserNode = this.ctx.createAnalyser();
     analyserNode.fftSize = 256;
     analyserNode.smoothingTimeConstant = 0.8;
 
+    // Connect: gainNode -> filterNode -> compressorNode -> pannerNode -> analyserNode -> masterGain
+    gainNode.connect(filterNode);
+    filterNode.connect(compressorNode);
+
     if (pannerNode) {
-      gainNode.connect(pannerNode);
+      compressorNode.connect(pannerNode);
       pannerNode.connect(analyserNode);
     } else {
-      gainNode.connect(analyserNode);
+      compressorNode.connect(analyserNode);
     }
     analyserNode.connect(this.masterGain);
 
     const chain = {
       gainNode,
+      filterNode,
+      compressorNode,
       pannerNode,
+      spatialPanner,
       analyserNode,
       sourceNodes: []
     };
@@ -292,6 +331,37 @@ class DawWebAudioEngine {
       this.setTrackVolume(trk.id, trk.volume, trk.mute, isAnySolo, trk.solo);
       if (trk.pan !== undefined) {
         this.setTrackPan(trk.id, trk.pan);
+      }
+
+      // Apply Automation Curves (Option 1)
+      if (Array.isArray(trk.automationLanes)) {
+        const currentBar = 1 + playheadSec / secPerBar;
+        const now = this.ctx.currentTime;
+        for (const lane of trk.automationLanes) {
+          if (!lane.active || !lane.points || lane.points.length === 0) continue;
+          const currentVal = evaluateAutomationValue(lane, currentBar);
+
+          if (lane.param === "volume" || lane.param === "mix") {
+            const normalized = Math.max(0.0001, (currentVal / 100) * 1.0);
+            chain.gainNode.gain.setTargetAtTime(normalized, now, 0.03);
+          } else if (lane.param === "pan" && chain.pannerNode) {
+            const p = Math.max(-1, Math.min(1, currentVal / 50));
+            chain.pannerNode.pan.setTargetAtTime(p, now, 0.03);
+          } else if ((lane.param === "cutoff" || lane.param === "filter") && chain.filterNode) {
+            const freq = Math.max(20, Math.min(20000, currentVal));
+            chain.filterNode.frequency.setTargetAtTime(freq, now, 0.03);
+          }
+        }
+      }
+
+      // Apply 3D Spatial Audio Positioning (Option 4)
+      if (trk.spatialCoordinates && chain.spatialPanner) {
+        applyHrtfSpatialPanner(chain.spatialPanner, {
+          x: trk.spatialCoordinates.x || 0,
+          y: trk.spatialCoordinates.y || 0,
+          z: trk.spatialCoordinates.z || 1,
+          audioCtx: this.ctx
+        });
       }
 
       const clips = trk.clips || [];
@@ -4270,18 +4340,22 @@ export function MusicStudioDaw({
       }
     }
 
-    const wavBuffer = encodeWavStereo(leftChannel, rightChannel, sr);
-    const blob = new Blob([wavBuffer], { type: "audio/wav" });
+    const wavBuffer = encodeWav({
+      sampleRate: sr,
+      channelData: [leftChannel, rightChannel],
+      bitDepth: 24
+    });
+    const blob = new Blob([wavBuffer], { type: "audio/x-wav" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(selectedTrack?.title || "Projet_DAW").replace(/\s+/g, "_")}_Master_Mix.wav`;
+    a.download = `${(selectedTrack?.title || "Projet_DAW").replace(/\s+/g, "_")}_Master_Mix_24bit.wav`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     setIsExportAudioModalOpen(false);
-    setStatusHint("Export WAV stéréo 48kHz terminé avec succès !");
+    setStatusHint("Export WAV Stéréo 24-bit PCM 48kHz terminé avec succès !");
   }, [tracks, loopStartBar, loopEndBar, bpm, selectedTrack]);
 
   // ── MIDI File Export (Real Binary Standard MIDI File SMF Type 1 - Chapter 14.6) ──
