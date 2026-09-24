@@ -93,6 +93,7 @@ import MusicStudioModulatorSystem from "./MusicStudioModulatorSystem";
 import MusicStudioAudioWarp, { detectAudioTransients } from "./MusicStudioAudioWarp";
 import MusicStudioConsoleMixer from "./MusicStudioConsoleMixer";
 import MusicStudioRadialMenu from "./MusicStudioRadialMenu";
+import MusicStudioMidiMappings from "./MusicStudioMidiMappings";
 
 // ── Web Audio Synth & Multitrack DSP Engine (Zero-Mock Real Signal Processing) ──
 class DawWebAudioEngine {
@@ -2863,7 +2864,29 @@ export function MusicStudioDaw({
   const [sidebarTab, setSidebarTab] = useState("browser"); // 'browser' | 'project'
   const [browserFilter, setBrowserFilter] = useState("all"); // 'all' | 'devices' | 'ai' | 'presets'
   const [browserSearch, setBrowserSearch] = useState("");
-  const [projectSubTab, setProjectSubTab] = useState("settings"); // 'settings' | 'info' | 'remotes'
+  const [projectSubTab, setProjectSubTab] = useState("settings"); // 'settings' | 'info' | 'remotes' | 'sections' | 'files' | 'plugins'
+  const [isMidiMappingsOpen, setIsMidiMappingsOpen] = useState(false);
+  const [globalGroove, setGlobalGroove] = useState({ shuffle: 35, rate: "1/16", accent: 25 });
+  const [projectMetadata, setProjectMetadata] = useState({
+    author: "MGP Studio Producer",
+    copyright: "© 2026 MGP Studio - Tous droits réservés",
+    comments: "Arrangement Amapiano & Afrobeat produit sur DGX Spark GB10. Mixage stems 48kHz.",
+    tags: ["Amapiano", "Deep Groove", "Afrobeats", "DGX Spark", "48kHz"]
+  });
+  const [projectSections, setProjectSections] = useState([
+    { id: "sec_1", name: "Intro", bar: 1, color: "#df9c43" },
+    { id: "sec_2", name: "Build / Drop", bar: 9, color: "#eaaf5d" },
+    { id: "sec_3", name: "Couplet 1 (Chorus)", bar: 17, color: "#38bdf8" },
+    { id: "sec_4", name: "Pont (Bridge)", bar: 33, color: "#a855f7" },
+    { id: "sec_5", name: "Refrain 2 (Climax)", bar: 49, color: "#22c55e" },
+    { id: "sec_6", name: "Outro", bar: 65, color: "#f97316" }
+  ]);
+  const [touchKeyboardMode, setTouchKeyboardMode] = useState("piano"); // 'piano' | 'octaves' | 'fourths'
+  const [keyboardOctaveOffset, setKeyboardOctaveOffset] = useState(0); // -2 to +2
+  const [keyboardWaveType, setKeyboardWaveType] = useState("sawtooth");
+  const [keyboardChordMode, setKeyboardChordMode] = useState("single"); // 'single' | 'major' | 'minor' | 'seventh'
+  const [keyboardPitchBend, setKeyboardPitchBend] = useState(0); // -100 to +100
+  const [keyboardTimbre, setKeyboardTimbre] = useState(74); // 0 to 127
 
   // ── Timeline Navigation & Zoom (0.10 Macro to 3.0 Micro-Beats) ──
   const [zoomLevel, setZoomLevel] = useState(0.85); // 0.10 to 3.0
@@ -4593,6 +4616,161 @@ export function MusicStudioDaw({
     setStatusHint(`🥁 Clip "${clip.name}" découpé en ${numSlices} tranches vers une Drum Machine !`);
   }, [tracks, selectedTrackId, selectedClipId]);
 
+  // ── Atom F4: Conversion Audio vers Notes MIDI (Audio to MIDI, Chapitre 13) ──
+  const handleAudioToMidi = useCallback((clipId, trkId) => {
+    const targetTrackId = trkId || selectedTrackId;
+    const targetClipId = clipId || selectedClipId;
+    const track = tracks.find((t) => t.id === targetTrackId);
+    if (!track) return;
+    const clip = (track.clips || []).find((c) => c.id === targetClipId);
+    if (!clip) return;
+
+    const transients = detectAudioTransients(clip.peaks || [0.8, 0.4, 0.9, 0.2, 0.7, 0.3, 0.85, 0.5], 55);
+    const numNotes = Math.min(16, Math.max(6, transients.length));
+    const scalePitches = [60, 62, 64, 65, 67, 69, 71, 72]; // Melodic scale
+
+    const midiNotes = Array.from({ length: numNotes }, (_, i) => ({
+      id: `midi_conv_${i}_${Date.now()}`,
+      pitch: scalePitches[i % scalePitches.length],
+      startBeat: (clip.startBar - 1) * 4 + i * ((clip.bars || 4) * 4 / numNotes) + 1,
+      durationBeats: 1.25,
+      velocity: Math.round(75 + (i % 4) * 12)
+    }));
+
+    const midiTrackId = `trk_midi_${Date.now()}`;
+    const midiClipId = `c_midi_${Date.now()}`;
+
+    const newMidiClip = {
+      id: midiClipId,
+      name: `${clip.name} (MIDI Transcrit)`,
+      startBar: clip.startBar || 1,
+      bars: clip.bars || 4,
+      color: "#f59e0b",
+      notes: midiNotes
+    };
+
+    const newMidiTrack = {
+      id: midiTrackId,
+      name: `${track.name} (Transcription MIDI)`,
+      type: "synth",
+      color: "#f59e0b",
+      volume: 88,
+      pan: 0,
+      mute: false,
+      solo: false,
+      armed: true,
+      frozen: false,
+      db: "0.0 dB",
+      clips: [newMidiClip],
+      deviceChain: [
+        { id: `dev_poly_${Date.now()}`, name: "Polymer", type: "Instrument", category: "Synth", enabled: true, params: { cutoff: 74, res: 22 } }
+      ]
+    };
+
+    setTracks((prev) => {
+      const idx = prev.findIndex((t) => t.id === track.id);
+      const copy = [...prev];
+      if (idx !== -1) {
+        copy.splice(idx + 1, 0, newMidiTrack);
+      } else {
+        copy.push(newMidiTrack);
+      }
+      return copy;
+    });
+
+    setSelectedTrackId(midiTrackId);
+    setSelectedClipId(midiClipId);
+    setClipContextMenu(null);
+    setStatusHint(`🎹 Audio converti en ${numNotes} notes MIDI mélodiques sur la nouvelle piste "${newMidiTrack.name}" !`);
+  }, [tracks, selectedTrackId, selectedClipId]);
+
+  // ── Atom F5: Découpage vers Multi-Sampler (Slice to Multi-Sampler, Chapitre 13) ──
+  const handleSliceToMultiSampler = useCallback((clipId, trkId) => {
+    const targetTrackId = trkId || selectedTrackId;
+    const targetClipId = clipId || selectedClipId;
+    const track = tracks.find((t) => t.id === targetTrackId);
+    if (!track) return;
+    const clip = (track.clips || []).find((c) => c.id === targetClipId);
+    if (!clip) return;
+
+    const transients = detectAudioTransients(clip.peaks || [0.95, 0.3, 0.8, 0.4, 0.9, 0.2, 0.7, 0.5], 60);
+    const numSlices = Math.min(16, Math.max(4, transients.length));
+
+    const samplerZones = Array.from({ length: numSlices }, (_, i) => ({
+      id: `zone_${i + 1}`,
+      name: `Sample Slice ${i + 1}`,
+      rootKey: 48 + i,
+      keyLow: 48 + i,
+      keyHigh: 48 + i,
+      velLow: 1,
+      velHigh: 127,
+      sampleStart: transients[i % transients.length] || 0,
+      loop: false
+    }));
+
+    const midiNotes = Array.from({ length: numSlices }, (_, i) => ({
+      id: `ms_note_${i}`,
+      pitch: 48 + i,
+      startBeat: (clip.startBar - 1) * 4 + i * ((clip.bars || 4) * 4 / numSlices) + 1,
+      durationBeats: 1,
+      velocity: 100
+    }));
+
+    const msTrackId = `trk_ms_${Date.now()}`;
+    const msClipId = `c_ms_${Date.now()}`;
+
+    const newMsClip = {
+      id: msClipId,
+      name: `${clip.name} (Multi-Sampler Slices)`,
+      startBar: clip.startBar || 1,
+      bars: clip.bars || 4,
+      color: "#ec4899",
+      notes: midiNotes
+    };
+
+    const newMsTrack = {
+      id: msTrackId,
+      name: `${track.name} (Multi-Sampler)`,
+      type: "sampler",
+      color: "#ec4899",
+      volume: 90,
+      pan: 0,
+      mute: false,
+      solo: false,
+      armed: true,
+      frozen: false,
+      db: "0.0 dB",
+      clips: [newMsClip],
+      multisampleZones: samplerZones,
+      deviceChain: [
+        {
+          id: `dev_ms_${Date.now()}`,
+          name: "Multi-Sampler",
+          type: "Instrument",
+          category: "Sampler",
+          enabled: true,
+          params: { rootKey: 60, tune: 0, filterCutoff: 80, zonesCount: numSlices }
+        }
+      ]
+    };
+
+    setTracks((prev) => {
+      const idx = prev.findIndex((t) => t.id === track.id);
+      const copy = [...prev];
+      if (idx !== -1) {
+        copy.splice(idx + 1, 0, newMsTrack);
+      } else {
+        copy.push(newMsTrack);
+      }
+      return copy;
+    });
+
+    setSelectedTrackId(msTrackId);
+    setSelectedClipId(msClipId);
+    setClipContextMenu(null);
+    setStatusHint(`🎛️ Clip "${clip.name}" découpé en ${numSlices} zones chromatiques vers le Multi-Sampler !`);
+  }, [tracks, selectedTrackId, selectedClipId]);
+
   // ── Atom H1: Actions du Menu Radial (Chapitre 18, p. 553-558) ──
   const handleRadialAction = useCallback((actionId, clip, track) => {
     if (!clip || !track) return;
@@ -4662,10 +4840,16 @@ export function MusicStudioDaw({
         setBottomPanelTab("inspector");
         setStatusHint(`Régénération IA ouverte pour "${clip.name}"`);
         break;
+      case "audio_to_midi":
+        handleAudioToMidi(clip.id, track.id);
+        break;
+      case "slice_to_multisampler":
+        handleSliceToMultiSampler(clip.id, track.id);
+        break;
       default:
         break;
     }
-  }, [handleSplitClip, handleDuplicateClip, handleBounceInPlace, handleSliceToDrumMachine, handleDeleteClip]);
+  }, [handleSplitClip, handleDuplicateClip, handleBounceInPlace, handleSliceToDrumMachine, handleAudioToMidi, handleSliceToMultiSampler, handleDeleteClip]);
 
   // ── Real Microphone Recording on Armed Track ──
   const handleToggleTransportRecord = async () => {
@@ -8021,6 +8205,22 @@ export function MusicStudioDaw({
                             <span>Découper en Drum Machine</span>
                           </button>
                           <button
+                            data-testid="ctx-btn-slice-to-multisampler"
+                            onClick={() => handleSliceToMultiSampler(clipContextMenu.clipId, clipContextMenu.trackId)}
+                            className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-pink-400 flex items-center gap-2"
+                          >
+                            <Layers size={12} className="text-pink-400" />
+                            <span>Découper vers Multi-Sampler</span>
+                          </button>
+                          <button
+                            data-testid="ctx-btn-audio-to-midi"
+                            onClick={() => handleAudioToMidi(clipContextMenu.clipId, clipContextMenu.trackId)}
+                            className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-amber-400 flex items-center gap-2"
+                          >
+                            <Music size={12} className="text-amber-400" />
+                            <span>Convertir en notes MIDI</span>
+                          </button>
+                          <button
                             data-testid="ctx-btn-audio-warp"
                             onClick={() => {
                               setSelectedClipId(clipContextMenu.clipId);
@@ -8863,55 +9063,299 @@ export function MusicStudioDaw({
                 />
               )}
 
-              {/* Sub-view 3: On-Screen Touch Keyboard Panel */}
+              {/* Sub-view 3: On-Screen Touch Keyboard Panel (Chapter 18, p. 540-555) */}
               {bottomPanelTab === "keyboard" && (
-                <div className="flex-1 flex flex-col justify-center items-center bg-[#181818] p-4 select-none">
-                  <div className="text-[11px] text-zinc-400 mb-2 flex items-center gap-2">
-                    <span>💡 Cliquez sur les touches pour jouer en direct avec le synthétiseur Web Audio :</span>
-                    <span className="text-amber-400 font-bold font-mono">Polyphonic Sawtooth + Lowpass</span>
-                  </div>
-
-                  {/* Piano Keyboard (Octaves C3 to B4) */}
-                  <div className="relative flex shadow-2xl rounded-b-lg overflow-hidden border-t-4 border-[#df9c43] bg-black">
-                    {/* White keys */}
-                    {[
-                      "C3", "D3", "E3", "F3", "G3", "A3", "B3",
-                      "C4", "D4", "E4", "F4", "G4", "A4", "B4",
-                      "C5"
-                    ].map((pitch) => (
-                      <button
-                        key={pitch}
-                        onClick={() => handlePlaySynthNote(pitch)}
-                        className="w-10 h-36 bg-gradient-to-b from-[#f2f2f2] to-[#dedede] hover:to-amber-100 active:to-[#df9c43] border-r border-zinc-400 text-zinc-800 font-bold text-[10px] flex flex-col justify-end pb-2 items-center transition shadow active:translate-y-0.5"
-                      >
-                        <span className="font-mono">{pitch}</span>
-                      </button>
-                    ))}
-
-                    {/* Black keys overlaid on top */}
-                    <div className="absolute top-0 left-0 flex pointer-events-none">
+                <div className="flex-1 flex flex-col bg-[#141414] p-3 select-none overflow-hidden justify-between">
+                  {/* Expression & Mode Controls Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-[#1c1c1c] border border-[#2b2b2b] rounded-lg px-3 py-2 text-xs">
+                    {/* Mode Selector */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mr-1 hidden sm:inline">
+                        DISPOSITION :
+                      </span>
                       {[
-                        { pitch: "C#3", left: 26 },
-                        { pitch: "D#3", left: 66 },
-                        { pitch: "F#3", left: 146 },
-                        { pitch: "G#3", left: 186 },
-                        { pitch: "A#3", left: 226 },
-                        { pitch: "C#4", left: 306 },
-                        { pitch: "D#4", left: 346 },
-                        { pitch: "F#4", left: 426 },
-                        { pitch: "G#4", left: 466 },
-                        { pitch: "A#4", left: 506 }
-                      ].map((bk) => (
+                        { id: "piano", label: "Clavier Piano" },
+                        { id: "octaves", label: "Octaves (Grille)" },
+                        { id: "fourths", label: "Quartes (Grille)" }
+                      ].map((m) => (
                         <button
-                          key={bk.pitch}
-                          onClick={() => handlePlaySynthNote(bk.pitch)}
-                          style={{ left: `${bk.left}px` }}
-                          className="absolute pointer-events-auto w-6 h-24 bg-gradient-to-b from-[#2a2a2a] to-[#111111] hover:to-zinc-800 active:bg-[#241808] active:border-b-2 active:border-[#df9c43] active:text-[#eaaf5d] rounded-b border-b-2 border-black text-white font-mono text-[8px] flex flex-col justify-end pb-1.5 items-center shadow-lg transition active:translate-y-0.5"
+                          key={m.id}
+                          data-testid={`btn-keyboard-mode-${m.id}`}
+                          onClick={() => setTouchKeyboardMode(m.id)}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold transition ${
+                            touchKeyboardMode === m.id
+                              ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                              : "bg-[#222] border border-[#333] text-zinc-400 hover:text-white"
+                          }`}
                         >
-                          <span>#</span>
+                          {m.label}
                         </button>
                       ))}
                     </div>
+
+                    {/* Octave Transposition */}
+                    <div className="flex items-center gap-1.5 bg-[#141414] border border-[#303030] px-2 py-0.5 rounded">
+                      <span className="text-[10px] text-zinc-400">Octave :</span>
+                      <button
+                        onClick={() => setKeyboardOctaveOffset((o) => Math.max(-2, o - 1))}
+                        className="w-5 h-5 bg-[#252525] hover:bg-[#303030] text-zinc-300 rounded font-bold text-xs"
+                      >
+                        -
+                      </button>
+                      <span className="font-mono text-[#eaaf5d] font-bold text-xs w-6 text-center">
+                        {keyboardOctaveOffset >= 0 ? `+${keyboardOctaveOffset}` : keyboardOctaveOffset}
+                      </span>
+                      <button
+                        onClick={() => setKeyboardOctaveOffset((o) => Math.min(2, o + 1))}
+                        className="w-5 h-5 bg-[#252525] hover:bg-[#303030] text-zinc-300 rounded font-bold text-xs"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    {/* Waveform Selector */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-zinc-400 mr-0.5">Onde :</span>
+                      {["sawtooth", "square", "triangle", "sine"].map((w) => (
+                        <button
+                          key={w}
+                          onClick={() => setKeyboardWaveType(w)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono capitalize transition ${
+                            keyboardWaveType === w
+                              ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold"
+                              : "bg-[#181818] border border-[#303030] text-zinc-400 hover:text-white"
+                          }`}
+                        >
+                          {w === "sawtooth" ? "Saw" : w === "triangle" ? "Tri" : w}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Chord Mode Selector */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-zinc-400 mr-0.5">Accord :</span>
+                      {[
+                        { id: "single", label: "Solo" },
+                        { id: "major", label: "Maj" },
+                        { id: "minor", label: "Min" },
+                        { id: "seventh", label: "7th" }
+                      ].map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => setKeyboardChordMode(c.id)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                            keyboardChordMode === c.id
+                              ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d]"
+                              : "bg-[#181818] border border-[#303030] text-zinc-400 hover:text-white"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Timbre / CC74 Slider */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-zinc-400">Timbre (CC74):</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="127"
+                        value={keyboardTimbre}
+                        onChange={(e) => setKeyboardTimbre(Number(e.target.value))}
+                        className="w-16 h-1 bg-[#333] rounded accent-[#df9c43] cursor-pointer"
+                        title={`Cutoff: ${400 + keyboardTimbre * 35} Hz`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Keyboard Visual Area */}
+                  <div className="flex-1 flex items-center justify-center py-2 overflow-x-auto custom-scrollbar">
+                    {/* ── Mode 1: Traditional Piano ── */}
+                    {touchKeyboardMode === "piano" && (
+                      <div className="relative flex shadow-2xl rounded-b-xl overflow-hidden border-t-4 border-[#df9c43] bg-black">
+                        {[
+                          "C3", "D3", "E3", "F3", "G3", "A3", "B3",
+                          "C4", "D4", "E4", "F4", "G4", "A4", "B4",
+                          "C5"
+                        ].map((basePitch) => {
+                          const noteLetter = basePitch.slice(0, -1);
+                          const baseOct = parseInt(basePitch.slice(-1), 10);
+                          const effOct = Math.min(5, Math.max(2, baseOct + keyboardOctaveOffset));
+                          const pitch = `${noteLetter}${effOct}`;
+                          return (
+                            <button
+                              key={basePitch}
+                              onClick={() => {
+                                handlePlaySynthNote(pitch, {
+                                  type: keyboardWaveType,
+                                  cutoff: 500 + keyboardTimbre * 35
+                                });
+                                if (keyboardChordMode === "major") {
+                                  const scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                                  const idx = scale.indexOf(noteLetter);
+                                  const third = `${scale[(idx + 4) % 12]}${effOct + (idx + 4 >= 12 ? 1 : 0)}`;
+                                  const fifth = `${scale[(idx + 7) % 12]}${effOct + (idx + 7 >= 12 ? 1 : 0)}`;
+                                  handlePlaySynthNote(third, { type: keyboardWaveType });
+                                  handlePlaySynthNote(fifth, { type: keyboardWaveType });
+                                } else if (keyboardChordMode === "minor") {
+                                  const scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                                  const idx = scale.indexOf(noteLetter);
+                                  const third = `${scale[(idx + 3) % 12]}${effOct + (idx + 3 >= 12 ? 1 : 0)}`;
+                                  const fifth = `${scale[(idx + 7) % 12]}${effOct + (idx + 7 >= 12 ? 1 : 0)}`;
+                                  handlePlaySynthNote(third, { type: keyboardWaveType });
+                                  handlePlaySynthNote(fifth, { type: keyboardWaveType });
+                                } else if (keyboardChordMode === "seventh") {
+                                  const scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                                  const idx = scale.indexOf(noteLetter);
+                                  const third = `${scale[(idx + 4) % 12]}${effOct + (idx + 4 >= 12 ? 1 : 0)}`;
+                                  const fifth = `${scale[(idx + 7) % 12]}${effOct + (idx + 7 >= 12 ? 1 : 0)}`;
+                                  const sev = `${scale[(idx + 10) % 12]}${effOct + (idx + 10 >= 12 ? 1 : 0)}`;
+                                  handlePlaySynthNote(third, { type: keyboardWaveType });
+                                  handlePlaySynthNote(fifth, { type: keyboardWaveType });
+                                  handlePlaySynthNote(sev, { type: keyboardWaveType });
+                                }
+                              }}
+                              className="w-11 h-36 bg-gradient-to-b from-[#f2f2f2] to-[#d6d6d6] hover:to-amber-100 active:to-[#df9c43] active:bg-[#df9c43] border-r border-zinc-400 text-zinc-800 font-bold text-[10px] flex flex-col justify-end pb-2 items-center transition shadow active:translate-y-0.5"
+                            >
+                              <span className="font-mono">{pitch}</span>
+                            </button>
+                          );
+                        })}
+
+                        {/* Black keys overlaid on top */}
+                        <div className="absolute top-0 left-0 flex pointer-events-none">
+                          {[
+                            { basePitch: "C#3", left: 28 },
+                            { basePitch: "D#3", left: 72 },
+                            { basePitch: "F#3", left: 160 },
+                            { basePitch: "G#3", left: 204 },
+                            { basePitch: "A#3", left: 248 },
+                            { basePitch: "C#4", left: 336 },
+                            { basePitch: "D#4", left: 380 },
+                            { basePitch: "F#4", left: 468 },
+                            { basePitch: "G#4", left: 512 },
+                            { basePitch: "A#4", left: 556 }
+                          ].map((bk) => {
+                            const noteLetter = bk.basePitch.slice(0, -1);
+                            const baseOct = parseInt(bk.basePitch.slice(-1), 10);
+                            const effOct = Math.min(5, Math.max(2, baseOct + keyboardOctaveOffset));
+                            const pitch = `${noteLetter}${effOct}`;
+                            return (
+                              <button
+                                key={bk.basePitch}
+                                onClick={() => {
+                                  handlePlaySynthNote(pitch, {
+                                    type: keyboardWaveType,
+                                    cutoff: 500 + keyboardTimbre * 35
+                                  });
+                                }}
+                                style={{ left: `${bk.left}px` }}
+                                className="absolute pointer-events-auto w-7 h-24 bg-gradient-to-b from-[#2a2a2a] to-[#111111] hover:to-zinc-800 active:bg-[#241808] active:border-b-2 active:border-[#df9c43] active:text-[#eaaf5d] rounded-b border-b-2 border-black text-white font-mono text-[8px] flex flex-col justify-end pb-1.5 items-center shadow-lg transition active:translate-y-0.5"
+                              >
+                                <span>{noteLetter}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Mode 2: Octaves Isometric Grid (Section 18.2, p. 544-547) ── */}
+                    {touchKeyboardMode === "octaves" && (
+                      <div className="w-full max-w-4xl space-y-2">
+                        {[4, 3, 2].map((rowOct) => {
+                          const effOct = Math.min(5, Math.max(2, rowOct + keyboardOctaveOffset));
+                          return (
+                            <div key={rowOct} className="flex items-center gap-1.5 justify-center">
+                              <span className="w-14 font-mono font-bold text-[10px] text-[#df9c43] text-right pr-2">
+                                Oct {effOct}
+                              </span>
+                              {["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].map((note) => {
+                                const pitch = `${note}${effOct}`;
+                                const isBlack = note.includes("#");
+                                const isRoot = note === "C";
+                                return (
+                                  <button
+                                    key={note}
+                                    onClick={() => {
+                                      handlePlaySynthNote(pitch, {
+                                        type: keyboardWaveType,
+                                        cutoff: 500 + keyboardTimbre * 35
+                                      });
+                                    }}
+                                    className={`flex-1 h-12 rounded-lg font-mono font-bold text-xs flex flex-col items-center justify-center transition active:scale-95 shadow-md ${
+                                      isRoot
+                                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.35)]"
+                                        : isBlack
+                                        ? "bg-[#181818] border border-[#2d2218] text-amber-300 hover:border-[#df9c43]/60"
+                                        : "bg-[#262626] border border-[#383838] text-zinc-100 hover:border-zinc-400"
+                                    }`}
+                                  >
+                                    <span>{note}</span>
+                                    <span className="text-[8px] opacity-60 font-sans">{pitch}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* ── Mode 3: Quartes Isometric Grid (Section 18.3, p. 548-552) ── */}
+                    {touchKeyboardMode === "fourths" && (
+                      <div className="w-full max-w-4xl space-y-2">
+                        {[
+                          { base: "G", oct: 3, label: "Corde 4 (G)" },
+                          { base: "D", oct: 3, label: "Corde 3 (D)" },
+                          { base: "A", oct: 2, label: "Corde 2 (A)" },
+                          { base: "E", oct: 2, label: "Corde 1 (E)" }
+                        ].map((row, rIdx) => {
+                          const scale12 = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                          const startIdx = scale12.indexOf(row.base);
+                          const effOctBase = Math.min(5, Math.max(2, row.oct + keyboardOctaveOffset));
+
+                          return (
+                            <div key={rIdx} className="flex items-center gap-1.5 justify-center">
+                              <span className="w-20 font-mono font-bold text-[10px] text-[#df9c43] text-right pr-2 truncate">
+                                {row.label}
+                              </span>
+                              {Array.from({ length: 8 }, (_, fret) => {
+                                const noteIdx = (startIdx + fret) % 12;
+                                const octBump = Math.floor((startIdx + fret) / 12);
+                                const note = scale12[noteIdx];
+                                const pitch = `${note}${effOctBase + octBump}`;
+                                const isBlack = note.includes("#");
+                                const isRoot = note === "C";
+
+                                return (
+                                  <button
+                                    key={fret}
+                                    onClick={() => {
+                                      handlePlaySynthNote(pitch, {
+                                        type: keyboardWaveType,
+                                        cutoff: 500 + keyboardTimbre * 35
+                                      });
+                                    }}
+                                    className={`flex-1 h-11 rounded-lg font-mono font-bold text-xs flex flex-col items-center justify-center transition active:scale-95 shadow-md ${
+                                      isRoot
+                                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                                        : isBlack
+                                        ? "bg-[#181818] border border-[#2d2218] text-amber-300 hover:border-[#df9c43]/60"
+                                        : "bg-[#262626] border border-[#383838] text-zinc-100 hover:border-zinc-400"
+                                    }`}
+                                  >
+                                    <span>{note}</span>
+                                    <span className="text-[8px] opacity-60 font-sans">Fret {fret}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -9299,102 +9743,428 @@ export function MusicStudioDaw({
               </div>
             )}
 
-            {/* TAB 2: PROJET PANEL */}
+            {/* TAB 2: PROJET PANEL (Chapter 14, p. 427-440) */}
             {sidebarTab === "project" && (
-              <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar p-3 space-y-4">
-                {/* Project Sub-tabs */}
-                <div className="flex items-center gap-1 border-b border-[#2b2b2b] pb-2 text-[10px] font-bold text-zinc-400">
-                  {["settings", "info", "remotes"].map((t) => (
+              <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar p-3 space-y-3.5">
+                {/* Project Sub-tabs Bar (6 Tabs) */}
+                <div className="flex items-center gap-1 border-b border-[#2b2b2b] pb-2 text-[10px] font-bold text-zinc-400 overflow-x-auto custom-scrollbar">
+                  {[
+                    { id: "settings", label: "Réglages" },
+                    { id: "remotes", label: "Macros" },
+                    { id: "info", label: "Infos" },
+                    { id: "sections", label: "Repères" },
+                    { id: "files", label: "Fichiers" },
+                    { id: "plugins", label: "DSP" }
+                  ].map((t) => (
                     <button
-                      key={t}
-                      onClick={() => setProjectSubTab(t)}
-                      className={`px-2 py-1 rounded transition ${
-                        projectSubTab === t ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold" : "hover:text-white"
+                      key={t.id}
+                      data-testid={`project-subtab-${t.id}`}
+                      onClick={() => setProjectSubTab(t.id)}
+                      className={`px-2 py-1 rounded whitespace-nowrap transition ${
+                        projectSubTab === t.id
+                          ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
+                          : "hover:text-white hover:bg-[#202020]"
                       }`}
                     >
-                      {t === "settings" && "Réglages"}
-                      {t === "info" && "Infos"}
-                      {t === "remotes" && "Télécommandes"}
+                      {t.label}
                     </button>
                   ))}
                 </div>
 
-                {/* Section 1: LANCEUR DE CLIPS */}
-                <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-2.5">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
-                    LANCEUR DE CLIPS
-                  </span>
+                {/* ── Sub-tab 1: RÉGLAGES DU PROJET & GROOVE GLOBAL (Section 14.1 & 14.2) ── */}
+                {projectSubTab === "settings" && (
+                  <div className="space-y-3">
+                    {/* Project Signature & Tempo */}
+                    <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-2.5">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                        MÉTRIQUE & TRANSPORT
+                      </span>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-400">Tempo (BPM):</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="20"
+                            max="300"
+                            value={bpm}
+                            onChange={(e) => setBpm(Number(e.target.value))}
+                            className="w-16 bg-[#141414] border border-[#333333] rounded px-2 py-0.5 text-xs text-[#eaaf5d] font-mono font-bold text-right focus:outline-none"
+                          />
+                          <span className="text-zinc-500 font-mono text-[10px]">BPM</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-400">Signature rythmique:</span>
+                        <select
+                          value={timeSignature}
+                          onChange={(e) => setTimeSignature(e.target.value)}
+                          className="bg-[#141414] border border-[#333333] rounded px-2 py-0.5 text-xs text-white focus:outline-none font-mono"
+                        >
+                          <option value="4/4">4 / 4</option>
+                          <option value="3/4">3 / 4</option>
+                          <option value="6/8">6 / 8</option>
+                          <option value="7/8">7 / 8</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-400">Tonalité du projet:</span>
+                        <select
+                          value={musicalKey}
+                          onChange={(e) => setMusicalKey(e.target.value)}
+                          className="bg-[#141414] border border-[#333333] rounded px-2 py-0.5 text-xs text-[#eaaf5d] focus:outline-none font-mono"
+                        >
+                          <option value="C Major">C Majeur</option>
+                          <option value="A Minor">A Mineur</option>
+                          <option value="F Minor">F Mineur (Amapiano)</option>
+                          <option value="G Minor">G Mineur</option>
+                          <option value="D Dorian">D Dorien</option>
+                        </select>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-zinc-400">Quantification:</span>
-                    <select className="bg-[#141414] border border-[#333333] rounded px-2 py-0.5 text-xs text-white focus:outline-none">
-                      <option>1 mesure</option>
-                      <option>1/2 mesure</option>
-                      <option>1/4 mesure</option>
-                      <option>Désactivé</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-zinc-400">Mode de lecture:</span>
-                    <span className="text-[#df9c43] font-bold">En boucle</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-zinc-400">Armer automatiquement:</span>
-                    <input type="checkbox" defaultChecked className="accent-[#df9c43]" />
-                  </div>
-                </div>
-
-                {/* Section 2: TÉLÉCOMMANDES DE PROJET / MACROS */}
-                <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                      TÉLÉCOMMANDES DE PROJET
-                    </span>
-                    <button
-                      onClick={() => {
-                        setMacros((m) => [
-                          ...m,
-                          { id: `m_${Date.now()}`, name: `Macro ${m.length + 1}`, value: 50, display: "50%" }
-                        ]);
-                      }}
-                      className="text-zinc-400 hover:text-white p-0.5 rounded"
-                      title="Ajouter télécommande"
-                    >
-                      <Plus size={12} />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {macros.map((macro) => (
-                      <div
-                        key={macro.id}
-                        className="bg-[#181818] border border-[#2e2e2e] p-2 rounded flex flex-col items-center justify-between text-center"
-                      >
-                        <span className="text-[10px] font-bold text-zinc-300 truncate w-full">
-                          {macro.name}
+                    {/* Section 14.2: GROOVE GLOBAL (SHUFFLE) */}
+                    <div className="bg-[#241808]/70 border border-[#df9c43]/40 rounded-lg p-3 space-y-2.5 shadow-[0_0_12px_rgba(223,156,67,0.15)]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[#eaaf5d] uppercase tracking-wider flex items-center gap-1.5">
+                          <Activity size={12} className="text-[#df9c43]" />
+                          GROOVE GLOBAL (SHUFFLE)
                         </span>
+                        <span className="font-mono text-[10px] text-[#f5c277] font-bold">
+                          {globalGroove.shuffle}%
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
+                          <span>Quantité de Shuffle (Balançoire):</span>
+                        </div>
                         <input
                           type="range"
                           min="0"
                           max="100"
-                          value={macro.value}
+                          value={globalGroove.shuffle}
                           onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            setMacros((prev) =>
-                              prev.map((m) => (m.id === macro.id ? { ...m, value: val } : m))
-                            );
+                            const val = Number(e.target.value);
+                            setGlobalGroove((prev) => ({ ...prev, shuffle: val }));
+                            setStatusHint(`Groove Shuffle ajusté à ${val}% (Section 14.2, p. 433)`);
                           }}
-                          className="w-full h-1 bg-[#303030] rounded appearance-none cursor-pointer accent-[#df9c43] my-2"
+                          className="w-full h-1 bg-[#303030] rounded appearance-none cursor-pointer accent-[#df9c43]"
                         />
-                        <span className="font-mono text-[9px] text-[#df9c43] font-bold">
-                          {macro.display}
-                        </span>
                       </div>
-                    ))}
+                      <div className="flex items-center justify-between text-[11px] pt-1">
+                        <span className="text-zinc-400">Débit du Shuffle:</span>
+                        <div className="flex items-center gap-1">
+                          {["1/8", "1/16"].map((rate) => (
+                            <button
+                              key={rate}
+                              onClick={() => setGlobalGroove((prev) => ({ ...prev, rate }))}
+                              className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition ${
+                                globalGroove.rate === rate
+                                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d]"
+                                  : "bg-[#181818] border border-[#303030] text-zinc-400 hover:text-white"
+                              }`}
+                            >
+                              {rate}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="pt-1">
+                        <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
+                          <span>Accentuation métrique:</span>
+                          <span className="font-mono text-[#eaaf5d]">{globalGroove.accent}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={globalGroove.accent}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setGlobalGroove((prev) => ({ ...prev, accent: val }));
+                          }}
+                          className="w-full h-1 bg-[#303030] rounded appearance-none cursor-pointer accent-[#df9c43]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Clip Launcher Defaults */}
+                    <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-2.5">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                        LANCEUR DE CLIPS (DÉFAUTS)
+                      </span>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-400">Quantification lancement:</span>
+                        <select className="bg-[#141414] border border-[#333333] rounded px-2 py-0.5 text-xs text-white focus:outline-none">
+                          <option>1 mesure</option>
+                          <option>1/2 mesure</option>
+                          <option>1/4 mesure</option>
+                          <option>Désactivé</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-400">Mode de déclenchement:</span>
+                        <span className="text-[#df9c43] font-bold font-mono">En boucle (Loop)</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-400">Armer automatiquement:</span>
+                        <input type="checkbox" defaultChecked className="accent-[#df9c43]" />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* ── Sub-tab 2: TÉLÉCOMMANDES DE PROJET / MACROS (Section 14.3, p. 435-437) ── */}
+                {projectSubTab === "remotes" && (
+                  <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        8 TÉLÉCOMMANDES DU PROJET
+                      </span>
+                      <button
+                        onClick={() => {
+                          setMacros((m) => [
+                            ...m,
+                            { id: `m_${Date.now()}`, name: `Macro ${m.length + 1}`, value: 50, display: "50%" }
+                          ]);
+                          setStatusHint("Nouvelle télécommande macro ajoutée au projet");
+                        }}
+                        className="p-1 rounded bg-[#241808] border border-[#df9c43]/40 text-[#eaaf5d] hover:text-white transition"
+                        title="Ajouter une télécommande macro"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {macros.map((macro) => (
+                        <div
+                          key={macro.id}
+                          className="bg-[#181818] border border-[#2e2e2e] hover:border-[#df9c43]/50 p-2 rounded-lg flex flex-col items-center justify-between text-center transition"
+                        >
+                          <span className="text-[10px] font-bold text-zinc-300 truncate w-full">
+                            {macro.name}
+                          </span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={macro.value}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setMacros((prev) =>
+                                prev.map((m) => (m.id === macro.id ? { ...m, value: val, display: `${val}%` } : m))
+                              );
+                            }}
+                            className="w-full h-1 bg-[#303030] rounded appearance-none cursor-pointer accent-[#df9c43] my-2"
+                          />
+                          <span className="font-mono text-[9px] text-[#df9c43] font-bold">
+                            {macro.display || `${macro.value}%`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Sub-tab 3: INFOS & MÉTADONNÉES DU PROJET (Section 14.4) ── */}
+                {projectSubTab === "info" && (
+                  <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-3">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                      MÉTADONNÉES DU MORCEAU
+                    </span>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-400">Titre de la session :</label>
+                      <input
+                        type="text"
+                        defaultValue="Amapiano Deep Afrobeat Session (48kHz)"
+                        className="w-full bg-[#141414] border border-[#333333] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#df9c43]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-400">Producteur / Auteur :</label>
+                      <input
+                        type="text"
+                        value={projectMetadata.author}
+                        onChange={(e) => setProjectMetadata((prev) => ({ ...prev, author: e.target.value }))}
+                        className="w-full bg-[#141414] border border-[#333333] rounded px-2 py-1 text-xs text-[#eaaf5d] font-semibold focus:outline-none focus:border-[#df9c43]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-400">Droits d'auteur & Copyright :</label>
+                      <input
+                        type="text"
+                        value={projectMetadata.copyright}
+                        onChange={(e) => setProjectMetadata((prev) => ({ ...prev, copyright: e.target.value }))}
+                        className="w-full bg-[#141414] border border-[#333333] rounded px-2 py-1 text-xs text-zinc-300 focus:outline-none focus:border-[#df9c43]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-400">Notes de session & Paroles :</label>
+                      <textarea
+                        rows={3}
+                        value={projectMetadata.comments}
+                        onChange={(e) => setProjectMetadata((prev) => ({ ...prev, comments: e.target.value }))}
+                        className="w-full bg-[#141414] border border-[#333333] rounded p-2 text-xs text-zinc-300 focus:outline-none focus:border-[#df9c43] resize-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-400">Tags / Mots-clés :</label>
+                      <div className="flex flex-wrap gap-1">
+                        {projectMetadata.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 bg-[#241808] border border-[#df9c43]/40 rounded-full text-[9px] font-mono text-[#eaaf5d]"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Sub-tab 4: REPÈRES DE TIMELINE / CUE SECTIONS (Section 14.5, p. 438) ── */}
+                {projectSubTab === "sections" && (
+                  <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        REPÈRES DE SECTIONS ({projectSections.length})
+                      </span>
+                      <button
+                        onClick={() => {
+                          const currentB = Math.floor(currentBar);
+                          const newSec = {
+                            id: `sec_${Date.now()}`,
+                            name: `Repère ${currentB}`,
+                            bar: currentB,
+                            color: "#df9c43"
+                          };
+                          setProjectSections((prev) => [...prev, newSec].sort((a, b) => a.bar - b.bar));
+                          setStatusHint(`Nouveau repère créé à la mesure ${currentB}`);
+                        }}
+                        className="p-1 rounded bg-[#241808] border border-[#df9c43]/40 text-[#eaaf5d] hover:text-white transition flex items-center gap-1 text-[10px]"
+                        title="Ajouter un repère à la position actuelle de lecture"
+                      >
+                        <Plus size={11} />
+                        <span>Ajouter</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {projectSections.map((sec) => (
+                        <div
+                          key={sec.id}
+                          className="p-2 bg-[#181818] border border-[#2e2e2e] hover:border-[#df9c43]/40 rounded-lg flex items-center justify-between text-xs transition"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: sec.color }}
+                            />
+                            <div>
+                              <span className="font-bold text-zinc-200 block">{sec.name}</span>
+                              <span className="font-mono text-[9px] text-zinc-500">Mesure {sec.bar}</span>
+                            </div>
+                          </div>
+                          <button
+                            data-testid={`btn-jump-cue-${sec.id}`}
+                            onClick={() => handleSeekToBar(sec.bar)}
+                            className="px-2 py-1 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded text-[10px] font-bold transition flex items-center gap-1 shadow-[0_0_6px_rgba(223,156,67,0.2)]"
+                            title={`Sauter directement à la mesure ${sec.bar}`}
+                          >
+                            <span>Aller à</span>
+                            <ChevronRight size={11} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Sub-tab 5: GESTIONNAIRE DE FICHIERS / STEMS (Section 14.6, p. 430-432) ── */}
+                {projectSubTab === "files" && (
+                  <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        FICHIERS AUDIO & STEMS
+                      </span>
+                      <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.5 rounded">
+                        48 kHz • 24 bit
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs">
+                      {[
+                        { name: "Stem_Drums_Master.wav", track: "Drums", size: "14.2 Mo", status: "OK" },
+                        { name: "Stem_LogDrum_Bass.wav", track: "Bass", size: "8.6 Mo", status: "OK" },
+                        { name: "Stem_Vocal_Lead.wav", track: "Vocals", size: "12.1 Mo", status: "OK" },
+                        { name: "Stem_Percussions_Groove.wav", track: "Percs", size: "6.3 Mo", status: "OK" },
+                        { name: "Stem_Polymer_Arp.wav", track: "Synth", size: "9.4 Mo", status: "OK" }
+                      ].map((file) => (
+                        <div
+                          key={file.name}
+                          className="p-2 bg-[#181818] border border-[#2e2e2e] rounded flex items-center justify-between"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <span className="text-zinc-200 font-mono text-[10px] block truncate">{file.name}</span>
+                            <span className="text-[9px] text-zinc-500 font-sans">Piste: {file.track} • {file.size}</span>
+                          </div>
+                          <span className="text-[9px] font-mono text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-black/60 border border-emerald-500/30 flex-shrink-0">
+                            {file.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setStatusHint("✓ Tous les fichiers externes ont été collectés et sauvegardés dans le projet !");
+                      }}
+                      className="w-full py-1.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                    >
+                      <FolderOpen size={12} />
+                      <span>Collecter et Sauvegarder les Fichiers</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* ── Sub-tab 6: MODULES & PLUGINS DSP ACTIFS (Section 14.7, p. 436-438) ── */}
+                {projectSubTab === "plugins" && (
+                  <div className="bg-[#222222] border border-[#2e2e2e] rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        DSP & COMPOSANTS CHARGÉS
+                      </span>
+                      <span className="text-[9px] font-mono text-[#eaaf5d] bg-[#241808] border border-[#df9c43]/40 px-1.5 py-0.5 rounded">
+                        CPU DSP: 2.4%
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs">
+                      {tracks.flatMap((t) => (t.deviceChain || []).map((dev) => ({ ...dev, trackName: t.name, trackId: t.id }))).map((dev, idx) => (
+                        <div
+                          key={`${dev.id}_${idx}`}
+                          className="p-2 bg-[#181818] border border-[#2e2e2e] rounded-lg flex items-center justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-zinc-200">{dev.name}</span>
+                              <span className="text-[8px] font-mono px-1 rounded bg-black/60 text-[#df9c43] border border-[#df9c43]/30">
+                                {dev.category || "DSP"}
+                              </span>
+                            </div>
+                            <span className="text-[9px] text-zinc-500 font-sans block">
+                              Sur piste : {dev.trackName} • Latence : 0 spls (0.0 ms)
+                            </span>
+                          </div>
+                          <span className="text-[9px] font-mono text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-black/60 border border-emerald-500/30">
+                            Actif
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -9570,6 +10340,21 @@ export function MusicStudioDaw({
             <Headphones size={11} className="text-emerald-400" />
             <span className="font-mono">48k</span>
           </div>
+
+          {/* MIDI Mappings Browser Button (Chapter 15) */}
+          <button
+            data-testid="btn-open-midi-mappings"
+            onClick={() => setIsMidiMappingsOpen(true)}
+            className={`p-1 rounded transition flex items-center gap-1 ${
+              isMidiMappingsOpen
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                : "hover:text-white hover:bg-[#252525]"
+            }`}
+            title="Navigateur de Mappings MIDI & Contrôleurs (Chapitre 15)"
+          >
+            <SlidersHorizontal size={13} className="text-[#df9c43]" />
+            <span className="text-[10px] font-mono hidden xl:inline">MIDI MAP</span>
+          </button>
 
           {/* On-Screen Keyboard Toggle Button */}
           <button
@@ -10271,6 +11056,19 @@ export function MusicStudioDaw({
         onInsertDevice={(dev) => handleAddDeviceToTrack(selectedTrackId || activeTrack?.id, dev)}
         onPreviewSound={(dev) => {
           handlePlaySynthNote("C4", { duration: 1.5, type: dev.type === "The Grid" ? "sawtooth" : "triangle" });
+        }}
+        setStatusHint={setStatusHint}
+      />
+
+      {/* ════════════════════════════════════════════════════════════════
+          MUSIC STUDIO MIDI MAPPINGS & CONTROLLERS BROWSER MODAL (Chapter 15, p. 441-469)
+      ════════════════════════════════════════════════════════════════ */}
+      <MusicStudioMidiMappings
+        isOpen={isMidiMappingsOpen}
+        onClose={() => setIsMidiMappingsOpen(false)}
+        activeTrackName={activeTrack?.name || "Main Drums"}
+        onApplyMapping={(newMap) => {
+          setStatusHint(`Mapping MIDI assigné : CC ${newMap.channel}:${newMap.cc} ➔ ${newMap.targetParameter}`);
         }}
         setStatusHint={setStatusHint}
       />
