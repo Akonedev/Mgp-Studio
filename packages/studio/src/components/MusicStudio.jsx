@@ -2052,152 +2052,155 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     </button>
                   </div>
 
-                  {/* Vocal Language & Vocal Gender Cards (Aligned, Equal Height, Homogeneous) */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Card 1: Language */}
-                    <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Globe size={13} className="text-[#df9c43]" />
-                          <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                            LANGUE DU CHANT
-                          </label>
+                  {/* Vocal Configuration (Language, Gender & Synchronized LRC) */}
+                  {!instrumental && (
+                    <div className="flex flex-col gap-2.5 pt-1">
+                      {/* Card 1: Language */}
+                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col gap-2 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Globe size={13} className="text-[#df9c43]" />
+                            <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                              LANGUE DU CHANT
+                            </label>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsLanguagePickerOpen(true)}
+                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#241808] text-[#eaaf5d] border border-[#df9c43]/50 hover:bg-[#2e1f0b] transition flex items-center gap-1 shadow-sm"
+                            title="Parcourir la totalité des 55 langues et créoles"
+                          >
+                            <span>55 Langues</span>
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setIsLanguagePickerOpen(true)}
-                          className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#241808] text-[#eaaf5d] border border-[#df9c43]/50 hover:bg-[#2e1f0b] transition flex items-center gap-1 shadow-sm"
-                          title="Parcourir la totalité des 55 langues et créoles"
+
+                        <select
+                          value={vocalLanguage}
+                          onChange={(e) => setVocalLanguage(e.target.value)}
+                          className="w-full bg-[#202020] text-xs text-zinc-100 border border-[#333333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#df9c43] cursor-pointer"
                         >
-                          <span>55 Langues</span>
-                        </button>
+                          <optgroup label="── Populaires & Monde (12) ──">
+                            {VOCAL_LANGUAGES.filter(l => l.group === 'popular').map((l) => (
+                              <option key={l.code} value={l.code}>{l.label}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="── Africaines & Créoles (Zouk, Rumba, Amapiano) (6) ──">
+                            {VOCAL_LANGUAGES.filter(l => l.group === 'african_creole').map((l) => (
+                              <option key={l.code} value={l.code}>{l.label}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="── Européennes ACE-Step 1.5 (21) ──">
+                            {VOCAL_LANGUAGES.filter(l => l.group === 'european').map((l) => (
+                              <option key={l.code} value={l.code}>{l.label}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="── Asiatiques & Orient ACE-Step 1.5 (15) ──">
+                            {VOCAL_LANGUAGES.filter(l => l.group === 'asian').map((l) => (
+                              <option key={l.code} value={l.code}>{l.label}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="── Spécial / Sans voix (1) ──">
+                            {VOCAL_LANGUAGES.filter(l => l.group === 'special').map((l) => (
+                              <option key={l.code} value={l.code}>{l.label}</option>
+                            ))}
+                          </optgroup>
+                        </select>
+
+                        {/* Quick language switch pills (Clean single row with horizontal scroll) */}
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
+                          {[
+                            { code: "fr", label: "FR" },
+                            { code: "en", label: "EN" },
+                            { code: "es", label: "ES" },
+                            { code: "ht", label: "Créole HT" },
+                            { code: "ln", label: "Lingala" },
+                            { code: "sw", label: "Swahili" },
+                            { code: "pt", label: "PT" },
+                            { code: "ja", label: "JA" }
+                          ].map((p) => {
+                            const isCur = vocalLanguage === p.code;
+                            return (
+                              <button
+                                key={p.code}
+                                type="button"
+                                onClick={() => setVocalLanguage(p.code)}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap flex-shrink-0 transition-all ${
+                                  isCur
+                                    ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                                    : "bg-[#202020] text-zinc-400 hover:text-zinc-200 hover:bg-[#2a2a2a] border border-[#303030]"
+                                }`}
+                              >
+                                {p.label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
-                      <select
-                        value={vocalLanguage}
-                        onChange={(e) => setVocalLanguage(e.target.value)}
-                        className="w-full bg-[#202020] text-xs text-zinc-100 border border-[#333333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#df9c43] cursor-pointer"
-                      >
-                        <optgroup label="── Populaires & Monde (12) ──">
-                          {VOCAL_LANGUAGES.filter(l => l.group === 'popular').map((l) => (
-                            <option key={l.code} value={l.code}>{l.label}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="── Africaines & Créoles (Zouk, Rumba, Amapiano) (6) ──">
-                          {VOCAL_LANGUAGES.filter(l => l.group === 'african_creole').map((l) => (
-                            <option key={l.code} value={l.code}>{l.label}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="── Européennes ACE-Step 1.5 (21) ──">
-                          {VOCAL_LANGUAGES.filter(l => l.group === 'european').map((l) => (
-                            <option key={l.code} value={l.code}>{l.label}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="── Asiatiques & Orient ACE-Step 1.5 (15) ──">
-                          {VOCAL_LANGUAGES.filter(l => l.group === 'asian').map((l) => (
-                            <option key={l.code} value={l.code}>{l.label}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="── Spécial / Sans voix (1) ──">
-                          {VOCAL_LANGUAGES.filter(l => l.group === 'special').map((l) => (
-                            <option key={l.code} value={l.code}>{l.label}</option>
-                          ))}
-                        </optgroup>
-                      </select>
+                      {/* Card 2: Gender */}
+                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col gap-2 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Mic size={13} className="text-[#df9c43]" />
+                            <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                              GENRE VOCAL
+                            </label>
+                          </div>
+                          <span className="font-mono text-[9px] text-[#eaaf5d] font-semibold px-2 py-0.5 bg-[#241808] border border-[#df9c43]/40 rounded">
+                            ACE-Step v1.5
+                          </span>
+                        </div>
 
-                      {/* Quick language switch pills (Clean single row with horizontal scroll) */}
-                      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
-                        {[
-                          { code: "fr", label: "FR" },
-                          { code: "en", label: "EN" },
-                          { code: "es", label: "ES" },
-                          { code: "ht", label: "Créole HT" },
-                          { code: "ln", label: "Lingala" },
-                          { code: "sw", label: "Swahili" },
-                          { code: "pt", label: "PT" },
-                          { code: "ja", label: "JA" }
-                        ].map((p) => {
-                          const isCur = vocalLanguage === p.code;
-                          return (
+                        {/* Segmented Selector with 2 generous columns */}
+                        <div className="grid grid-cols-2 gap-1.5 bg-[#202020] p-1 rounded-lg border border-[#303030]">
+                          {[
+                            { id: "male", label: "♂ Masculin" },
+                            { id: "female", label: "♀ Féminin" }
+                          ].map((g) => (
                             <button
-                              key={p.code}
+                              key={g.id}
                               type="button"
-                              onClick={() => setVocalLanguage(p.code)}
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap flex-shrink-0 transition-all ${
-                                isCur
-                                  ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
-                                  : "bg-[#202020] text-zinc-400 hover:text-zinc-200 hover:bg-[#2a2a2a] border border-[#303030]"
+                              onClick={() => setVocalGender(g.id)}
+                              className={`py-1.5 text-xs rounded-md font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                vocalGender === g.id
+                                  ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                                  : "text-zinc-400 hover:text-white hover:bg-[#282828] border border-transparent"
                               }`}
                             >
-                              {p.label}
+                              <span>{g.label}</span>
                             </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Card 2: Gender (Same height h-[132px], perfectly balanced) */}
-                    <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Mic size={13} className="text-[#df9c43]" />
-                          <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                            GENRE VOCAL
-                          </label>
+                          ))}
                         </div>
-                        <span className="text-[10px] font-mono text-zinc-400 font-semibold px-2 py-0.5 bg-[#202020] border border-[#2f2f2f] rounded">
-                          {vocalGender === "male" ? "♂ Masculin" : vocalGender === "female" ? "♀ Féminin" : "Auto / Duo"}
-                        </span>
+
+                        {/* Subtle status indication to balance with language quick chips */}
+                        <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Sparkles size={10} className="text-[#df9c43]" />
+                            Synthèse vocale réaliste 48kHz
+                          </span>
+                          <span className="text-zinc-500 font-mono text-[9px]">HD Stereo</span>
+                        </div>
                       </div>
 
-                      {/* Segmented Selector with Image 0 Style */}
-                      <div className="grid grid-cols-2 gap-1.5 bg-[#202020] p-1 rounded-lg border border-[#303030]">
-                        {[
-                          { id: "male", label: "♂ Masculin" },
-                          { id: "female", label: "♀ Féminin" }
-                        ].map((g) => (
-                          <button
-                            key={g.id}
-                            type="button"
-                            onClick={() => setVocalGender(g.id)}
-                            className={`py-1.5 text-xs rounded-md font-bold transition-all flex items-center justify-center gap-1 ${
-                              vocalGender === g.id
-                                ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
-                                : "text-zinc-400 hover:text-white hover:bg-[#282828] border border-transparent"
+                      {/* LRC Synchronization Switch */}
+                      <div className="flex items-center justify-between py-1 px-0.5">
+                        <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">LRC (PAROLES SYNCHRO)</span>
+                        <button
+                          type="button"
+                          onClick={() => setGetLrc(!getLrc)}
+                          className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${
+                            getLrc ? "bg-[#df9c43]" : "bg-zinc-800"
+                          }`}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                              getLrc ? "translate-x-5" : "translate-x-0"
                             }`}
-                          >
-                            <span>{g.label}</span>
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Subtle status indication to balance with language quick chips */}
-                      <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
-                        <span className="flex items-center gap-1">
-                          <Sparkles size={10} className="text-[#df9c43]" />
-                          Synthèse vocale réaliste 48kHz
-                        </span>
-                        <span className="font-mono text-[9px] text-[#df9c43]">ACE-Step v1.5</span>
+                          />
+                        </button>
                       </div>
                     </div>
-                  </div>
-
-                  {/* LRC Synchronization Switch */}
-                  <div className="flex items-center justify-between py-1">
-                    <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">LRC (PAROLES SYNCHRO)</span>
-                    <button
-                      onClick={() => setGetLrc(!getLrc)}
-                      className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${
-                        getLrc ? "bg-[#df9c43]" : "bg-zinc-800"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                          getLrc ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </div>
+                  )}
 
                   {/* Quick Settings Group */}
                   <div className="bg-zinc-900/60 border border-white/10 rounded-xl p-3.5 space-y-3">
@@ -2610,9 +2613,9 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
 
                   {/* Vocal Language & Gender */}
                   {!instrumental && (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-2.5 pt-1">
                       {/* Card 1: Language */}
-                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
+                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col gap-2 shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <Globe size={13} className="text-[#df9c43]" />
@@ -2693,8 +2696,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         </div>
                       </div>
 
-                      {/* Card 2: Gender (Same height h-[132px], perfectly balanced) */}
-                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
+                      {/* Card 2: Gender */}
+                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col gap-2 shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <Mic size={13} className="text-[#df9c43]" />
@@ -2702,12 +2705,12 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                               GENRE VOCAL
                             </label>
                           </div>
-                          <span className="text-[10px] font-mono text-zinc-400 font-semibold px-2 py-0.5 bg-[#202020] border border-[#2f2f2f] rounded">
-                            {vocalGender === "male" ? "♂ Masculin" : vocalGender === "female" ? "♀ Féminin" : "Auto / Duo"}
+                          <span className="font-mono text-[9px] text-[#eaaf5d] font-semibold px-2 py-0.5 bg-[#241808] border border-[#df9c43]/40 rounded">
+                            ACE-Step v1.5
                           </span>
                         </div>
 
-                        {/* Segmented Selector with Image 0 Style */}
+                        {/* Segmented Selector with 2 generous columns */}
                         <div className="grid grid-cols-2 gap-1.5 bg-[#202020] p-1 rounded-lg border border-[#303030]">
                           {[
                             { id: "male", label: "♂ Masculin" },
@@ -2717,7 +2720,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                               key={g.id}
                               type="button"
                               onClick={() => setVocalGender(g.id)}
-                              className={`py-1.5 text-xs rounded-md font-bold transition-all flex items-center justify-center gap-1 ${
+                              className={`py-1.5 text-xs rounded-md font-bold transition-all flex items-center justify-center gap-1.5 ${
                                 vocalGender === g.id
                                   ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                                   : "text-zinc-400 hover:text-white hover:bg-[#282828] border border-transparent"
@@ -2734,7 +2737,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             <Sparkles size={10} className="text-[#df9c43]" />
                             Synthèse vocale réaliste 48kHz
                           </span>
-                          <span className="font-mono text-[9px] text-[#df9c43]">ACE-Step v1.5</span>
+                          <span className="text-zinc-500 font-mono text-[9px]">HD Stereo</span>
                         </div>
                       </div>
                     </div>

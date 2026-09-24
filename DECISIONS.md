@@ -606,3 +606,17 @@
   2. Génération automatique d'un fichier de métadonnées `manifest.json` incluant le titre du projet, le tempo BPM, la métrique, l'horodatage ISO, le format d'encodage et la liste ordonnée des fichiers.
   3. Empaquetage direct dans le navigateur en archive ZIP standard PKWARE via `createZipArchive` avec calculs de somme de contrôle CRC-32 conformes IEEE 802.3, sans aucun appel serveur ni utilisation de VRAM/GPU.
 - **Justification** : Productivité maximale pour les créateurs, respect strict des normes d'interopérabilité broadcast et protection totale des ressources GPU.
+
+## 47. Refonte Ergonomique & Élimination Définitive des Collisions d'Affichage du Sélecteur Vocal (Langue, Genre & LRC)
+- **Problème** : Dans le panneau de création latérale (`w-[280px]` à `w-[375px]`), la grille 2-colonnes `grid grid-cols-2 gap-3` combinée à une hauteur fixe rigide `h-[132px]` et `justify-between` provoquait une collision visuelle critique :
+  1. La carte Langue écrasait le titre « LANGUE DU CHANT » sur 3 lignes et poussait le bouton « 55 Langues » hors-cadre.
+  2. La carte Genre Vocal tronquait son titre et affichait un badge redondant déconnecté en haut à droite.
+  3. Les boutons segmentés « ♂ Masculin » et « ♀ Féminin » se chevauchaient et se superposaient au centre par manque de largeur (colonnes de ~40px).
+  4. Les textes de bas de carte (« Synthèse vocale réaliste 48kHz » et « ACE-Step v1.5 ») débordaient verticalement de la boîte de 132px et s'imprimaient directement par-dessus le commutateur « LRC (PAROLES SYNCHRO) ».
+- **Décisions d'Architecture** :
+  1. Suppression définitive de `grid-cols-2` et de la hauteur fixe `h-[132px]` au profit d'un conteneur vertical fluide `flex flex-col gap-2.5` dans `MusicStudio.jsx` (Modes Simple et Custom).
+  2. Chaque carte bénéficie de 100% de la largeur du panneau (~250px à 340px) : titres tenus sur une seule ligne sans césure, bouton « 55 Langues » aéré, sélecteur `select` et puces de langues à défilement horizontal fluide.
+  3. Sélecteur de genre vocal à 2 colonnes généreuses (~120px à 160px par bouton) avec rendu net des labels « ♂ Masculin » et « ♀ Féminin » sans aucun risque de chevauchement.
+  4. Badge technique « ACE-Step v1.5 » repositionné proprement en haut à droite et sous-titre de qualité stéréo sur une seule ligne.
+  5. Conditionnement strict `!instrumental` : masquage logique automatique des contrôles vocaux et du toggle LRC lorsque le mode Instrumental pur est activé.
+- **Justification** : Ergonomie irréprochable sur toutes les résolutions d'écran (100% responsive), suppression des chevauchements CSS et respect de la charte graphique Sahel Gold.

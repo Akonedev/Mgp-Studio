@@ -1144,3 +1144,11 @@
     * **Validation Intégrale Zéro Mock** :
       - 18/18 suites de tests automatisées validées avec 100% de succès dans `test_daw_core.js`.
       - Aucune régression, zéro charge GPU sur DGX Spark ou machine locale.
+
+  - [x] **Sprint U : Élimination Définitive des Collisions d'Affichage du Sélecteur Vocal (Langue, Genre & LRC)** :
+    * Diagnostic précis de la régression visuelle transmise par l'utilisateur (`grid-cols-2` dans un panneau de 280-375px et conteneur rigide `h-[132px]` provoquant le débordement de la carte sur `LRC (PAROLES SYNCHRO)` et le chevauchement des boutons segmentés).
+    * Suppression de `grid-cols-2` et de `h-[132px]` dans `MusicStudio.jsx` (Modes Simple et Custom) au profit de cartes empilées pleine largeur `flex flex-col gap-2.5`.
+    * Réalignement des titres de cartes sur une seule ligne avec bouton « 55 Langues » aéré et sélecteur de genre vocal à 2 colonnes généreuses sans collision textuelle.
+    * Conditionnement strict sous `!instrumental` évitant l'affichage inutile des paramètres vocaux en mode purement instrumental.
+    * Recompilation complète du package studio (`npm run build:studio`, 38 fichiers Babel).
+    * Validation de non-régression (18/18 suites de tests unitaires et mathématiques validées).

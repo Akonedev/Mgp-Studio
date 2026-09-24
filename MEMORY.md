@@ -1311,3 +1311,10 @@
     - **Validation Intégrale Zéro Mock** :
       * 18/18 suites de tests automatisées validées avec 100% de succès dans `test_daw_core.js`.
       * Aucune régression, zéro charge GPU sur DGX Spark ou machine locale.
+
+61. **Sprint U : Élimination Définitive des Collisions d'Affichage du Sélecteur Vocal (Langue, Genre & LRC)** :
+    - Diagnostic et résolution de la collision visuelle dans le panneau latéral de création (`MusicStudio.jsx`).
+    - Suppression de `grid-cols-2` et du blocage rigide `h-[132px]` qui forçaient le texte à déborder sur le commutateur `LRC (PAROLES SYNCHRO)` et provoquaient le chevauchement des boutons « ♂ Masculin » et « ♀ Féminin ».
+    - Déploiement de cartes empilées pleine largeur `flex flex-col gap-2.5` assurant un affichage net sans césure des titres, boutons spacieux et sous-titres aérés sur une ligne.
+    - Conditionnement strict `!instrumental` masquant logiquement la section vocale en mode instrumental pur.
+    - Package studio recompilé (`npm run build:studio`), 18 suites de tests unitaires et mathématiques validées (100%).
