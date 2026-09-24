@@ -463,7 +463,7 @@ function CinemaModelDropdown({ models, selectedModelId, onSelect, onClose }) {
 
   const getCategoryBadge = (m) => {
     if (m.category === "workflow" || m.id.startsWith("spark_") || m.id.startsWith("app_wf_") || m.id.startsWith("OGA_")) {
-      return { label: "WKF", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" };
+      return { label: "WKF", color: "bg-[#b87524]/15 text-[#df9c43] border-[#df9c43]/20" };
     }
     if (m.category === "director" || m.type === "director" || m.id.includes("director")) {
       return { label: "DIR", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" };
@@ -518,7 +518,7 @@ function CinemaModelDropdown({ models, selectedModelId, onSelect, onClose }) {
             onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id); }}
             className={`px-2.5 py-1 rounded-md transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-[#df9c43] text-black font-extrabold shadow-sm"
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-extrabold shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                 : "text-white/60 hover:text-white hover:bg-white/5"
             }`}
           >
@@ -550,7 +550,7 @@ function CinemaModelDropdown({ models, selectedModelId, onSelect, onClose }) {
                 }}
                 className={`w-full text-left p-2.5 rounded-lg transition-all flex items-center justify-between border ${
                   isSelected
-                    ? "bg-[#df9c43]/15 border-[#df9c43]/40 text-white shadow-sm"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold"
                     : "border-transparent hover:border-white/10 hover:bg-white/5 text-white/80 hover:text-white"
                 }`}
               >
@@ -567,7 +567,7 @@ function CinemaModelDropdown({ models, selectedModelId, onSelect, onClose }) {
                         {m.provider || "DGX Spark GB10"}
                       </span>
                       {m.category === "workflow" && (
-                        <span className="px-1 py-0.2 bg-purple-500/10 text-purple-300 rounded text-[8px]">
+                        <span className="px-1 py-0.2 bg-[#b87524]/15 text-[#eaaf5d] rounded text-[8px]">
                           ComfyUI WKF
                         </span>
                       )}
@@ -1026,7 +1026,7 @@ export default function CinemaStudio({
                         e.stopPropagation();
                         setFullscreenUrl(entry.url);
                       }}
-                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-[#df9c43] hover:text-black transition-all border border-white/10"
+                      className="p-2 bg-[#241808] hover:bg-[#2d1e0d] backdrop-blur-md rounded-full text-[#eaaf5d] hover:text-[#f5c277] transition-all border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <polyline points="15 3 21 3 21 9" />
@@ -1055,7 +1055,7 @@ export default function CinemaStudio({
                           window.open(entry.url, "_blank");
                         }
                       }}
-                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-[#df9c43] hover:text-black transition-all border border-white/10"
+                      className="p-2 bg-[#241808] hover:bg-[#2d1e0d] backdrop-blur-md rounded-full text-[#eaaf5d] hover:text-[#f5c277] transition-all border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
@@ -1068,7 +1068,7 @@ export default function CinemaStudio({
                         e.stopPropagation();
                         loadHistoryItem(entry, idx);
                       }}
-                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-[#df9c43] hover:bg-[#df9c43] hover:text-black transition-all border border-[#df9c43]/30"
+                      className="p-2 bg-[#241808] hover:bg-[#2d1e0d] backdrop-blur-md rounded-full text-[#eaaf5d] hover:text-[#f5c277] transition-all border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -1394,13 +1394,13 @@ export default function CinemaStudio({
 
                 {/* Generate Button */}
                 <button
-                  className="h-[50px] px-8 bg-[#df9c43] text-black rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-[50px] px-8 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded-md font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(223,156,67,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isGenerating || !settings.prompt.trim()}
                   onClick={handleGenerate}
                 >
                   {isGenerating ? (
                     <>
-                      <span className="animate-spin inline-block text-black">◌</span> SHOOTING...
+                      <span className="animate-spin inline-block text-[#eaaf5d]">◌</span> SHOOTING...
                     </>
                   ) : (
                     <>

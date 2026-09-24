@@ -144,7 +144,7 @@ export default function HistoryModal({
                 onClick={() => setActiveFilter(f.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   activeFilter === f.id
-                    ? 'bg-[#df9c43] text-black shadow-[0_0_10px_rgba(223,156,67,0.3)]'
+                    ? 'bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]'
                     : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -356,7 +356,7 @@ export default function HistoryModal({
                               onSelectMedia?.(item, targetStudio);
                               onClose();
                             }}
-                            className="w-full py-2 px-3 rounded-lg bg-[#df9c43] hover:bg-[#eab368] text-black font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            className="w-full py-2 px-3 rounded-lg bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-black text-xs shadow-[0_0_10px_rgba(223,156,67,0.3)] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                               <polyline points="20 6 9 17 4 12" />
@@ -660,7 +660,7 @@ export default function HistoryModal({
                   <a
                     href={fullscreenMedia.url}
                     download={fullscreenMedia.filename || `mgp-${fullscreenMedia.id}`}
-                    className="flex-1 py-2 px-3 rounded-lg bg-[#df9c43] hover:bg-[#eab368] text-black font-bold text-xs shadow-md transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
+                    className="flex-1 py-2 px-3 rounded-lg bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs shadow-[0_0_10px_rgba(223,156,67,0.3)] transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>⬇️ Télécharger</span>
                   </a>

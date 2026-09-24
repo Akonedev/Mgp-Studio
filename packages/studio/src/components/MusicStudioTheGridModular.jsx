@@ -45,7 +45,7 @@ export const INITIAL_GRID_MODULES = [
     tune: 0,
     inputs: [],
     outputs: [
-      { id: "vco1_out_audio", label: "Audio Out", signal: "audio", color: "#ea580c" }
+      { id: "vco1_out_audio", label: "Audio Out", signal: "audio", color: "#df9c43" }
     ]
   },
   {
@@ -91,11 +91,11 @@ export const INITIAL_GRID_MODULES = [
     cutoff: 1800,
     res: 4,
     inputs: [
-      { id: "svf_in_audio", label: "Audio In", signal: "audio", color: "#ea580c" },
+      { id: "svf_in_audio", label: "Audio In", signal: "audio", color: "#df9c43" },
       { id: "svf_in_cutoff", label: "Cutoff Mod", signal: "mod", color: "#a855f7" }
     ],
     outputs: [
-      { id: "svf_out_audio", label: "Audio Out", signal: "audio", color: "#ea580c" }
+      { id: "svf_out_audio", label: "Audio Out", signal: "audio", color: "#df9c43" }
     ]
   },
   {
@@ -107,16 +107,16 @@ export const INITIAL_GRID_MODULES = [
     y: 120,
     gain: 0.85,
     inputs: [
-      { id: "out_in_audio", label: "In (L+R)", signal: "audio", color: "#ea580c" }
+      { id: "out_in_audio", label: "In (L+R)", signal: "audio", color: "#df9c43" }
     ],
     outputs: []
   }
 ];
 
 export const INITIAL_PATCH_CABLES = [
-  { id: "cab_1", fromPortId: "vco1_out_audio", toPortId: "svf_in_audio", signal: "audio", color: "#ea580c" },
+  { id: "cab_1", fromPortId: "vco1_out_audio", toPortId: "svf_in_audio", signal: "audio", color: "#df9c43" },
   { id: "cab_2", fromPortId: "lfo1_out_mod", toPortId: "svf_in_cutoff", signal: "mod", color: "#a855f7" },
-  { id: "cab_3", fromPortId: "svf_out_audio", toPortId: "out_in_audio", signal: "audio", color: "#ea580c" }
+  { id: "cab_3", fromPortId: "svf_out_audio", toPortId: "out_in_audio", signal: "audio", color: "#df9c43" }
 ];
 
 export default function MusicStudio({
@@ -317,7 +317,7 @@ export default function MusicStudio({
       <div className="h-8 px-3 bg-[#191919] border-b border-[#2a2a2a] flex items-center justify-between text-xs font-mono text-zinc-300 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <Grid size={14} className="text-[#ea580c]" />
+            <Grid size={14} className="text-[#df9c43]" />
             <span className="font-extrabold text-white">
               THE GRID • {gridType === "poly" ? "Poly Grid" : "FX Grid"}
             </span>
@@ -343,7 +343,7 @@ export default function MusicStudio({
             className={`h-6 px-2.5 rounded text-[10.5px] font-bold transition flex items-center gap-1.5 ${
               isTestPlaying
                 ? "bg-red-600 text-white animate-pulse shadow-md"
-                : "bg-[#ea580c] hover:bg-[#f97316] text-white"
+                : "bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
             }`}
             title="Tester le son du patch en temps réel avec le moteur DSP Web Audio"
           >
@@ -364,11 +364,11 @@ export default function MusicStudio({
                 y: 180,
                 gain: 0.8,
                 inputs: [
-                  { id: `in_a_${Date.now()}`, label: "Audio In", signal: "audio", color: "#ea580c" },
+                  { id: `in_a_${Date.now()}`, label: "Audio In", signal: "audio", color: "#df9c43" },
                   { id: `in_c_${Date.now()}`, label: "Control", signal: "mod", color: "#a855f7" }
                 ],
                 outputs: [
-                  { id: `out_${Date.now()}`, label: "Audio Out", signal: "audio", color: "#ea580c" }
+                  { id: `out_${Date.now()}`, label: "Audio Out", signal: "audio", color: "#df9c43" }
                 ]
               };
               setModules((prev) => [...prev, newMod]);
@@ -458,7 +458,7 @@ export default function MusicStudio({
                     style={{
                       backgroundColor:
                         mod.type === "oscillator"
-                          ? "#ea580c"
+                          ? "#df9c43"
                           : mod.type === "filter"
                           ? "#38bdf8"
                           : mod.type === "lfo"
@@ -505,7 +505,7 @@ export default function MusicStudio({
                   <div className="space-y-1">
                     <div className="flex justify-between text-zinc-400">
                       <span>Vitesse:</span>
-                      <span className="text-purple-400 font-bold">{mod.rate} Hz</span>
+                      <span className="text-[#df9c43] font-bold">{mod.rate} Hz</span>
                     </div>
                     <div className="flex justify-between text-zinc-400">
                       <span>Profondeur:</span>

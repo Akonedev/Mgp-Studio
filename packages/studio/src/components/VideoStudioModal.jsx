@@ -509,7 +509,7 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
           <div className="p-4 border-b border-white/10 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <Video size={18} className="text-pink-500" />
+                <Video size={18} className="text-[#df9c43]" />
                 <h3 className="font-bold text-base text-white">Video Studio & ComfyUI</h3>
               </div>
               <p className="text-[11px] text-zinc-400">Génération de clips IA & Visualiseurs audio.</p>
@@ -581,14 +581,14 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
                           onClick={() => setSelectedVideoModel(m.id)}
                           className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
                             isSel
-                              ? "bg-[#df9c43]/15 border-[#df9c43] text-white shadow-sm"
+                              ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold"
                               : "bg-white/[0.02] border-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-xs text-white">{m.name}</span>
+                            <span className={`font-bold text-xs ${isSel ? "text-[#f5c277]" : "text-white"}`}>{m.name}</span>
                             <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold ${
-                              isSel ? "bg-[#df9c43] text-white" : "bg-white/10 text-zinc-400"
+                              isSel ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d]" : "bg-white/10 text-zinc-400"
                             }`}>
                               {m.badge}
                             </span>
@@ -698,11 +698,11 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
                       onClick={() => setPreset(p.id)}
                       className={`p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
                         isSelected
-                          ? "bg-[#df9c43]/15 border-[#df9c43] text-white shadow-lg shadow-[#df9c43]/10"
+                          ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.25)] font-bold"
                           : "bg-white/[0.02] border-white/5 text-zinc-400 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      <div className={`p-2 rounded-lg ${isSelected ? "bg-[#df9c43] text-white" : "text-zinc-400"}`}>
+                      <div className={`p-2 rounded-lg ${isSelected ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]" : "text-zinc-400"}`}>
                         <Icon size={18} />
                       </div>
                       <span className="font-semibold text-[11px]">{p.label}</span>
@@ -873,11 +873,11 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
               <button
                 onClick={handleGenerateAIVideo}
                 disabled={isGeneratingAIVideo}
-                className="w-full py-3 bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#df9c43]/20 active:scale-95 disabled:opacity-50"
+                className="w-full py-3 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_12px_rgba(223,156,67,0.3)] active:scale-95 disabled:opacity-50"
               >
                 {isGeneratingAIVideo ? (
                   <>
-                    <Loader2 size={16} className="animate-spin text-white" />
+                    <Loader2 size={16} className="animate-spin text-[#eaaf5d]" />
                     <span>Génération ComfyUI ({aiVideoProgress}%)...</span>
                   </>
                 ) : (
@@ -933,7 +933,7 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
                 onClick={() => setActivePreviewMode("ai_video")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
                   activePreviewMode === "ai_video"
-                    ? "bg-[#df9c43] text-white shadow"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
@@ -994,9 +994,9 @@ export const VideoStudioModal = ({ isOpen, onClose, song }) => {
                 <button
                   onClick={handleGenerateAIVideo}
                   disabled={isGeneratingAIVideo}
-                  className="px-4 py-2 bg-[#df9c43] hover:bg-[#df9c43] text-white font-bold text-xs rounded-xl shadow inline-flex items-center gap-2"
+                  className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs rounded-xl shadow-[0_0_10px_rgba(223,156,67,0.3)] inline-flex items-center gap-2 transition-all"
                 >
-                  {isGeneratingAIVideo ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  {isGeneratingAIVideo ? <Loader2 size={14} className="animate-spin text-[#eaaf5d]" /> : <Sparkles size={14} />}
                   <span>Lancer la génération IA</span>
                 </button>
               </div>

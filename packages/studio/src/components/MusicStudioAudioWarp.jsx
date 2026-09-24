@@ -436,7 +436,7 @@ export default function MusicStudioAudioWarp({
       <div className="h-10 bg-[#181818] border-b border-[#292929] px-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 font-bold text-white text-[11px] tracking-wide">
-            <Radio size={14} className="text-[#ea580c] animate-pulse" />
+            <Radio size={14} className="text-[#df9c43] animate-pulse" />
             <span>MOTEUR AUDIO WARP & STRETCHING</span>
           </div>
           <span className="px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-[10px] font-mono">
@@ -461,10 +461,10 @@ export default function MusicStudioAudioWarp({
           {/* Action: Bounce in Place */}
           <button
             onClick={() => onBounceInPlace && onBounceInPlace(clip?.id, track?.id)}
-            className="px-2.5 py-1 rounded bg-[#ea580c] hover:bg-[#f97316] text-white text-[10px] font-bold flex items-center gap-1.5 transition shadow-md"
+            className="px-2.5 py-1 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-[10px] font-bold flex items-center gap-1.5 transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
             title="Rendre le clip audio étiré avec ses effets sur place (Bounce in place)"
           >
-            <Zap size={12} className="text-amber-200" />
+            <Zap size={12} className="text-[#eaaf5d]" />
             <span>Rendre sur place (Bounce)</span>
           </button>
 
@@ -492,8 +492,8 @@ export default function MusicStudioAudioWarp({
                 onClick={() => setWarpMode(mode.id)}
                 className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1 ${
                   isActive
-                    ? "bg-[#ea580c] text-white shadow-sm font-extrabold"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-extrabold"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                 }`}
                 title={mode.desc}
               >
@@ -546,7 +546,7 @@ export default function MusicStudioAudioWarp({
               step="5"
               value={fineCents}
               onChange={(e) => setFineCents(parseInt(e.target.value, 10))}
-              className="w-16 accent-[#ea580c] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+              className="w-16 accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
             />
             <span className="w-10 font-mono text-[10px] text-zinc-300">
               {fineCents > 0 ? `+${fineCents}` : fineCents} ct
@@ -561,7 +561,7 @@ export default function MusicStudioAudioWarp({
               type="checkbox"
               checked={preserveFormants}
               onChange={(e) => setPreserveFormants(e.target.checked)}
-              className="rounded accent-[#ea580c]"
+              className="rounded accent-[#df9c43]"
             />
             <span className="text-[10px] text-zinc-300 font-bold">Formants</span>
           </label>
@@ -591,7 +591,7 @@ export default function MusicStudioAudioWarp({
           <div className="flex items-center gap-2">
             <span className="text-zinc-400">Éditeur de Marqueurs Warp & Transitoires :</span>
             <span className="text-zinc-500 text-[10px]">
-              (Double-cliquez pour insérer un marqueur Warp, glissez les losanges orange pour étirer le timing)
+              (Double-cliquez pour insérer un marqueur Warp, glissez les losanges dorés pour étirer le timing)
             </span>
           </div>
 
@@ -655,17 +655,17 @@ export default function MusicStudioAudioWarp({
                 <div
                   className={`w-3.5 h-3.5 transform rotate-45 border transition shadow-md flex items-center justify-center ${
                     isSelected
-                      ? "bg-white border-[#ea580c] ring-2 ring-[#ea580c]/60"
-                      : "bg-[#ea580c] hover:bg-[#f97316] border-white/80"
+                      ? "bg-[#241808] border-[#df9c43] ring-2 ring-[#df9c43]/60 shadow-[0_0_8px_rgba(223,156,67,0.5)]"
+                      : "bg-[#241808] hover:bg-[#2d1e0d] border-[#df9c43]/80"
                   }`}
                 >
-                  <div className="w-1 h-1 bg-black rounded-full" />
+                  <div className={`w-1 h-1 rounded-full ${isSelected ? "bg-[#eaaf5d]" : "bg-black"}`} />
                 </div>
 
                 {/* Vertical Warp Line */}
                 <div
                   className={`w-0.5 flex-1 transition ${
-                    isSelected ? "bg-white" : "bg-[#ea580c]/80 group-hover/marker:bg-[#f97316]"
+                    isSelected ? "bg-[#df9c43] shadow-[0_0_6px_#df9c43]" : "bg-[#df9c43]/60 group-hover/marker:bg-[#df9c43]"
                   }`}
                 />
 
@@ -722,7 +722,7 @@ export default function MusicStudioAudioWarp({
           <span>•</span>
           <span>BPM Fichier : <strong className="text-zinc-300">{originalBpm} BPM</strong></span>
           <span>•</span>
-          <span>Marqueurs Warp : <strong className="text-[#ea580c]">{warpMarkers.length}</strong></span>
+          <span>Marqueurs Warp : <strong className="text-[#df9c43]">{warpMarkers.length}</strong></span>
         </div>
         <div className="text-[10px] text-zinc-400">
           Music Studio DAW • Moteur DSP Audio Warp v6.0

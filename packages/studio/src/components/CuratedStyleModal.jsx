@@ -292,13 +292,13 @@ export function CuratedStyleModal({ isOpen, onClose, style, onApplyStyle, onDire
 
               {/* 5. Textures */}
               <div className="p-4 rounded-xl bg-zinc-900/70 border border-white/10 space-y-2">
-                <div className="flex items-center gap-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-purple-400" />
+                <div className="flex items-center gap-2 text-[#df9c43] font-bold text-xs uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-[#df9c43]" />
                   <span>5. Textures, Saturation & Espace Sonore</span>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {style.instruments.textures?.map((inst, i) => (
-                    <span key={i} className="px-2.5 py-1 bg-purple-500/10 text-purple-200 border border-purple-500/30 rounded-lg text-xs font-medium">
+                    <span key={i} className="px-2.5 py-1 bg-[#b87524]/15 text-[#f5c277] border border-[#df9c43]/30 rounded-lg text-xs font-medium">
                       {inst}
                     </span>
                   ))}

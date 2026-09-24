@@ -167,7 +167,7 @@ export default function MusicStudio({
       <div className="h-8 px-3 bg-[#181818] border-b border-[#2a2a2a] flex items-center justify-between text-[11px] text-zinc-300 font-mono">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <Music size={13} className="text-[#ea580c]" />
+            <Music size={13} className="text-[#df9c43]" />
             <span className="font-bold text-white tracking-wide">
               {selectedNote ? `Note: ${selectedNote.pitch}` : "Aucune note sélectionnée"}
             </span>
@@ -193,7 +193,7 @@ export default function MusicStudio({
               {/* Ratchets badge */}
               <div
                 className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${
-                  (selectedNote.ratchets || 1) > 1 ? "bg-orange-950/80 border border-orange-500/50 text-orange-300 font-bold" : "text-zinc-400"
+                  (selectedNote.ratchets || 1) > 1 ? "bg-[#241808] border border-[#df9c43]/50 text-[#eaaf5d] font-bold" : "text-zinc-400"
                 }`}
               >
                 <Zap size={10} />
@@ -204,7 +204,7 @@ export default function MusicStudio({
               <div
                 className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${
                   selectedNote.occurrence && selectedNote.occurrence !== "Always"
-                    ? "bg-purple-950/80 border border-purple-500/50 text-purple-300"
+                    ? "bg-[#241808] border border-[#df9c43]/50 text-[#eaaf5d]"
                     : "text-zinc-400"
                 }`}
               >
@@ -230,7 +230,7 @@ export default function MusicStudio({
             onClick={() => {
               if (onAddNote) onAddNote("C4", Math.max(1, Math.floor(currentBeat)));
             }}
-            className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-800 hover:bg-[#ea580c] hover:text-white text-zinc-300 text-[10px] font-bold transition"
+            className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-[10px] font-bold shadow-[0_0_8px_rgba(223,156,67,0.25)] transition"
             title="Ajouter une note C4 au curseur de lecture"
           >
             <Plus size={11} />
@@ -348,7 +348,7 @@ export default function MusicStudio({
             {/* Scrub / Playhead Bar */}
             {isPlaying && (
               <div
-                className="absolute top-0 bottom-0 w-0.5 bg-[#ea580c] z-20 pointer-events-none shadow-[0_0_8px_#ea580c]"
+                className="absolute top-0 bottom-0 w-0.5 bg-[#df9c43] z-20 pointer-events-none shadow-[0_0_8px_#df9c43]"
                 style={{
                   left: `${(currentBar - 1) * 4 * 36 + (currentBeat - 1) * 36}px`
                 }}
@@ -380,8 +380,8 @@ export default function MusicStudio({
                   }}
                   className={`rounded text-white font-bold text-[9px] px-1.5 flex items-center justify-between cursor-move shadow transition z-10 absolute ${
                     isSelected
-                      ? "bg-[#ea580c] ring-2 ring-white border-2 border-[#ea580c] shadow-[0_0_12px_rgba(234,88,12,0.8)] brightness-110"
-                      : "bg-[#d97706] hover:bg-[#ea580c] border border-black/40"
+                      ? "bg-[#241808] ring-2 ring-white border-2 border-[#df9c43] text-[#f5c277] shadow-[0_0_12px_rgba(223,156,67,0.8)] brightness-110"
+                      : "bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43]/60 text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.2)]"
                   } ${hasChance ? "border-dashed border-amber-300" : ""}`}
                   style={{
                     top: `${top + 1}px`,
@@ -395,7 +395,7 @@ export default function MusicStudio({
                     <span className="truncate">{note.pitch}</span>
                     {/* Music Studio Ratchets Stripe Indicator */}
                     {hasRatchets && (
-                      <span className="bg-black/50 text-orange-200 text-[7px] px-1 rounded font-mono">
+                      <span className="bg-black/50 text-[#f5c277] text-[7px] px-1 rounded font-mono">
                         x{note.ratchets}
                       </span>
                     )}
@@ -409,7 +409,7 @@ export default function MusicStudio({
 
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {hasOccurrence && (
-                      <span className="text-[7px] bg-purple-950 text-purple-200 px-0.5 rounded">
+                      <span className="text-[7px] bg-[#241808] text-[#f5c277] px-0.5 rounded">
                         {note.occurrence}
                       </span>
                     )}
@@ -459,8 +459,8 @@ export default function MusicStudio({
                   }}
                   className={`h-5 px-2 rounded text-[10px] font-bold flex items-center gap-1 transition ${
                     isActive
-                      ? "bg-[#ea580c] text-white shadow-sm"
-                      : "text-zinc-400 hover:text-white hover:bg-white/5"
+                      ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.25)]"
+                      : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                   }`}
                   title={`Éditer ${tab.label}`}
                 >
@@ -515,7 +515,7 @@ export default function MusicStudio({
                         max="100"
                         value={selectedNote.chance ?? 100}
                         onChange={(e) => handleUpdateActiveOperator("chance", parseInt(e.target.value, 10))}
-                        className="w-full accent-[#ea580c] h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                        className="w-full accent-[#df9c43] h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
                         data-testid="input-chance-slider"
                       />
                     </div>
@@ -530,8 +530,8 @@ export default function MusicStudio({
                           onClick={() => handleUpdateActiveOperator("ratchets", rVal)}
                           className={`flex-1 py-1 rounded text-[9px] font-bold transition ${
                             (selectedNote.ratchets || 1) === rVal
-                              ? "bg-[#ea580c] text-white"
-                              : "bg-zinc-800 text-zinc-400 hover:text-white"
+                              ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.25)] font-bold"
+                              : "bg-zinc-800 text-zinc-400 hover:text-white border border-transparent"
                           }`}
                         >
                           x{rVal}
@@ -545,7 +545,7 @@ export default function MusicStudio({
                       data-testid="select-occurrence"
                       value={selectedNote.occurrence || "Always"}
                       onChange={(e) => handleUpdateActiveOperator("occurrence", e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 rounded px-1.5 py-1 text-[9.5px] font-mono focus:outline-none focus:border-[#ea580c]"
+                      className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 rounded px-1.5 py-1 text-[9.5px] font-mono focus:outline-none focus:border-[#df9c43]"
                     >
                       {OCCURRENCE_CONDITIONS.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -567,7 +567,7 @@ export default function MusicStudio({
                         max="127"
                         value={selectedNote.velocity || 90}
                         onChange={(e) => handleUpdateActiveOperator("velocity", parseInt(e.target.value, 10))}
-                        className="w-full accent-[#ea580c] h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                        className="w-full accent-[#df9c43] h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
                         data-testid="input-velocity-slider"
                       />
                     </div>
@@ -613,7 +613,7 @@ export default function MusicStudio({
                     <div>
                       <div className="flex justify-between text-[9px] text-zinc-400 mb-0.5">
                         <span>Pan:</span>
-                        <span className="text-purple-400 font-bold">
+                        <span className="text-[#df9c43] font-bold">
                           {(selectedNote.pan || 0) === 0 ? "Centre" : (selectedNote.pan || 0) < 0 ? `L${Math.abs(selectedNote.pan)}` : `R${selectedNote.pan}`}
                         </span>
                       </div>
@@ -623,7 +623,7 @@ export default function MusicStudio({
                         max="50"
                         value={selectedNote.pan || 0}
                         onChange={(e) => handleUpdateActiveOperator("pan", parseInt(e.target.value, 10))}
-                        className="w-full accent-purple-500 h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
+                        className="w-full accent-[#df9c43] h-1.5 bg-zinc-700 rounded-lg cursor-pointer"
                         data-testid="input-pan-slider"
                       />
                     </div>
@@ -674,15 +674,15 @@ export default function MusicStudio({
                   } else if (activeLaneTab === "ratchets") {
                     valPercent = ((note.ratchets || 1) / 8) * 100;
                     displayVal = `x${note.ratchets || 1}`;
-                    barColor = isSelected ? "bg-[#ea580c]" : "bg-orange-600";
+                    barColor = isSelected ? "bg-[#df9c43]" : "bg-[#df9c43]/50";
                   } else if (activeLaneTab === "occurrence") {
                     valPercent = 80;
                     displayVal = note.occurrence || "Always";
-                    barColor = isSelected ? "bg-purple-400" : "bg-purple-600";
+                    barColor = isSelected ? "bg-[#df9c43]" : "bg-[#df9c43]/50";
                   } else if (activeLaneTab === "velocity") {
                     valPercent = ((note.velocity || 90) / 127) * 100;
                     displayVal = `v${note.velocity || 90}`;
-                    barColor = isSelected ? "bg-[#ea580c]" : "bg-zinc-500";
+                    barColor = isSelected ? "bg-[#df9c43]" : "bg-zinc-500";
                   } else if (activeLaneTab === "micropitch") {
                     valPercent = 50 + (((note.microPitch || 0) / 24) * 50);
                     displayVal = `${note.microPitch || 0}st`;
@@ -694,7 +694,7 @@ export default function MusicStudio({
                   } else if (activeLaneTab === "pan") {
                     valPercent = 50 + (((note.pan || 0) / 50) * 50);
                     displayVal = (note.pan || 0) === 0 ? "C" : (note.pan || 0) < 0 ? `L${Math.abs(note.pan)}` : `R${note.pan}`;
-                    barColor = isSelected ? "bg-purple-400" : "bg-purple-600";
+                    barColor = isSelected ? "bg-[#df9c43]" : "bg-[#df9c43]/50";
                   }
 
                   return (

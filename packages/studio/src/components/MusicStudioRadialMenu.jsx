@@ -39,7 +39,7 @@ export const RADIAL_ACTIONS = [
     name: "Bounce",
     desc: "Rendu sur place",
     icon: Zap,
-    color: "#ea580c" // Orange Studio
+    color: "#b87524" // Sahel Gold Studio
   },
   {
     id: "slice",
@@ -242,7 +242,7 @@ export default function MusicStudioRadialMenu({
         {/* Center Hub: Displays hovered action description or selected clip name */}
         <div
           onClick={onClose}
-          className="w-20 h-20 rounded-full bg-[#121212] border-2 border-[#333333] hover:border-[#ea580c] flex flex-col items-center justify-center p-1.5 text-center cursor-pointer z-10 transition-colors shadow-2xl group"
+          className="w-20 h-20 rounded-full bg-[#121212] border-2 border-[#333333] hover:border-[#df9c43] flex flex-col items-center justify-center p-1.5 text-center cursor-pointer z-10 transition-colors shadow-2xl group"
         >
           {activeAction ? (
             <div className="flex flex-col items-center">

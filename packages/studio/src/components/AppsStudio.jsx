@@ -237,7 +237,7 @@ export default function AppsStudio({ apiKey }) {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     isActive 
-                      ? 'bg-[#df9c43] text-black shadow-md' 
+                      ? 'bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold' 
                       : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
                   }`}
                 >
@@ -329,7 +329,7 @@ export default function AppsStudio({ apiKey }) {
                         </span>
                       )}
                       {app.workflow_imported && (
-                        <span className="px-2 py-0.5 rounded-md bg-[#df9c43]/90 backdrop-blur-md text-[10px] font-black text-black flex items-center gap-1 shadow-sm">
+                        <span className="px-2 py-0.5 rounded-full bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] text-[10px] font-bold flex items-center gap-1">
                           ⚡ Workflow Prêt
                         </span>
                       )}
@@ -365,7 +365,7 @@ export default function AppsStudio({ apiKey }) {
                           <>
                             <button
                               onClick={() => openRunModal(app)}
-                              className="flex-1 py-2.5 bg-[#df9c43] text-black rounded-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#df9c43]/90 transition-all shadow-md active:scale-95"
+                              className="flex-1 py-2.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(223,156,67,0.3)] transition-all active:scale-95"
                             >
                               <FaPlay className="text-[10px]" />
                               Exécuter Studio
@@ -382,7 +382,7 @@ export default function AppsStudio({ apiKey }) {
                           <button
                             onClick={() => handleInstall(app)}
                             disabled={isInstalling}
-                            className="flex-1 py-2.5 bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#df9c43] hover:text-black transition-all border border-white/10 active:scale-95 disabled:opacity-50"
+                            className="flex-1 py-2.5 bg-white/10 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#241808] hover:border-[#df9c43] hover:text-[#eaaf5d] hover:shadow-[0_0_8px_rgba(223,156,67,0.25)] transition-all border border-white/10 active:scale-95 disabled:opacity-50"
                           >
                             {isInstalling ? (
                               <>
@@ -511,11 +511,11 @@ export default function AppsStudio({ apiKey }) {
                           onClick={() => setRunStyle(s.id)}
                           className={`p-3 rounded-xl text-left transition-all border text-xs flex flex-col gap-1 ${
                             isSel
-                              ? 'bg-[#df9c43]/10 border-[#df9c43] text-white'
+                              ? 'bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]'
                               : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
                           }`}
                         >
-                          <span className={`font-bold ${isSel ? 'text-[#df9c43]' : 'text-white'}`}>{s.name}</span>
+                          <span className={`font-bold ${isSel ? 'text-[#eaaf5d]' : 'text-white'}`}>{s.name}</span>
                           <span className="text-[10px] text-white/40 line-clamp-1">{s.prompt}</span>
                         </button>
                       );
@@ -552,9 +552,9 @@ export default function AppsStudio({ apiKey }) {
                       key={r.id}
                       type="button"
                       onClick={() => setAspectRatio(r.id)}
-                      className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
                         aspectRatio === r.id
-                          ? 'bg-[#df9c43] text-black border-[#df9c43]'
+                          ? 'bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]'
                           : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
                       }`}
                     >
@@ -570,7 +570,7 @@ export default function AppsStudio({ apiKey }) {
               <button
                 onClick={handleExecuteInApp}
                 disabled={isGenerating}
-                className="w-full py-4 bg-[#df9c43] text-black rounded-xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#df9c43]/90 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                className="w-full py-4 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded-xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(223,156,67,0.35)] transition-all active:scale-95 disabled:opacity-50"
               >
                 {isGenerating ? (
                   <>
@@ -690,7 +690,7 @@ NEXTAUTH_URL="http://localhost:${activeConfigApp.local_port || activeConfigApp.p
               </button>
               <button
                 onClick={() => setActiveConfigApp(null)}
-                className="flex-1 py-2.5 bg-[#df9c43] text-black rounded-lg text-xs font-black uppercase tracking-wider hover:bg-[#df9c43]/90 transition-all"
+                className="flex-1 py-2.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded-xl text-xs font-black uppercase tracking-wider shadow-[0_0_10px_rgba(223,156,67,0.3)] transition-all"
               >
                 Fermer
               </button>

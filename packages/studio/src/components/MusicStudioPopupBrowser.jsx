@@ -397,8 +397,8 @@ export default function MusicStudio({
                 onClick={() => setActiveTab(tab.id)}
                 className={`h-7 px-3 rounded text-[11px] font-bold transition flex items-center gap-1.5 ${
                   activeTab === tab.id
-                    ? "bg-[#ea580c] text-white shadow-sm"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                 }`}
               >
                 <span>{tab.label}</span>
@@ -417,7 +417,7 @@ export default function MusicStudio({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher périphérique, tag ou preset..."
-              className="w-full bg-[#141414] border border-[#333333] focus:border-[#ea580c] rounded-md pl-8 pr-7 py-1 text-xs text-white placeholder-zinc-500 focus:outline-none transition"
+              className="w-full bg-[#141414] border border-[#333333] focus:border-[#df9c43] rounded-md pl-8 pr-7 py-1 text-xs text-white placeholder-zinc-500 focus:outline-none transition"
             />
             {searchQuery && (
               <button
@@ -458,8 +458,8 @@ export default function MusicStudio({
                     onClick={() => setSelectedCollection(col)}
                     className={`w-full px-2.5 py-1.5 rounded text-left flex items-center justify-between text-[11px] transition ${
                       isSelected
-                        ? "bg-[#ea580c] text-white font-bold shadow-sm"
-                        : "text-zinc-300 hover:bg-[#222222] hover:text-white"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                        : "text-zinc-300 hover:bg-[#222222] hover:text-white border border-transparent"
                     }`}
                   >
                     <span className="truncate">{col}</span>
@@ -486,8 +486,8 @@ export default function MusicStudio({
                     onClick={() => setSelectedCategory(cat)}
                     className={`w-full px-2.5 py-1.5 rounded text-left text-[11px] truncate transition ${
                       isSelected
-                        ? "bg-[#ea580c] text-white font-bold shadow-sm"
-                        : "text-zinc-300 hover:bg-[#222222] hover:text-white"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                        : "text-zinc-300 hover:bg-[#222222] hover:text-white border border-transparent"
                     }`}
                   >
                     {cat}
@@ -513,8 +513,8 @@ export default function MusicStudio({
                     onClick={() => setSelectedCreator(crt)}
                     className={`w-full px-2.5 py-1.5 rounded text-left text-[11px] truncate transition ${
                       isSelected
-                        ? "bg-[#ea580c] text-white font-bold shadow-sm"
-                        : "text-zinc-300 hover:bg-[#222222] hover:text-white"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                        : "text-zinc-300 hover:bg-[#222222] hover:text-white border border-transparent"
                     }`}
                   >
                     {crt}
@@ -548,7 +548,7 @@ export default function MusicStudio({
                       onDoubleClick={() => handleConfirmInsert(item)}
                       className={`px-3 py-2 rounded-lg flex items-center justify-between cursor-pointer transition border ${
                         isSelected
-                          ? "bg-[#252525] border-[#ea580c] text-white shadow-md ring-1 ring-[#ea580c]/50"
+                          ? "bg-[#252525] border-[#df9c43] text-white shadow-md ring-1 ring-[#df9c43]/50"
                           : "border-transparent hover:bg-[#1a1a1a] text-zinc-300 hover:text-white"
                       }`}
                     >
@@ -562,7 +562,7 @@ export default function MusicStudio({
                                 : item.type === "The Grid"
                                 ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
                                 : item.type === "IA Tool"
-                                ? "bg-purple-950 text-purple-300 border border-purple-500/40"
+                                ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43]/40"
                                 : "bg-zinc-800 text-zinc-400"
                             }`}
                           >
@@ -603,7 +603,7 @@ export default function MusicStudio({
                     : activeItem.type === "The Grid"
                     ? "bg-cyan-600 text-white"
                     : activeItem.type === "IA Tool"
-                    ? "bg-purple-600 text-white"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                     : "bg-zinc-700 text-zinc-200"
                 }`}
               >
@@ -650,7 +650,7 @@ export default function MusicStudio({
               data-testid="btn-insert-browser-item"
               onClick={() => handleConfirmInsert()}
               disabled={!activeItem}
-              className="h-8 px-4 rounded bg-[#ea580c] hover:bg-[#f97316] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md disabled:opacity-50"
+              className="h-8 px-4 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold transition flex items-center gap-1.5 shadow-[0_0_10px_rgba(223,156,67,0.3)] disabled:opacity-50"
               title="Insérer le périphérique sélectionné (Entrée)"
             >
               <Check size={13} />

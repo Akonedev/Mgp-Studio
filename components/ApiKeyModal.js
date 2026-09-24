@@ -48,7 +48,7 @@ export default function ApiKeyModal({ onSave }) {
 
           <button
             type="submit"
-            className="w-full bg-[#df9c43] text-black font-medium py-2.5 rounded-md hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#df9c43]/5"
+            className="w-full bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold py-2.5 rounded-md hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_12px_rgba(223,156,67,0.3)]"
             suppressHydrationWarning
           >
             Get Started

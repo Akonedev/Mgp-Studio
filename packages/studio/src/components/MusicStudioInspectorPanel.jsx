@@ -89,33 +89,39 @@ export default function MusicStudioInspectorPanel({
       {/* ── 1. Inspector Header & Context Switcher ── */}
       <div className="h-9 bg-[#141414] border-b border-[#292929] px-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1.5 font-bold text-white text-[11px] tracking-wider">
-          <Info size={13} className="text-[#ea580c]" />
+          <Info size={13} className="text-[#df9c43]" />
           <span>INSPECTEUR</span>
         </div>
 
         <div className="flex items-center gap-1">
           {/* Tabs: Piste / Clip / Télécommandes */}
-          <div className="flex items-center bg-[#202020] rounded p-0.5 border border-[#333333]">
+          <div className="flex items-center bg-[#141414] rounded-lg p-0.5 border border-[#2d2d2d] gap-1">
             <button
               onClick={() => setInspectorTab("track")}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition ${
-                inspectorTab === "track" ? "bg-[#ea580c] text-white" : "text-zinc-400 hover:text-white"
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase transition ${
+                inspectorTab === "track"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                  : "text-zinc-400 hover:text-white border border-transparent"
               }`}
             >
               Piste
             </button>
             <button
               onClick={() => setInspectorTab("clip")}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition ${
-                inspectorTab === "clip" ? "bg-[#ea580c] text-white" : "text-zinc-400 hover:text-white"
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase transition ${
+                inspectorTab === "clip"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                  : "text-zinc-400 hover:text-white border border-transparent"
               }`}
             >
               Clip
             </button>
             <button
               onClick={() => setInspectorTab("remotes")}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition ${
-                inspectorTab === "remotes" ? "bg-[#ea580c] text-white" : "text-zinc-400 hover:text-white"
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase transition ${
+                inspectorTab === "remotes"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                  : "text-zinc-400 hover:text-white border border-transparent"
               }`}
             >
               Macros
@@ -165,7 +171,7 @@ export default function MusicStudioInspectorPanel({
                 onChange={(e) =>
                   onUpdateTrack && onUpdateTrack(selectedTrack?.id, { name: e.target.value })
                 }
-                className="w-full bg-[#121212] border border-[#333333] rounded px-2 py-1 text-xs text-white font-bold focus:outline-none focus:border-[#ea580c]"
+                className="w-full bg-[#121212] border border-[#333333] rounded px-2 py-1 text-xs text-white font-bold focus:outline-none focus:border-[#df9c43]"
               />
 
               {/* Color Swatch Picker (p. 89) */}
@@ -213,7 +219,7 @@ export default function MusicStudioInspectorPanel({
                     onUpdateTrack &&
                     onUpdateTrack(selectedTrack?.id, { volume: parseFloat(e.target.value) })
                   }
-                  className="w-full accent-[#ea580c] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                  className="w-full accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
                 />
               </div>
 
@@ -241,7 +247,7 @@ export default function MusicStudioInspectorPanel({
                     onUpdateTrack &&
                     onUpdateTrack(selectedTrack?.id, { pan: parseInt(e.target.value, 10) })
                   }
-                  className="w-full accent-[#ea580c] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                  className="w-full accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
                 />
               </div>
 
@@ -385,7 +391,7 @@ export default function MusicStudioInspectorPanel({
             <div className="bg-[#1f1f1f] p-2.5 rounded-lg border border-[#2d2d2d] space-y-2.5 text-[11px]">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1">
-                  <Activity size={12} className="text-[#ea580c]" />
+                  <Activity size={12} className="text-[#df9c43]" />
                   <span>Audio Warp & Stretching (p. 271)</span>
                 </span>
                 <span className="px-1.5 py-0.2 rounded bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 font-mono text-[9px]">
@@ -415,7 +421,7 @@ export default function MusicStudioInspectorPanel({
                         }
                         className={`py-1 rounded text-[10px] font-bold transition text-center ${
                           active
-                            ? "bg-[#ea580c] text-white shadow-sm font-extrabold"
+                            ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)] font-extrabold"
                             : "bg-[#141414] text-zinc-400 hover:text-white border border-[#2d2d2d]"
                         }`}
                       >
@@ -446,7 +452,7 @@ export default function MusicStudioInspectorPanel({
                     onUpdateClip &&
                     onUpdateClip(selectedClip?.id, { pitchSemitones: parseInt(e.target.value, 10) })
                   }
-                  className="w-full accent-[#ea580c] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                  className="w-full accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
                 />
 
                 <div className="flex items-center justify-between text-[10px] pt-1">
@@ -479,7 +485,7 @@ export default function MusicStudioInspectorPanel({
                       onUpdateClip &&
                       onUpdateClip(selectedClip?.id, { preserveFormants: e.target.checked })
                     }
-                    className="rounded accent-[#ea580c]"
+                    className="rounded accent-[#df9c43]"
                   />
                   <span className="text-[10px] text-zinc-300 font-bold">Conserver Formants</span>
                 </label>
@@ -498,14 +504,14 @@ export default function MusicStudioInspectorPanel({
                   onClick={() => onOpenAudioWarp && onOpenAudioWarp(selectedClip)}
                   className="w-full py-1.5 rounded bg-[#202020] hover:bg-[#282828] text-white border border-[#383838] text-[10px] font-bold flex items-center justify-center gap-1.5 transition"
                 >
-                  <Activity size={12} className="text-[#ea580c]" />
+                  <Activity size={12} className="text-[#df9c43]" />
                   <span>Ouvrir Éditeur Audio Warp & Marqueurs</span>
                 </button>
 
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     onClick={() => onBounceInPlace && onBounceInPlace(selectedClip?.id, selectedTrack?.id)}
-                    className="py-1.5 px-1 rounded bg-[#ea580c] hover:bg-[#f97316] text-white text-[10px] font-bold flex items-center justify-center gap-1 transition shadow-sm"
+                    className="py-1.5 px-1 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-[10px] font-bold flex items-center justify-center gap-1 transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     title="Rendre le clip sur place (Bounce in place)"
                   >
                     <span>⚡ Bounce</span>
@@ -532,7 +538,7 @@ export default function MusicStudioInspectorPanel({
               <span className="text-[10px] uppercase font-bold text-zinc-400">
                 15.1.1. Télécommandes de Piste (8 Macros)
               </span>
-              <span className="text-[9px] font-mono text-[#ea580c]">Page 1 / 8</span>
+              <span className="text-[9px] font-mono text-[#df9c43]">Page 1 / 8</span>
             </div>
 
             {/* 2x4 Grid of Macro Rotary Encoders */}
@@ -549,7 +555,7 @@ export default function MusicStudioInspectorPanel({
               ].map((m) => (
                 <div
                   key={m.key}
-                  className="bg-[#1f1f1f] border border-[#2d2d2d] rounded-lg p-2 flex flex-col items-center justify-center space-y-1 group hover:border-[#ea580c]/50 transition"
+                  className="bg-[#1f1f1f] border border-[#2d2d2d] rounded-lg p-2 flex flex-col items-center justify-center space-y-1 group hover:border-[#df9c43]/50 transition"
                 >
                   <span className="text-[9px] uppercase font-bold text-zinc-400 tracking-wider">
                     {m.name}
@@ -558,13 +564,13 @@ export default function MusicStudioInspectorPanel({
                   {/* Circular Rotary Visualizer */}
                   <div
                     onClick={() => handleKnobChange(m.key, 10)}
-                    className="w-10 h-10 rounded-full bg-[#121212] border-2 border-[#333333] relative flex items-center justify-center cursor-pointer group-hover:border-[#ea580c] transition"
+                    className="w-10 h-10 rounded-full bg-[#121212] border-2 border-[#333333] relative flex items-center justify-center cursor-pointer group-hover:border-[#df9c43] transition"
                   >
                     <div
                       style={{
                         transform: `rotate(${((remoteKnobs[m.key] || 50) / 100) * 270 - 135}deg)`
                       }}
-                      className="absolute top-1/2 left-1/2 w-0.5 h-3 bg-[#ea580c] origin-top"
+                      className="absolute top-1/2 left-1/2 w-0.5 h-3 bg-[#df9c43] origin-top"
                     />
                     <span className="text-[9px] font-mono text-zinc-300 z-10">
                       {m.val}

@@ -492,13 +492,13 @@ export function VideoStudio() {
             const makeModelItem = (m, isV2V = false) => {
                 const item = document.createElement('div');
                 item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${selectedModel === m.id ? 'bg-white/5 border-white/5' : ''}`;
-                const iconColor = isV2V ? 'bg-orange-500/10 text-orange-400' : m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400' : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400' : m.id.includes('sora') ? 'bg-[#df9c43]/10 text-[#df9c43]' : 'bg-primary/10 text-primary';
+                const iconColor = isV2V ? 'bg-[#b87524]/15 text-[#df9c43]' : m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400' : m.id.includes('veo') ? 'bg-[#b87524]/15 text-[#df9c43]' : m.id.includes('sora') ? 'bg-[#df9c43]/10 text-[#df9c43]' : 'bg-primary/10 text-primary';
                 item.innerHTML = `
                     <div class="flex items-center gap-3.5">
                          <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
                          <div class="flex flex-col gap-0.5">
                             <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
-                            ${isV2V ? '<span class="text-[9px] text-orange-400/70">Upload a video to use</span>' : ''}
+                            ${isV2V ? '<span class="text-[9px] text-[#df9c43]/70">Upload a video to use</span>' : ''}
                          </div>
                     </div>
                     ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#df9c43" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
@@ -550,7 +550,7 @@ export function VideoStudio() {
                 const filteredV2V = v2vModels.filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf));
                 if (filteredV2V.length > 0) {
                     const sectionLabel = document.createElement('div');
-                    sectionLabel.className = 'text-[10px] font-bold text-orange-400/70 uppercase tracking-widest px-3 py-2 mt-1 border-t border-white/5';
+                    sectionLabel.className = 'text-[10px] font-bold text-[#df9c43]/70 uppercase tracking-widest px-3 py-2 mt-1 border-t border-white/5';
                     sectionLabel.textContent = 'Video Tools';
                     list.appendChild(sectionLabel);
                     filteredV2V.forEach(m => list.appendChild(makeModelItem(m, true)));

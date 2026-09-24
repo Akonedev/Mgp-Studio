@@ -57,7 +57,7 @@ export function LanguagePickerModal({
       case "Compass":
         return <Compass size={13} className="text-blue-400" />;
       case "Sun":
-        return <Sun size={13} className="text-orange-400" />;
+        return <Sun size={13} className="text-[#df9c43]" />;
       case "Music":
         return <Music size={13} className="text-emerald-400" />;
       default:
@@ -76,7 +76,7 @@ export function LanguagePickerModal({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-pink-500/20 text-[#eaaf5d] border border-pink-500/30 flex items-center gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#241808] text-[#eaaf5d] border border-[#df9c43]/40 flex items-center gap-1.5">
                   <Globe size={12} />
                   55 Langues & Créoles Supportés
                 </span>
@@ -117,7 +117,7 @@ export function LanguagePickerModal({
                   onClick={() => handleSelect(code)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all border ${
                     isSelected
-                      ? "bg-[#df9c43] text-zinc-950 border-[#df9c43] font-bold shadow-md shadow-[#df9c43]/30 scale-105"
+                      ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.3)] scale-105"
                       : "bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10 hover:border-white/20"
                   }`}
                 >
@@ -167,13 +167,13 @@ export function LanguagePickerModal({
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all border ${
                     isActive
-                      ? "bg-white/15 text-white border-white/30 shadow-sm"
+                      ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold"
                       : "bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-200 border-white/5"
                   }`}
                 >
                   {getCategoryIcon(cat.icon)}
                   <span>{cat.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? "bg-pink-500/30 text-[#f5c277]" : "bg-white/5 text-zinc-500"}`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? "bg-[#241808] border border-[#df9c43]/40 text-[#f5c277]" : "bg-white/5 text-zinc-500"}`}>
                     {count}
                   </span>
                 </button>
@@ -234,7 +234,7 @@ export function LanguagePickerModal({
                         </div>
 
                         {isSelected ? (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#df9c43] flex items-center justify-center text-white shadow-sm">
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#241808] border border-[#df9c43] flex items-center justify-center text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]">
                             <Check size={12} />
                           </div>
                         ) : (

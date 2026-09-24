@@ -661,7 +661,7 @@ function ModelDropdown({ models, selectedModel, onSelect, onClose }) {
                   m.family === "kontext"
                     ? "bg-blue-500/10 text-blue-400"
                     : m.family === "effects"
-                      ? "bg-purple-500/10 text-purple-400"
+                      ? "bg-[#241808] border border-[#df9c43]/40 text-[#eaaf5d]"
                       : "bg-primary/10 text-primary"
                 } border border-white/5 rounded-full flex items-center justify-center font-bold text-xs shadow-inner uppercase`}
               >
@@ -1339,7 +1339,7 @@ export default function ImageStudio({
                         e.stopPropagation();
                         handleRegenerateItem(entry);
                       }}
-                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-[#df9c43] hover:bg-[#df9c43] hover:text-black transition-all border border-[#df9c43]/30"
+                      className="p-2 bg-[#241808] hover:bg-[#2d1e0d] backdrop-blur-md rounded-full text-[#eaaf5d] hover:text-[#f5c277] transition-all border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -1641,7 +1641,7 @@ export default function ImageStudio({
                     onClick={() => setBatchSize(num)}
                     className={`w-7 h-7 flex items-center justify-center rounded-md text-[10px] font-black transition-all ${
                       batchSize === num
-                        ? "bg-[#df9c43] text-black shadow-lg shadow-[#df9c43]/20"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
                         : "text-white/40 hover:text-white/80 hover:bg-white/5"
                     }`}
                   >
@@ -1656,11 +1656,11 @@ export default function ImageStudio({
               type="button"
               onClick={handleGenerate}
               disabled={generating}
-              className="bg-[#df9c43] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+              className="bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] px-5 py-2.5 rounded-md font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-[0_0_12px_rgba(223,156,67,0.3)] disabled:opacity-50 disabled:cursor-not-allowed z-10"
             >
               {generating ? (
                 <>
-                  <span className="animate-spin inline-block text-black">◌</span>
+                  <span className="animate-spin inline-block text-[#eaaf5d]">◌</span>
                   Generating...
                 </>
               ) : generateError ? (

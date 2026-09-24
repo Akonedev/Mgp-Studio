@@ -255,7 +255,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
       filename: "OGA_Voice_1789357311634.mp3",
       start: 0.2,
       duration: 6.8,
-      color: "#f97316",
+      color: "#df9c43",
       volume: 100,
       aiVoiceIsolation: 100, // %
       aiDialogueLeveler: true,
@@ -697,7 +697,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
         filename: injectedMedia.filename || 'voice_master.mp3',
         start: 0.0,
         duration: Number(injectedMedia.duration) || 6.5,
-        color: '#f97316',
+        color: '#df9c43',
         volume: 100,
         aiVoiceIsolation: 100,
         aiDialogueLeveler: true,
@@ -1145,7 +1145,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
           {/* Quick Export Button */}
           <button
             onClick={() => setShowQuickExportModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#df9c43] hover:bg-[#f5c277] text-black text-xs font-bold transition-all shadow-md active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold transition-all shadow-[0_0_10px_rgba(223,156,67,0.25)] active:scale-95"
             title="Export Rapide FFMPEG 4K / Web / ProRes"
           >
             <Share2 size={13} />
@@ -1159,7 +1159,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
             onClick={handleIngestSparkMedia}
             disabled={isIngestingAi}
             title="Ingérer les générations réelles du cluster DGX Spark GB10"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-medium transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#b87524]/20 hover:bg-[#b87524]/30 text-[#eaaf5d] border border-[#df9c43]/30 text-xs font-medium transition-all active:scale-95"
           >
             <Sparkles size={13} className={isIngestingAi ? "animate-spin" : ""} />
             <span>Ingérer Médias IA</span>
@@ -1555,7 +1555,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                     </div>
                     <button
                       onClick={() => handleInsertToTimeline(sourceClip)}
-                      className="px-2 py-0.5 rounded bg-[#df9c43] hover:bg-[#f5c277] text-black font-bold text-[9px]"
+                      className="px-2.5 py-0.5 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-[9px] shadow-[0_0_6px_rgba(223,156,67,0.25)] transition"
                       title="Insérer le rush source sur la timeline"
                     >
                       + Insérer
@@ -1888,7 +1888,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                       <div className="pt-2 border-t border-white/5 space-y-1.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <Sparkles size={12} className="text-purple-400" />
+                            <Sparkles size={12} className="text-[#df9c43]" />
                             <span className="text-zinc-200 font-bold">AI Voice Isolation</span>
                           </div>
                           <input
@@ -1914,9 +1914,9 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                               setAiVoiceIsolation(val);
                               if (selectedClip) setVoiceClips(prev => prev.map(c => c.id === selectedClip.id ? { ...c, aiVoiceIsolation: val } : c));
                             }}
-                            className="flex-1 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                            className="flex-1 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#df9c43]"
                           />
-                          <span className="font-mono text-[10px] text-purple-300 w-8 text-right">{aiVoiceIsolation}%</span>
+                          <span className="font-mono text-[10px] text-[#eaaf5d] w-8 text-right">{aiVoiceIsolation}%</span>
                         </div>
                       </div>
 
@@ -2280,7 +2280,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                       </div>
                     </div>
                     <div className="h-12 px-2 flex items-center justify-between bg-black/30">
-                      <span className="text-orange-400 font-bold">V1 MASTER</span>
+                      <span className="text-[#df9c43] font-bold">V1 MASTER</span>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setTrackVisibility(prev => ({ ...prev, V1: !prev.V1 }))}
@@ -2308,7 +2308,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                         >
                           {trackMute.A1 ? <VolumeX size={10} /> : <Volume2 size={10} />}
                         </button>
-                        <span className="text-[9px] text-purple-400 font-bold">IA</span>
+                        <span className="text-[9px] text-[#df9c43] font-bold">IA</span>
                       </div>
                     </div>
                     <div className="h-10 px-2 flex items-center justify-between bg-black/30">
@@ -2474,7 +2474,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                     </div>
 
                     {/* V1 Master Video Track (with Thumbnails & Transition Badges) */}
-                    <div className="h-12 relative bg-orange-950/10 p-1">
+                    <div className="h-12 relative bg-[#241808]/20 p-1">
                       {videoClips.filter(c => c.track === "V1" || !c.track).map(clip => (
                         <div
                           key={clip.id}
@@ -2493,8 +2493,8 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                           }}
                           className={`group absolute top-1 h-9 rounded flex items-center overflow-hidden p-0.5 gap-1.5 cursor-pointer transition-all ${
                             selectedClip?.id === clip.id
-                              ? "bg-orange-600/40 border-2 border-red-500 ring-2 ring-red-500/50 shadow-xl"
-                              : "bg-orange-600/20 border border-orange-500/50 hover:border-orange-400"
+                              ? "bg-[#b87524]/40 border-2 border-red-500 ring-2 ring-red-500/50 shadow-xl"
+                              : "bg-[#b87524]/20 border border-[#df9c43]/50 hover:border-[#df9c43]"
                           }`}
                           style={{
                             left: `${clip.start * timelineZoom}px`,
@@ -2508,7 +2508,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                           />
                           <img src={clip.url || "/assets/studio_video/clip_truck_desert.png"} alt="" className="h-full aspect-video object-cover rounded pointer-events-none select-none" />
                           <div className="flex-1 min-w-0 pr-1 select-none">
-                            <span className="text-[9px] font-bold text-orange-200 truncate block">{clip.title || clip.name}</span>
+                            <span className="text-[9px] font-bold text-[#f5c277] truncate block">{clip.title || clip.name}</span>
                             <span className="text-[7px] text-zinc-400 font-mono">{clip.duration}s • {clip.transition}</span>
                           </div>
                           <div
@@ -2845,7 +2845,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                   </div>
                   <button
                     onClick={handleExportPhoto}
-                    className="w-full py-1.5 rounded bg-[#df9c43] hover:bg-[#f5c277] text-black font-bold text-xs shadow-md mt-2 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all"
+                    className="w-full py-2 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs shadow-[0_0_10px_rgba(223,156,67,0.25)] mt-2 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all"
                   >
                     <Download size={13} />
                     Exporter Photo RAW Master
@@ -2948,7 +2948,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
           <div className="flex-1 flex flex-col min-h-0 bg-[#09090b]">
             <div className="h-7 border-b border-white/[0.07] px-3 flex items-center justify-between bg-[#141416] text-xs">
               <span className="font-bold text-zinc-200">Fusion VFX Studio • Graphe de Compositing Nodal</span>
-              <span className="text-[10px] text-purple-400 font-mono">15 Nœuds Actifs</span>
+              <span className="text-[10px] text-[#df9c43] font-mono">15 Nœuds Actifs</span>
             </div>
 
             <div className="h-[46%] flex border-b border-white/[0.07]">
@@ -2958,7 +2958,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                   alt="Fusion Cosmic Spiral"
                   className="max-h-full max-w-full object-contain"
                 />
-                <div className="absolute bottom-2 left-2 text-[10px] font-mono px-2 py-0.5 rounded bg-black/80 text-purple-300 border border-purple-500/30">
+                <div className="absolute bottom-2 left-2 text-[10px] font-mono px-2 py-0.5 rounded bg-black/80 text-[#eaaf5d] border border-[#df9c43]/30">
                   MediaOut1 • 27.0 fps
                 </div>
               </div>
@@ -2966,7 +2966,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
               {/* Node Inspector */}
               <div className="w-80 border-l border-white/[0.07] bg-[#141416] p-3 space-y-2.5 overflow-y-auto text-xs custom-scrollbar">
                 <div className="flex justify-between items-center border-b border-white/5 pb-1">
-                  <span className="font-bold text-purple-300">Inspecteur Nœud: {activeFusionNodeId}</span>
+                  <span className="font-bold text-[#eaaf5d]">Inspecteur Nœud: {activeFusionNodeId}</span>
                   <button
                     onClick={() => {
                       setFusionNodes(prev => prev.map(n => n.id === activeFusionNodeId ? { ...n, active: !n.active } : n));
@@ -3007,7 +3007,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                     key={n.id}
                     onClick={() => setActiveFusionNodeId(n.id)}
                     className={`px-3 py-1.5 rounded border text-[10px] font-mono cursor-pointer transition-all ${
-                      activeFusionNodeId === n.id ? "bg-purple-900/40 border-purple-400 text-white font-bold ring-1 ring-purple-400/50" : "bg-zinc-900 border-white/10 text-zinc-300"
+                      activeFusionNodeId === n.id ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.3)] ring-1 ring-[#df9c43]/50" : "bg-zinc-900 border-white/10 text-zinc-300"
                     }`}
                   >
                     {n.name}
@@ -3021,7 +3021,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                     key={n.id}
                     onClick={() => setActiveFusionNodeId(n.id)}
                     className={`px-3 py-1.5 rounded border text-[10px] font-mono cursor-pointer transition-all ${
-                      activeFusionNodeId === n.id ? "bg-purple-900/40 border-purple-400 text-white font-bold ring-1 ring-purple-400/50" : "bg-zinc-900 border-white/10 text-zinc-300"
+                      activeFusionNodeId === n.id ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.3)] ring-1 ring-[#df9c43]/50" : "bg-zinc-900 border-white/10 text-zinc-300"
                     }`}
                   >
                     {n.name}
@@ -3035,7 +3035,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                     key={n.id}
                     onClick={() => setActiveFusionNodeId(n.id)}
                     className={`px-2.5 py-1 rounded border text-[9px] font-mono cursor-pointer transition-all ${
-                      activeFusionNodeId === n.id ? "bg-purple-900/40 border-purple-400 text-white font-bold ring-1 ring-purple-400/50" : "bg-zinc-900 border-white/10 text-zinc-300"
+                      activeFusionNodeId === n.id ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_8px_rgba(223,156,67,0.3)] ring-1 ring-[#df9c43]/50" : "bg-zinc-900 border-white/10 text-zinc-300"
                     }`}
                   >
                     {n.name}
@@ -3365,7 +3365,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                 <button
                   onClick={() => handleStartRender()}
                   disabled={isRendering}
-                  className="px-6 py-2.5 rounded bg-[#df9c43] hover:bg-[#f5c277] text-black font-bold text-xs transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                  className="px-6 py-2.5 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs transition-all shadow-[0_0_12px_rgba(223,156,67,0.3)] active:scale-95 disabled:opacity-50"
                 >
                   {isRendering ? `Rendu en cours (${renderProgress}%)...` : "Démarrer le Rendu Master"}
                 </button>
@@ -3433,7 +3433,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
               <button
                 onClick={handleIngestSparkMedia}
                 disabled={isIngestingAi}
-                className="self-start px-4 py-2 rounded bg-[#df9c43] text-black font-bold text-xs"
+                className="self-start px-4 py-2 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs shadow-[0_0_10px_rgba(223,156,67,0.25)] transition"
               >
                 Synchroniser Tout le Stockage
               </button>
@@ -3472,7 +3472,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                 onClick={() => setActivePage(page.id)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all ${
                   isActive
-                    ? "bg-[#df9c43] text-black font-bold shadow-sm scale-105"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_10px_rgba(223,156,67,0.3)] scale-105"
                     : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
                 }`}
               >
@@ -3537,7 +3537,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
                 <button
                   onClick={() => handleStartRender(deliverPreset)}
                   disabled={isRendering}
-                  className="px-4 py-1.5 rounded bg-[#df9c43] hover:bg-[#f5c277] text-black font-bold text-xs shadow-md disabled:opacity-50"
+                  className="px-4 py-1.5 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs shadow-[0_0_8px_rgba(223,156,67,0.25)] disabled:opacity-50 transition"
                 >
                   Exporter Maintenant
                 </button>
@@ -3605,7 +3605,7 @@ export default function MontageStudio({ apiKey, onNavigateTab, injectedMedia, on
             <div className="pt-3 border-t border-white/10 flex justify-end">
               <button
                 onClick={() => setShowProjectSettingsModal(false)}
-                className="px-4 py-1.5 rounded bg-[#df9c43] text-black font-bold"
+                className="px-4 py-1.5 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs shadow-[0_0_8px_rgba(223,156,67,0.25)] transition"
               >
                 Appliquer
               </button>

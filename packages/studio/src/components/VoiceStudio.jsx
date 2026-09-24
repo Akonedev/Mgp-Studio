@@ -401,7 +401,7 @@ export default function VoiceStudio({ apiKey, onSendToMontage, onSendToLipSync }
                               </button>
                             </div>
                             <div className="flex items-center gap-1.5 mt-1">
-                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-[#b87524]/20 text-[#eaaf5d] border border-[#df9c43]/30">
                                 Clonnée
                               </span>
                               <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-white/[0.06] text-white/70">
@@ -644,12 +644,12 @@ export default function VoiceStudio({ apiKey, onSendToMontage, onSendToLipSync }
               className={`flex-1 py-3.5 px-6 rounded-2xl font-black text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-3 shadow-lg ${
                 isGenerating || !promptText.trim()
                   ? "bg-white/[0.05] text-white/30 border border-white/10 cursor-not-allowed"
-                  : "bg-gradient-to-r from-[#df9c43] to-[#b37424] hover:from-[#f5c277] hover:to-[#df9c43] text-black font-extrabold border border-[#f5c277]/50 shadow-[0_0_25px_rgba(223,156,67,0.3)] hover:shadow-[0_0_35px_rgba(223,156,67,0.5)] transform active:scale-[0.99]"
+                  : "bg-[#241808] hover:bg-[#2d1e0d] text-[#f5c277] font-extrabold border-2 border-[#df9c43] shadow-[0_0_25px_rgba(223,156,67,0.35)] hover:shadow-[0_0_35px_rgba(223,156,67,0.55)] transform active:scale-[0.99]"
               }`}
             >
               {isGenerating ? (
                 <>
-                  <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                  <div className="w-4 h-4 rounded-full border-2 border-[#eaaf5d] border-t-transparent animate-spin" />
                   <span>Synthèse Vocale en cours...</span>
                 </>
               ) : (
@@ -690,7 +690,7 @@ export default function VoiceStudio({ apiKey, onSendToMontage, onSendToLipSync }
                 <div className="flex items-center gap-3">
                   <button
                     onClick={togglePlayPause}
-                    className="w-10 h-10 rounded-full bg-[#df9c43] text-black font-extrabold flex items-center justify-center hover:bg-[#f5c277] transition-all shadow-[0_0_15px_rgba(223,156,67,0.3)] flex-shrink-0"
+                    className="w-10 h-10 rounded-full bg-[#241808] hover:bg-[#2d1e0d] border-2 border-[#df9c43] text-[#f5c277] font-extrabold flex items-center justify-center transition-all shadow-[0_0_15px_rgba(223,156,67,0.35)] flex-shrink-0 active:scale-95"
                   >
                     {isPlaying ? "⏸" : "▶"}
                   </button>
@@ -758,7 +758,7 @@ export default function VoiceStudio({ apiKey, onSendToMontage, onSendToLipSync }
                       alert(`Audio "${currentAudio.filename}" prêt pour le Lip-Sync.`);
                     }
                   }}
-                  className="py-2.5 px-4 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-200 text-xs font-bold transition-all flex items-center gap-1.5"
+                  className="py-2.5 px-4 rounded-xl bg-[#b87524]/20 hover:bg-[#b87524]/30 border border-[#df9c43]/30 text-[#f5c277] text-xs font-bold transition-all flex items-center gap-1.5"
                 >
                   <span>🗣️</span>
                   <span>Utiliser dans Lip-Sync</span>
@@ -895,13 +895,13 @@ export default function VoiceStudio({ apiKey, onSendToMontage, onSendToLipSync }
                 >
                   Annuler
                 </button>
-                <button
-                  type="submit"
-                  disabled={isCloning || !cloneName.trim()}
-                  className="px-5 py-2 rounded-xl bg-[#df9c43] hover:bg-[#f5c277] text-black text-xs font-black transition-all shadow-[0_0_15px_rgba(223,156,67,0.3)] disabled:opacity-40"
-                >
-                  {isCloning ? "Clonage en cours..." : "Enregistrer la Voix Clonnée"}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={isCloning || !cloneName.trim()}
+                    className="px-5 py-2 rounded-xl bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold transition-all shadow-[0_0_15px_rgba(223,156,67,0.3)] disabled:opacity-40"
+                  >
+                    {isCloning ? "Clonage en cours..." : "Enregistrer la Voix Clonnée"}
+                  </button>
               </div>
             </form>
           </div>

@@ -1035,7 +1035,7 @@ export default function MusicStudioDeviceRack({
                     e.stopPropagation();
                     handleAudition(dev);
                   }}
-                  className="px-2 py-0.5 rounded bg-[#df9c43]/20 hover:bg-[#df9c43] text-[#f5c277] hover:text-black font-extrabold text-[9px] flex items-center gap-1 transition-all active:scale-95 border border-[#df9c43]/40"
+                  className="px-2 py-0.5 rounded bg-[#241808] hover:bg-[#2d1e0d] text-[#eaaf5d] hover:text-[#f5c277] font-extrabold text-[9px] flex items-center gap-1 transition-all active:scale-95 border border-[#df9c43] shadow-[0_0_6px_rgba(223,156,67,0.25)]"
                   title="Auditionner le son réel (Web Audio DSP)"
                 >
                   <Play size={8} fill="currentColor" />
@@ -1126,7 +1126,7 @@ export default function MusicStudioDeviceRack({
                         onClick={() => handleParamChange(dev.id, "rate", rate)}
                         className={`py-1 text-[8.5px] rounded font-mono font-bold transition ${
                           (p.rate || "1/16") === rate
-                            ? "bg-[#df9c43] text-black shadow"
+                            ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)] font-bold"
                             : "bg-black/30 text-zinc-400 hover:text-white"
                         }`}
                       >
@@ -1313,7 +1313,7 @@ export default function MusicStudioDeviceRack({
                         className={`py-1.5 text-[7.5px] rounded font-black tracking-tight transition-all active:scale-90 ${
                           activePad === idx
                             ? "bg-white text-black shadow-[0_0_10px_#ffffff] scale-95"
-                            : "bg-[#252525] hover:bg-[#df9c43] hover:text-black text-zinc-300 border border-white/5"
+                            : "bg-[#252525] hover:bg-[#241808] hover:border-[#df9c43] text-zinc-300 hover:text-[#eaaf5d] border border-white/5"
                         }`}
                       >
                         {padName}

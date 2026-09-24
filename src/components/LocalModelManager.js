@@ -232,7 +232,7 @@ function Wan2gpModelCard(model) {
             </div>
             <p class="text-[11px] text-muted leading-relaxed">${model.description}</p>
             <div class="flex items-center gap-1.5 flex-wrap mt-1">
-                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold ${model.type === 'video' ? 'bg-purple-500/15 text-purple-300' : 'bg-primary/10 text-primary'}">${model.type.toUpperCase()}</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold ${model.type === 'video' ? 'bg-[#b87524]/15 text-[#eaaf5d]' : 'bg-primary/10 text-primary'}">${model.type.toUpperCase()}</span>
                 <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white/5 text-muted">via Wan2GP</span>
                 ${(model.tags || []).filter(t => !['featured', 'remote'].includes(t)).map(t => `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white/5 text-muted">${t}</span>`).join('')}
             </div>

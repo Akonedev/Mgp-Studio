@@ -27,9 +27,9 @@ export const DemucsModal = ({ isOpen, onClose, initialTrack }) => {
   const timerRef = useRef(null);
 
   const stems = [
-    { id: "vocals", name: "Vocals", color: "text-pink-400", url: "/audio/90s_hip_hop.mp3" },
+    { id: "vocals", name: "Vocals", color: "text-[#eaaf5d]", url: "/audio/90s_hip_hop.mp3" },
     { id: "drums", name: "Drums", color: "text-amber-400", url: "/audio/90s_hip_hop.mp3" },
-    { id: "bass", name: "Bass", color: "text-indigo-400", url: "/audio/90s_hip_hop.mp3" },
+    { id: "bass", name: "Bass", color: "text-[#df9c43]", url: "/audio/90s_hip_hop.mp3" },
     { id: "other", name: "Other (Instruments)", color: "text-emerald-400", url: "/audio/90s_hip_hop.mp3" },
   ];
 

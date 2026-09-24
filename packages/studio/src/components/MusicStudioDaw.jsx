@@ -1491,7 +1491,7 @@ export function DawAutomationEditor({
             <button
               onClick={() => onSetMode("clip")}
               className={`px-2.5 py-0.5 rounded text-[11px] font-bold transition ${
-                mode === "clip" ? "bg-[#df9c43] text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                mode === "clip" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold" : "text-zinc-400 hover:text-white"
               }`}
             >
               Clip
@@ -1499,7 +1499,7 @@ export function DawAutomationEditor({
             <button
               onClick={() => onSetMode("track")}
               className={`px-2.5 py-0.5 rounded text-[11px] font-bold transition ${
-                mode === "track" ? "bg-[#df9c43] text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                mode === "track" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold" : "text-zinc-400 hover:text-white"
               }`}
             >
               Piste
@@ -1588,7 +1588,7 @@ export function DawAutomationEditor({
           <button
             onClick={() => onSetTool("pointer")}
             className={`p-1.5 rounded transition ${
-              tool === "pointer" ? "bg-[#df9c43] text-white" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
+              tool === "pointer" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
             }`}
             title="Pointeur / Sélection"
           >
@@ -1598,7 +1598,7 @@ export function DawAutomationEditor({
           <button
             onClick={() => onSetTool("pencil")}
             className={`p-1.5 rounded transition ${
-              tool === "pencil" ? "bg-[#df9c43] text-white" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
+              tool === "pencil" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
             }`}
             title="Crayon / Dessin libre"
           >
@@ -1608,7 +1608,7 @@ export function DawAutomationEditor({
           <button
             onClick={() => onSetTool("curve")}
             className={`p-1.5 rounded transition ${
-              tool === "curve" ? "bg-[#df9c43] text-white" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
+              tool === "curve" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
             }`}
             title="Outil Courbure Bézier"
           >
@@ -1618,7 +1618,7 @@ export function DawAutomationEditor({
           <button
             onClick={() => onSetTool("eraser")}
             className={`p-1.5 rounded transition ${
-              tool === "eraser" ? "bg-[#df9c43] text-white" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
+              tool === "eraser" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "text-zinc-400 hover:text-white hover:bg-[#252525]"
             }`}
             title="Gomme"
           >
@@ -2190,7 +2190,7 @@ export function StudioDrumMachineDevice({ track, audioEngine }) {
                     onClick={() => handleTrigger(pad.name)}
                     className={`w-[72px] h-9 rounded border transition-all flex flex-col justify-between p-1 cursor-pointer select-none ${
                       isHit
-                        ? "bg-[#df9c43] border-[#df9c43] text-white shadow-[0_0_10px_#df9c43] scale-95"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#f5c277] shadow-[0_0_12px_rgba(223,156,67,0.5)] scale-95"
                         : state.mute
                         ? "bg-[#111111] border-[#222222] opacity-40"
                         : "bg-[#202020] border-[#2c2c2c] hover:border-zinc-500 hover:bg-[#262626]"
@@ -2685,9 +2685,39 @@ export function MusicStudioDaw({
   // ── Primary View Modes: 'arrange' | 'clips' | 'mix' ──
   const [mainView, setMainView] = useState("arrange");
 
-  // ── Bottom Panel Visibility & Sub-tabs ──
+  // ── Bottom Panel Visibility, Height & Resizing ──
   const [showBottomPanel, setShowBottomPanel] = useState(true);
   const [bottomPanelTab, setBottomPanelTab] = useState("pianoroll"); // 'pianoroll' | 'devicerack' | 'grid' | 'keyboard' | 'inspector' | 'automation'
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(340);
+  const [isBottomPanelMaximized, setIsBottomPanelMaximized] = useState(false);
+  const isDraggingSplitterRef = useRef(false);
+
+  // Splitter resizer handler (drag handle on top border)
+  const handleSplitterMouseDown = useCallback((e) => {
+    e.preventDefault();
+    isDraggingSplitterRef.current = true;
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+
+    const onMouseMove = (moveEvent) => {
+      if (!isDraggingSplitterRef.current) return;
+      const windowHeight = window.innerHeight;
+      const newHeight = windowHeight - moveEvent.clientY - 28; // Status bar offset
+      const clampedHeight = Math.max(160, Math.min(windowHeight * 0.85, newHeight));
+      setBottomPanelHeight(Math.round(clampedHeight));
+    };
+
+    const onMouseUp = () => {
+      isDraggingSplitterRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, []);
 
   // ── Music Studio 4-Column Pop-up Browser State (Chapter 8, p. 235-262) ──
   const [isPopupBrowserOpen, setIsPopupBrowserOpen] = useState(false);
@@ -4208,7 +4238,7 @@ export function MusicStudioDaw({
             }
           }
 
-          // Loop Check
+          // Loop Check & End of Song Auto-Stop
           const computedBar = Math.floor(totalBars) + 1;
           if (isLooping && computedBar > loopEndBar) {
             const loopStartSec = (loopStartBar - 1) * secPerBar;
@@ -4220,6 +4250,13 @@ export function MusicStudioDaw({
               bpm
             });
             return loopStartSec;
+          }
+
+          // If loop is OFF and playback reaches the end of the project / arrangement
+          if (!isLooping && computedBar > maxTrackBars) {
+            stopPlayback();
+            setStatusHint("Fin du morceau atteinte • Lecture arrêtée automatiquement");
+            return 0;
           }
 
           setCurrentBar(computedBar);
@@ -4237,7 +4274,7 @@ export function MusicStudioDaw({
         clearInterval(playheadIntervalRef.current);
       }
     };
-  }, [isPlaying, isLooping, loopStartBar, loopEndBar, bpm, isMetronomeActive, tracks]);
+  }, [isPlaying, isLooping, loopStartBar, loopEndBar, bpm, isMetronomeActive, tracks, maxTrackBars, stopPlayback]);
 
   // Note Trigger for Piano Roll & On-Screen Keyboard with Music Studio Operators (Section 11.2 & Ch. 12)
   const handlePlaySynthNote = useCallback((pitchOrNote, customOpts = {}) => {
@@ -5428,14 +5465,14 @@ export function MusicStudioDaw({
           {/* Music Studio Dashboard Button (Section 0.2, p. 25) */}
           <button
             onClick={() => setIsDashboardModalOpen(true)}
-            className="h-7 px-2 bg-[#252525] hover:bg-[#df9c43] text-white rounded flex items-center gap-1.5 transition flex-shrink-0 border border-[#383838] shadow-sm group"
+            className="h-7 px-2 bg-[#252525] hover:bg-[#241808] hover:border-[#df9c43] text-zinc-300 hover:text-[#eaaf5d] rounded flex items-center gap-1.5 transition flex-shrink-0 border border-[#383838] shadow-sm group"
             title="Tableau de bord Music Studio [Ctrl+D]"
           >
             <div className="grid grid-cols-2 gap-0.5">
-              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-white transition" />
-              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-white transition" />
-              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-white transition" />
-              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-white transition" />
+              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-[#eaaf5d] transition" />
+              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-[#eaaf5d] transition" />
+              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-[#eaaf5d] transition" />
+              <span className="w-1 h-1 rounded-full bg-[#df9c43] group-hover:bg-[#eaaf5d] transition" />
             </div>
             <span className="font-extrabold text-[10px] tracking-wider hidden sm:inline">STUDIO</span>
           </button>
@@ -5546,7 +5583,7 @@ export function MusicStudioDaw({
                           }}
                           className={`p-2 rounded cursor-pointer flex items-center justify-between transition-all ${
                             isSelected
-                              ? "bg-[#df9c43]/25 border border-[#df9c43]/50 text-white font-bold"
+                              ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold"
                               : "hover:bg-[#282828] text-zinc-300"
                           }`}
                         >
@@ -5572,10 +5609,10 @@ export function MusicStudioDaw({
           {/* Quick Action: Fredonner un Air / Audio-to-Music */}
           <button
             onClick={() => setIsHumModalOpen(true)}
-            className="h-7 px-2.5 py-0 bg-gradient-to-r from-red-600/30 to-orange-600/30 hover:from-red-600/50 hover:to-orange-600/50 border border-orange-500/50 text-white text-[11px] font-bold rounded flex items-center gap-1.5 shadow-sm whitespace-nowrap flex-shrink-0 transition"
+            className="h-7 px-2.5 py-0 bg-gradient-to-r from-red-600/30 to-[#b87524]/30 hover:from-red-600/50 hover:to-[#c9842c]/50 border border-[#df9c43]/50 text-white text-[11px] font-bold rounded flex items-center gap-1.5 shadow-sm whitespace-nowrap flex-shrink-0 transition"
             title="Fredonner un air ou une mélodie pour composer automatiquement"
           >
-            <Mic size={13} className="text-orange-400 animate-pulse flex-shrink-0" />
+            <Mic size={13} className="text-[#df9c43] animate-pulse flex-shrink-0" />
             <span>Fredonner un Air</span>
           </button>
 
@@ -6292,7 +6329,7 @@ export function MusicStudioDaw({
             onClick={togglePlay}
             className={`w-9 h-8 rounded flex items-center justify-center font-bold transition shadow active:scale-95 ${
               isPlaying
-                ? "bg-[#df9c43] text-white shadow-[#df9c43]/30"
+                ? "bg-[#241808] border-2 border-[#df9c43] text-[#f5c277] shadow-[0_0_12px_rgba(223,156,67,0.4)]"
                 : "bg-[#2c2c2c] hover:bg-[#383838] text-zinc-200"
             }`}
             title="Lecture / Pause (Espace)"
@@ -6437,7 +6474,7 @@ export function MusicStudioDaw({
           {/* External AudioMass Editor Link */}
           <button
             onClick={() => onOpenAudioMass ? onOpenAudioMass() : window.open(`/editor/index.html?audioUrl=${encodeURIComponent(selectedTrack?.url || "/outputs/OGA_Music_NeuroSoft_90s.mp3")}`, "_blank")}
-            className="px-2.5 py-1 bg-[#282828] hover:bg-[#333333] text-pink-400 border border-pink-500/20 text-[11px] font-semibold rounded flex items-center gap-1.5 transition"
+            className="px-2.5 py-1 bg-[#282828] hover:bg-[#333333] text-[#df9c43] border border-[#df9c43]/20 text-[11px] font-semibold rounded flex items-center gap-1.5 transition"
             title="Ouvrir l'éditeur de forme d'onde AudioMass plein écran"
           >
             <FileAudio size={12} />
@@ -6448,7 +6485,7 @@ export function MusicStudioDaw({
           {onOpenVideoStudio && (
             <button
               onClick={onOpenVideoStudio}
-              className="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold rounded flex items-center gap-1.5 transition"
+              className="px-2.5 py-1 bg-[#b87524]/20 hover:bg-[#b87524]/35 text-[#eaaf5d] border border-[#df9c43]/40 text-[11px] font-semibold rounded flex items-center gap-1.5 transition"
               title="Générer clip vidéo synchronisé avec ComfyUI"
             >
               <Film size={12} />
@@ -6485,10 +6522,10 @@ export function MusicStudioDaw({
                   markers: cueMarkers
                 });
               }}
-              className="px-2.5 py-1 bg-[#df9c43] hover:bg-[#eaaf5d] text-white text-[11px] font-bold rounded flex items-center gap-1 shadow transition"
+              className="px-2.5 py-1 bg-[#241808] hover:bg-[#2f1f0b] border border-[#df9c43] text-[#eaaf5d] hover:text-white text-[11px] font-bold rounded-lg flex items-center gap-1 shadow-[0_0_8px_rgba(223,156,67,0.25)] transition"
               title="Exporter vers Studio Video avec les marqueurs Cue synchronisés"
             >
-              <CornerDownRight size={12} />
+              <CornerDownRight size={12} className="text-[#df9c43]" />
               <span>Studio Video</span>
             </button>
           )}
@@ -6688,7 +6725,7 @@ export function MusicStudioDaw({
                         <div
                           onMouseDown={() => setIsDraggingLoopStart(true)}
                           style={{ left: `${(loopStartBar - 1) * barWidthPx - 6}px` }}
-                          className="absolute top-0 bottom-0 w-3 bg-[#df9c43] rounded-l cursor-ew-resize z-20 flex items-center justify-center text-white text-[8px] font-bold shadow"
+                          className="absolute top-0 bottom-0 w-3 bg-[#241808] border border-[#df9c43] rounded-l cursor-ew-resize z-20 flex items-center justify-center text-[#eaaf5d] text-[8px] font-bold shadow-[0_0_6px_rgba(223,156,67,0.3)]"
                           title={`Début boucle: mesure ${loopStartBar}`}
                         >
                           [
@@ -6698,7 +6735,7 @@ export function MusicStudioDaw({
                         <div
                           onMouseDown={() => setIsDraggingLoopEnd(true)}
                           style={{ left: `${(loopEndBar - 1) * barWidthPx - 6}px` }}
-                          className="absolute top-0 bottom-0 w-3 bg-[#df9c43] rounded-r cursor-ew-resize z-20 flex items-center justify-center text-white text-[8px] font-bold shadow"
+                          className="absolute top-0 bottom-0 w-3 bg-[#241808] border border-[#df9c43] rounded-r cursor-ew-resize z-20 flex items-center justify-center text-[#eaaf5d] text-[8px] font-bold shadow-[0_0_6px_rgba(223,156,67,0.3)]"
                           title={`Fin boucle: mesure ${loopEndBar}`}
                         >
                           ]
@@ -6860,7 +6897,7 @@ export function MusicStudioDaw({
                                 }`}
                               >
                                 <div className="w-2.5 h-2.5 bg-[#df9c43] rotate-45 -ml-1 shadow" />
-                                <span className="bg-[#df9c43] text-black text-[9px] font-black uppercase px-2 py-0.5 rounded shadow tracking-wider">
+                                <span className="bg-[#241808] border border-[#df9c43] text-[#f5c277] text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-[0_0_8px_rgba(223,156,67,0.4)] tracking-wider">
                                   Déplacer la piste ici
                                 </span>
                                 <div className="w-2.5 h-2.5 bg-[#df9c43] rotate-45 -mr-1 shadow" />
@@ -7156,7 +7193,7 @@ export function MusicStudioDaw({
                                           {trk.name}
                                         </span>
                                         {isTrackSelected && (
-                                          <span className="text-[7px] font-extrabold uppercase px-1 py-0.2 rounded bg-[#df9c43] text-white shadow-sm flex-shrink-0">
+                                          <span className="text-[7px] font-extrabold uppercase px-1 py-0.2 rounded bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)] flex-shrink-0">
                                             Actif
                                           </span>
                                         )}
@@ -7302,7 +7339,7 @@ export function MusicStudioDaw({
                                       }}
                                       className={`w-5 h-5 rounded text-[10px] font-bold font-mono transition ${
                                         isAutomationOpen
-                                          ? "bg-[#df9c43] text-white"
+                                          ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                                           : "bg-[#252525] text-zinc-400 hover:text-white"
                                       }`}
                                       title="Afficher/Masquer les courbes d'automation"
@@ -7320,7 +7357,7 @@ export function MusicStudioDaw({
                                         }}
                                         className={`w-5 h-5 rounded text-[9px] font-bold font-mono transition flex items-center justify-center ${
                                           expandedCompingTrackIds.has(trk.id)
-                                            ? "bg-[#df9c43] text-white shadow-sm"
+                                            ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                                             : "bg-[#252525] text-zinc-400 hover:text-white"
                                         }`}
                                         title="Afficher/masquer les sous-pistes de prises (Comping audio - Section 10.1.4)"
@@ -8025,7 +8062,7 @@ export function MusicStudioDaw({
                             }}
                             className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-[#df9c43] flex items-center gap-2"
                           >
-                            <Wand2 size={12} className="text-purple-400" />
+                            <Wand2 size={12} className="text-[#df9c43]" />
                             <span>Régénérer avec l'IA</span>
                           </button>
                           <button
@@ -8203,7 +8240,7 @@ export function MusicStudioDaw({
                         "Start", "Intro", "Build", "Chorus 1", "1 B", "Bridge", "Chorus 2", "2 B", "Outro", "Perform →", "11", "Minimal", "Minimal2", "14", "15", "16", "17", "18"
                       ][nextScene]}" lancée`);
                     }}
-                    className="px-3 py-1 bg-[#df9c43] hover:bg-[#eaaf5d] text-white text-xs font-bold rounded flex items-center gap-1.5 shadow transition"
+                    className="px-3 py-1 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold rounded flex items-center gap-1.5 shadow-[0_0_8px_rgba(223,156,67,0.25)] transition"
                   >
                     <Play size={11} fill="currentColor" />
                     <span>Lancer Scène Suivante</span>
@@ -8247,14 +8284,14 @@ export function MusicStudioDaw({
                             setStatusHint(`Scène ${sIdx + 1} "${sceneName}" lancée`);
                           }}
                           className={`w-28 flex-shrink-0 p-2 border-r border-[#2a2a2a] flex items-center justify-between cursor-pointer transition-colors ${
-                            isSceneActive ? "bg-[#df9c43]/20 text-white" : "hover:bg-[#262626]"
+                            isSceneActive ? "bg-[#241808] border-l-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold" : "hover:bg-[#262626]"
                           }`}
                         >
                           <div className="flex flex-col truncate">
                             <span className="text-[9px] font-mono text-zinc-500">{sIdx + 1}</span>
                             <span className="truncate text-xs">{sceneName}</span>
                           </div>
-                          <Play size={9} fill="currentColor" className={isSceneActive ? "text-[#df9c43]" : "text-zinc-500"} />
+                          <Play size={9} fill="currentColor" className={isSceneActive ? "text-[#eaaf5d]" : "text-zinc-500"} />
                         </div>
                       );
                     })}
@@ -8504,131 +8541,177 @@ export function MusicStudioDaw({
 
           {/* ────────────────────────────────────────────────────────────
               4. COLLAPSIBLE BOTTOM PANEL: PIANO ROLL, DEVICE RACK & KEYBOARD
+              (Resizable Splitter + Fullscreen Maximize + Image 0 Gold Style)
           ──────────────────────────────────────────────────────────── */}
           {showBottomPanel && (
-            <div className="h-64 bg-[#171717] border-t border-[#2d2d2d] flex flex-col flex-shrink-0 z-10 transition-all">
+            <div
+              style={{
+                height: isBottomPanelMaximized ? "calc(100vh - 128px)" : `${bottomPanelHeight}px`,
+                maxHeight: isBottomPanelMaximized ? "calc(100vh - 128px)" : "85vh",
+                minHeight: isBottomPanelMaximized ? "calc(100vh - 128px)" : "160px"
+              }}
+              className={`bg-[#171717] flex flex-col flex-shrink-0 z-20 select-none transition-all ${
+                isBottomPanelMaximized
+                  ? "absolute bottom-0 left-0 right-0 top-[128px] z-40 shadow-2xl"
+                  : "relative border-t border-[#2d2d2d]"
+              }`}
+            >
+              {/* Resizer Splitter Bar (only when not maximized) */}
+              {!isBottomPanelMaximized && (
+                <div
+                  onMouseDown={handleSplitterMouseDown}
+                  onDoubleClick={() => setBottomPanelHeight(340)}
+                  className="h-2 w-full bg-[#181818] hover:bg-[#df9c43]/40 active:bg-[#df9c43] cursor-row-resize flex items-center justify-center border-t border-b border-[#282828] group transition-colors flex-shrink-0 z-30 select-none"
+                  title="Glisser pour redimensionner la zone inférieure • Double-clic pour réinitialiser (340px)"
+                >
+                  <div className="w-12 h-1 rounded-full bg-zinc-600 group-hover:bg-[#df9c43] transition-colors" />
+                </div>
+              )}
+
               {/* Bottom Panel Tab Header */}
-              <div className="h-7 bg-[#1f1f1f] border-b border-[#2b2b2b] px-3 flex items-center justify-between select-none">
-                <div className="flex items-center gap-2">
+              <div className="h-9 bg-[#191919] border-b border-[#2a2a2a] px-3 flex items-center justify-between select-none flex-shrink-0 z-10">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 mr-2">
                   {/* Tab 1: Piano Roll */}
                   <button
                     onClick={() => setBottomPanelTab("pianoroll")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "pianoroll"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Music size={11} />
+                    <Music size={12} className={bottomPanelTab === "pianoroll" ? "text-[#df9c43]" : "text-zinc-400"} />
                     <span>Piano Roll (Éditeur de Notes)</span>
                   </button>
 
                   {/* Tab 2: Device Rack (Chaîne d'Effets) */}
                   <button
                     onClick={() => setBottomPanelTab("devicerack")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "devicerack"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Sliders size={11} />
-                    <span>Rack d'Effets ({activeTrack?.deviceChain?.length || 0})</span>
+                    <Sliders size={12} className={bottomPanelTab === "devicerack" ? "text-[#df9c43]" : "text-zinc-400"} />
+                    <span>Rack d'Effets</span>
+                    <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] font-mono bg-black/40 text-amber-300 border border-white/5">
+                      {activeTrack?.deviceChain?.length || 0}
+                    </span>
                   </button>
 
-                  {/* Tab: The Grid Modulaire (Chapter 15, p. 470) */}
+                  {/* Tab 3: The Grid Modulaire */}
                   <button
                     data-testid="tab-btn-the-grid"
                     onClick={() => setBottomPanelTab("grid")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "grid"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Grid size={11} />
+                    <Grid size={12} className={bottomPanelTab === "grid" ? "text-[#df9c43]" : "text-zinc-400"} />
                     <span>The Grid (Modulaire)</span>
                   </button>
 
-                  {/* Tab: Music Studio Modulators (Chapter 16, p. 461-512) */}
+                  {/* Tab 4: Modulateurs */}
                   <button
                     data-testid="tab-btn-modulators"
                     onClick={() => setBottomPanelTab("modulators")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "modulators"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Activity size={11} className="text-cyan-400" />
-                    <span>Modulateurs ({trackModulators[activeTrack?.id]?.length || 0})</span>
+                    <Activity size={12} className={bottomPanelTab === "modulators" ? "text-[#df9c43]" : "text-cyan-400"} />
+                    <span>Modulateurs</span>
+                    <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] font-mono bg-black/40 text-amber-300 border border-white/5">
+                      {trackModulators[activeTrack?.id]?.length || 0}
+                    </span>
                   </button>
 
-                  {/* Tab 3: On-Screen Touch Keyboard */}
+                  {/* Tab 5: Clavier Tactile */}
                   <button
                     onClick={() => setBottomPanelTab("keyboard")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "keyboard"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Keyboard size={11} />
+                    <Keyboard size={12} className={bottomPanelTab === "keyboard" ? "text-[#df9c43]" : "text-zinc-400"} />
                     <span>Clavier Tactile</span>
                   </button>
 
-                  {/* Tab 4: Clip Inspector */}
+                  {/* Tab 6: Régénération IA du Clip */}
                   <button
                     onClick={() => setBottomPanelTab("inspector")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "inspector"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Sparkles size={11} />
+                    <Sparkles size={12} className={bottomPanelTab === "inspector" ? "text-[#df9c43]" : "text-zinc-400"} />
                     <span>Régénération IA du Clip</span>
                   </button>
 
-                  {/* Tab 5: Music Studio Automation Editor */}
+                  {/* Tab 7: Automation Editor */}
                   <button
                     data-tab-automation="true"
                     onClick={() => setBottomPanelTab("automation")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "automation"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <PenTool size={11} />
+                    <PenTool size={12} className={bottomPanelTab === "automation" ? "text-[#df9c43]" : "text-zinc-400"} />
                     <span>Éditeur d'Automation</span>
                   </button>
 
-                  {/* Tab: Audio Warp & Stretching (Chapter 9 & 10) */}
+                  {/* Tab 8: Audio Warp */}
                   <button
                     data-testid="tab-btn-audiowarp"
                     onClick={() => setBottomPanelTab("audiowarp")}
-                    className={`px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition ${
+                    className={`flex-shrink-0 whitespace-nowrap h-7 px-3 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                       bottomPanelTab === "audiowarp"
-                        ? "bg-[#df9c43] text-white"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                        : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                     }`}
                   >
-                    <Radio size={11} className="text-cyan-400" />
+                    <Radio size={12} className={bottomPanelTab === "audiowarp" ? "text-[#df9c43]" : "text-cyan-400"} />
                     <span>Audio Warp (6 Modes)</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-zinc-500 font-mono">
+                {/* Right controls: Active Track Info, Maximize/Restore Toggle, Collapse Button */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
                     Piste: <span className="text-white font-bold">{activeTrack?.name}</span>
                   </span>
+
+                  {/* Maximize / Restore Toggle Icon */}
+                  <button
+                    onClick={() => setIsBottomPanelMaximized(!isBottomPanelMaximized)}
+                    className={`p-1.5 rounded-md transition flex items-center gap-1 text-[11px] font-semibold ${
+                      isBottomPanelMaximized
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                        : "text-zinc-400 hover:text-white hover:bg-[#2c2c2c] border border-transparent"
+                    }`}
+                    title={isBottomPanelMaximized ? "Réduire à la taille normale" : "Agrandir dans tout l'espace (Plein écran)"}
+                  >
+                    {isBottomPanelMaximized ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  </button>
+
+                  {/* Collapse / Close Button */}
                   <button
                     onClick={() => setShowBottomPanel(false)}
-                    className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#2c2c2c]"
-                    title="Cacher panneau inférieur"
+                    className="p-1.5 text-zinc-400 hover:text-white rounded-md hover:bg-[#2c2c2c] transition"
+                    title="Masquer le panneau inférieur"
                   >
-                    <ChevronDown size={13} />
+                    <ChevronDown size={14} />
                   </button>
                 </div>
               </div>
@@ -8823,7 +8906,7 @@ export function MusicStudioDaw({
                           key={bk.pitch}
                           onClick={() => handlePlaySynthNote(bk.pitch)}
                           style={{ left: `${bk.left}px` }}
-                          className="absolute pointer-events-auto w-6 h-24 bg-gradient-to-b from-[#2a2a2a] to-[#111111] hover:to-zinc-800 active:bg-[#df9c43] rounded-b border-b-2 border-black text-white font-mono text-[8px] flex flex-col justify-end pb-1.5 items-center shadow-lg transition active:translate-y-0.5"
+                          className="absolute pointer-events-auto w-6 h-24 bg-gradient-to-b from-[#2a2a2a] to-[#111111] hover:to-zinc-800 active:bg-[#241808] active:border-b-2 active:border-[#df9c43] active:text-[#eaaf5d] rounded-b border-b-2 border-black text-white font-mono text-[8px] flex flex-col justify-end pb-1.5 items-center shadow-lg transition active:translate-y-0.5"
                         >
                           <span>#</span>
                         </button>
@@ -8877,7 +8960,7 @@ export function MusicStudioDaw({
                         }
                       }}
                       disabled={isClipRegenerating}
-                      className="px-3.5 py-1.5 bg-[#df9c43] hover:bg-[#eaaf5d] text-white font-bold rounded flex items-center gap-1.5 shadow transition disabled:opacity-50"
+                      className="px-3.5 py-1.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded flex items-center gap-1.5 shadow-[0_0_8px_rgba(223,156,67,0.25)] transition disabled:opacity-50"
                     >
                       {isClipRegenerating ? (
                         <RefreshCw size={12} className="animate-spin" />
@@ -8981,25 +9064,25 @@ export function MusicStudioDaw({
               <div className="flex items-center gap-1 font-bold text-[11px]">
                 <button
                   onClick={() => setSidebarTab("browser")}
-                  className={`px-3 py-1 rounded transition flex items-center gap-1.5 ${
+                  className={`px-3 py-1 rounded-md transition flex items-center gap-1.5 ${
                     sidebarTab === "browser"
-                      ? "bg-[#df9c43] text-white"
-                      : "text-zinc-400 hover:text-white"
+                      ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                      : "text-zinc-400 hover:text-white border border-transparent"
                   }`}
                 >
-                  <Search size={12} />
+                  <Search size={12} className={sidebarTab === "browser" ? "text-[#df9c43]" : "text-zinc-400"} />
                   <span>Navigateur</span>
                 </button>
 
                 <button
                   onClick={() => setSidebarTab("project")}
-                  className={`px-3 py-1 rounded transition flex items-center gap-1.5 ${
+                  className={`px-3 py-1 rounded-md transition flex items-center gap-1.5 ${
                     sidebarTab === "project"
-                      ? "bg-[#df9c43] text-white"
-                      : "text-zinc-400 hover:text-white"
+                      ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                      : "text-zinc-400 hover:text-white border border-transparent"
                   }`}
                 >
-                  <Settings2 size={12} />
+                  <Settings2 size={12} className={sidebarTab === "project" ? "text-[#df9c43]" : "text-zinc-400"} />
                   <span>Projet</span>
                 </button>
               </div>
@@ -9101,16 +9184,16 @@ export function MusicStudioDaw({
                       {/* ComfyUI Video Link */}
                       <div
                         onClick={() => onOpenVideoStudio ? onOpenVideoStudio() : null}
-                        className="p-2 bg-[#252525] hover:bg-[#2e2e2e] border border-indigo-500/30 rounded cursor-pointer transition flex items-center justify-between"
+                        className="p-2 bg-[#252525] hover:bg-[#2e2e2e] border border-[#df9c43]/30 rounded cursor-pointer transition flex items-center justify-between"
                       >
                         <div className="flex items-center gap-2">
-                          <Film size={14} className="text-indigo-400" />
+                          <Film size={14} className="text-[#df9c43]" />
                           <div>
                             <span className="font-bold text-xs text-white block">ComfyUI Clip Studio</span>
                             <span className="text-[10px] text-zinc-400">Génération vidéo synchronisée au BPM</span>
                           </div>
                         </div>
-                        <Plus size={12} className="text-indigo-400" />
+                        <Plus size={12} className="text-[#df9c43]" />
                       </div>
 
                       {/* Demucs Separation Link */}
@@ -9131,16 +9214,16 @@ export function MusicStudioDaw({
                       {/* LoRA Training Link */}
                       <div
                         onClick={() => onNavigateTab ? onNavigateTab("training") : null}
-                        className="p-2 bg-[#252525] hover:bg-[#2e2e2e] border border-purple-500/30 rounded cursor-pointer transition flex items-center justify-between"
+                        className="p-2 bg-[#252525] hover:bg-[#2e2e2e] border border-[#df9c43]/30 rounded cursor-pointer transition flex items-center justify-between"
                       >
                         <div className="flex items-center gap-2">
-                          <Cpu size={14} className="text-purple-400" />
+                          <Cpu size={14} className="text-[#df9c43]" />
                           <div>
                             <span className="font-bold text-xs text-white block">Entraînement LoRA Musical</span>
                             <span className="text-[10px] text-zinc-400">Fine-tuning sur vos propres stems</span>
                           </div>
                         </div>
-                        <Plus size={12} className="text-purple-400" />
+                        <Plus size={12} className="text-[#df9c43]" />
                       </div>
                     </div>
                   )}
@@ -9202,7 +9285,7 @@ export function MusicStudioDaw({
                               </span>
                             </div>
                             <button
-                              className="p-1 rounded bg-[#303030] group-hover:bg-[#df9c43] text-zinc-300 group-hover:text-white transition flex-shrink-0"
+                              className="p-1 rounded bg-[#303030] group-hover:bg-[#241808] group-hover:border group-hover:border-[#df9c43] text-zinc-300 group-hover:text-[#eaaf5d] transition flex-shrink-0"
                               title="Ajouter à la piste active"
                             >
                               <Plus size={11} />
@@ -9226,7 +9309,7 @@ export function MusicStudioDaw({
                       key={t}
                       onClick={() => setProjectSubTab(t)}
                       className={`px-2 py-1 rounded transition ${
-                        projectSubTab === t ? "bg-[#df9c43] text-white" : "hover:text-white"
+                        projectSubTab === t ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold" : "hover:text-white"
                       }`}
                     >
                       {t === "settings" && "Réglages"}
@@ -9345,7 +9428,7 @@ export function MusicStudioDaw({
             onClick={() => setMainView("arrange")}
             className={`px-2.5 py-0.5 rounded transition ${
               mainView === "arrange"
-                ? "bg-[#df9c43] text-white font-extrabold shadow-sm"
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-extrabold shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                 : "text-zinc-400 hover:text-white"
             }`}
           >
@@ -9357,7 +9440,7 @@ export function MusicStudioDaw({
             onClick={() => setMainView("mix")}
             className={`px-2.5 py-0.5 rounded transition ${
               mainView === "mix"
-                ? "bg-[#df9c43] text-white font-extrabold shadow-sm"
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-extrabold shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                 : "text-zinc-400 hover:text-white"
             }`}
           >
@@ -9369,7 +9452,7 @@ export function MusicStudioDaw({
             onClick={() => setMainView("clips")}
             className={`px-2.5 py-0.5 rounded transition ${
               mainView === "clips"
-                ? "bg-[#df9c43] text-white font-extrabold shadow-sm"
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-extrabold shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                 : "text-zinc-400 hover:text-white"
             }`}
           >
@@ -9496,7 +9579,7 @@ export function MusicStudioDaw({
             }}
             className={`p-1 rounded transition ${
               showBottomPanel && bottomPanelTab === "keyboard"
-                ? "bg-[#df9c43] text-white"
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                 : "hover:text-white hover:bg-[#252525]"
             }`}
             title="Afficher le clavier tactile (On-Screen Keyboard Panel)"
@@ -9521,7 +9604,7 @@ export function MusicStudioDaw({
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     Fredonner un Air • Générateur Audio-to-Music IA
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#df9c43] text-white font-mono">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-mono shadow-[0_0_6px_rgba(223,156,67,0.25)]">
                       YIN Pitch Engine
                     </span>
                   </h2>
@@ -9550,7 +9633,7 @@ export function MusicStudioDaw({
                       onClick={() => setHumActiveTab("mic")}
                       className={`px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 ${
                         humActiveTab === "mic"
-                          ? "bg-[#df9c43] text-white shadow"
+                          ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                           : "text-zinc-400 hover:text-white"
                       }`}
                     >
@@ -9561,7 +9644,7 @@ export function MusicStudioDaw({
                       onClick={() => setHumActiveTab("file")}
                       className={`px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 ${
                         humActiveTab === "file"
-                          ? "bg-[#df9c43] text-white shadow"
+                          ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
                           : "text-zinc-400 hover:text-white"
                       }`}
                     >
@@ -9586,7 +9669,7 @@ export function MusicStudioDaw({
                       ) : (
                         <button
                           onClick={handleStartRecordingHum}
-                          className="px-5 py-2.5 rounded-xl bg-[#df9c43] hover:bg-[#d44d08] text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
+                          className="px-5 py-2.5 rounded-xl bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs flex items-center gap-2 shadow-[0_0_10px_rgba(223,156,67,0.3)] transition"
                         >
                           <Mic size={14} />
                           Démarrer Enregistrement Micro
@@ -9629,7 +9712,7 @@ export function MusicStudioDaw({
                           setStatusHint(`Fichier audio "${file.name}" chargé pour extraction de mélodie`);
                         }
                       }}
-                      className="text-xs text-zinc-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#df9c43] file:text-white hover:file:bg-[#d44d08] cursor-pointer"
+                      className="text-xs text-zinc-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border file:border-[#df9c43] file:text-xs file:font-bold file:bg-[#241808] file:text-[#eaaf5d] hover:file:bg-[#2d1e0d] hover:file:text-[#f5c277] cursor-pointer"
                     />
                     {humAudioUrl && (
                       <div className="w-full bg-[#1b1511] p-3 rounded-lg border border-[#3b2a1e] flex flex-col items-center gap-2 mt-1">
@@ -9835,7 +9918,7 @@ export function MusicStudioDaw({
                     <div className="bg-[#120e0b] p-1.5 rounded border border-cyan-800 text-cyan-400">
                       🥁 Batterie IA
                     </div>
-                    <div className="bg-[#120e0b] p-1.5 rounded border border-purple-800 text-purple-400">
+                    <div className="bg-[#120e0b] p-1.5 rounded border border-[#df9c43]/40 text-[#df9c43]">
                       🔊 Basse 808
                     </div>
                     <div className="bg-[#120e0b] p-1.5 rounded border border-emerald-800 text-emerald-400">
@@ -9940,7 +10023,7 @@ export function MusicStudioDaw({
             <div className="mt-6 flex justify-end pt-4 border-t border-[#2e2e2e]">
               <button
                 onClick={() => setIsShortcutsModalOpen(false)}
-                className="px-4 py-2 bg-[#df9c43] hover:bg-[#eaaf5d] text-white font-bold rounded-lg transition text-xs"
+                className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded-lg transition text-xs shadow-[0_0_8px_rgba(223,156,67,0.25)]"
               >
                 Fermer
               </button>
@@ -10030,7 +10113,7 @@ export function MusicStudioDaw({
                   setIsSettingsModalOpen(false);
                   setStatusHint("Paramètres audio appliqués avec succès");
                 }}
-                className="px-4 py-2 bg-[#df9c43] hover:bg-[#eaaf5d] text-white font-bold rounded-lg transition text-xs"
+                className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded-lg transition text-xs shadow-[0_0_8px_rgba(223,156,67,0.25)]"
               >
                 Enregistrer & Appliquer
               </button>
@@ -10168,7 +10251,7 @@ export function MusicStudioDaw({
                   setIsExportAudioModalOpen(false);
                   handleExportWav();
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-[#df9c43] to-[#eaaf5d] hover:brightness-110 text-white font-bold rounded-lg transition text-xs shadow flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded-lg transition text-xs shadow-[0_0_8px_rgba(223,156,67,0.25)] flex items-center gap-1.5"
               >
                 <Download size={13} />
                 <span>Lancer l'exportation WAV Stéréo</span>

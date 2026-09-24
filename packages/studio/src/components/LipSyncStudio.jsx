@@ -1125,11 +1125,11 @@ export default function LipSyncStudio({
               type="button"
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="bg-[#df9c43] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] px-5 py-2.5 rounded-md font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-[0_0_12px_rgba(223,156,67,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
                 <>
-                  <span className="animate-spin inline-block text-black">
+                  <span className="animate-spin inline-block text-[#eaaf5d]">
                     ◌
                   </span>{" "}
                   Generating...

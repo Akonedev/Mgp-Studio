@@ -148,16 +148,16 @@ export default function MusicStudioConsoleMixer({
       <div className="h-10 bg-[#161616] border-b border-[#252525] px-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-bold text-white text-xs tracking-wider">
-            <Sliders size={14} className="text-[#ea580c]" />
+            <Sliders size={14} className="text-[#df9c43]" />
             <span>CONSOLE DE MIXAGE PROFESSIONNELLE</span>
           </div>
           <span className="px-2 py-0.5 rounded bg-[#202020] text-zinc-400 font-mono text-[10px] border border-[#2d2d2d]">
             {tracks.length} Tranches • Bus Master Stéréo
           </span>
           {/* EBU R128 Loudness Badge */}
-          <div className="flex items-center gap-2 bg-[#1b1714] border border-[#ea580c]/40 px-2.5 py-0.5 rounded text-[10px] font-mono">
+          <div className="flex items-center gap-2 bg-[#1b1714] border border-[#df9c43]/40 px-2.5 py-0.5 rounded text-[10px] font-mono">
             <span className="text-zinc-400">EBU R128 :</span>
-            <span className="text-[#ea580c] font-bold">{masterLufs.integrated} LUFS</span>
+            <span className="text-[#df9c43] font-bold">{masterLufs.integrated} LUFS</span>
             <span className="text-zinc-500">•</span>
             <span className="text-emerald-400">TP {masterLufs.truePeak} dBFS</span>
           </div>
@@ -177,8 +177,8 @@ export default function MusicStudioConsoleMixer({
                 onClick={() => setCrossfaderCurve(c.id)}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
                   crossfaderCurve === c.id
-                    ? "bg-[#ea580c] text-white"
-                    : "text-zinc-400 hover:text-white"
+                    ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)] font-bold"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                 }`}
               >
                 {c.label}
@@ -208,7 +208,7 @@ export default function MusicStudioConsoleMixer({
               onClick={() => onSelectTrack && onSelectTrack(trk.id)}
               className={`w-40 flex-shrink-0 flex flex-col justify-between bg-[#181818] border rounded-xl p-2.5 transition-all shadow-md ${
                 isSelected
-                  ? "border-[#ea580c] ring-1 ring-[#ea580c]/50 bg-[#1c1c1c] shadow-lg shadow-[#ea580c]/10"
+                  ? "border-[#df9c43] ring-1 ring-[#df9c43]/50 bg-[#1c1c1c] shadow-lg shadow-[#df9c43]/10"
                   : "border-[#292929] hover:border-[#383838]"
               }`}
             >
@@ -278,7 +278,7 @@ export default function MusicStudioConsoleMixer({
                     step="1"
                     value={sends.send1}
                     onChange={(e) => handleSendChange(trk.id, "send1", parseFloat(e.target.value))}
-                    className="w-16 h-1 bg-[#262626] rounded appearance-none cursor-pointer accent-[#ea580c]"
+                    className="w-16 h-1 bg-[#262626] rounded appearance-none cursor-pointer accent-[#df9c43]"
                   />
                   <span className="font-mono text-zinc-300 text-[9px] w-8 text-right">
                     {sends.send1}dB
@@ -295,7 +295,7 @@ export default function MusicStudioConsoleMixer({
                     step="1"
                     value={sends.send2}
                     onChange={(e) => handleSendChange(trk.id, "send2", parseFloat(e.target.value))}
-                    className="w-16 h-1 bg-[#262626] rounded appearance-none cursor-pointer accent-[#ea580c]"
+                    className="w-16 h-1 bg-[#262626] rounded appearance-none cursor-pointer accent-[#df9c43]"
                   />
                   <span className="font-mono text-zinc-300 text-[9px] w-8 text-right">
                     {sends.send2}dB
@@ -320,7 +320,7 @@ export default function MusicStudioConsoleMixer({
                       onUpdateTrack &&
                       onUpdateTrack(trk.id, { pan: parseInt(e.target.value, 10) })
                     }
-                    className="w-full h-1 bg-[#282828] rounded appearance-none cursor-pointer accent-[#ea580c]"
+                    className="w-full h-1 bg-[#282828] rounded appearance-none cursor-pointer accent-[#df9c43]"
                   />
                 </div>
 
@@ -365,7 +365,7 @@ export default function MusicStudioConsoleMixer({
                       onUpdateTrack &&
                       onUpdateTrack(trk.id, { volume: parseInt(e.target.value, 10) })
                     }
-                    className="h-36 w-2 bg-[#202020] rounded appearance-none cursor-pointer accent-[#ea580c] -rotate-90 origin-center"
+                    className="h-36 w-2 bg-[#202020] rounded appearance-none cursor-pointer accent-[#df9c43] -rotate-90 origin-center"
                   />
                 </div>
 
@@ -495,12 +495,12 @@ export default function MusicStudioConsoleMixer({
         })}
 
         {/* ── 3. Master Bus Strip (Right Pinned Master Fader) ── */}
-        <div className="w-48 flex-shrink-0 flex flex-col justify-between bg-[#1c1815] border-2 border-[#ea580c] rounded-xl p-3 select-none shadow-2xl">
+        <div className="w-48 flex-shrink-0 flex flex-col justify-between bg-[#1c1815] border-2 border-[#df9c43] rounded-xl p-3 select-none shadow-2xl">
           {/* Header */}
           <div className="space-y-1.5 border-b border-[#3d2c20] pb-2">
-            <div className="h-2 w-full rounded-full bg-[#ea580c] shadow-sm" />
+            <div className="h-2 w-full rounded-full bg-[#df9c43] shadow-sm" />
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] text-[#ea580c] font-black">MST</span>
+              <span className="font-mono text-[10px] text-[#df9c43] font-black">MST</span>
               <span className="font-black text-xs text-white tracking-wider">MASTER BUS</span>
               <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono text-[8px] font-bold">
                 EBU OK
@@ -520,7 +520,7 @@ export default function MusicStudioConsoleMixer({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-zinc-400">Loudness R128 :</span>
-              <span className="text-[#ea580c] font-bold">{masterLufs.integrated} LUFS</span>
+              <span className="text-[#df9c43] font-bold">{masterLufs.integrated} LUFS</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-zinc-400">Short-Term :</span>
@@ -547,7 +547,7 @@ export default function MusicStudioConsoleMixer({
                 max="100"
                 defaultValue="85"
                 onChange={(e) => onMasterVolumeChange && onMasterVolumeChange(parseInt(e.target.value, 10))}
-                className="h-36 w-2.5 bg-[#2d221b] rounded appearance-none cursor-pointer accent-[#ea580c] -rotate-90 origin-center"
+                className="h-36 w-2.5 bg-[#2d221b] rounded appearance-none cursor-pointer accent-[#df9c43] -rotate-90 origin-center"
               />
             </div>
 
@@ -578,7 +578,7 @@ export default function MusicStudioConsoleMixer({
 
           {/* Master Footer */}
           <div className="space-y-1 pt-2 border-t border-[#3d2c20]">
-            <div className="bg-[#16100c] py-1 rounded text-center font-mono font-bold text-xs text-[#ea580c] border border-[#ea580c]/30 shadow-inner">
+            <div className="bg-[#16100c] py-1 rounded text-center font-mono font-bold text-xs text-[#df9c43] border border-[#df9c43]/30 shadow-inner">
               0.0 dBFS • STEREO
             </div>
             <div className="text-[9px] text-center text-zinc-400 font-mono">
@@ -621,7 +621,7 @@ export default function MusicStudioConsoleMixer({
               max="100"
               value={crossfaderPos}
               onChange={(e) => setCrossfaderPos(parseInt(e.target.value, 10))}
-              className="w-full h-3 bg-[#1e1e1e] rounded-lg appearance-none cursor-pointer accent-[#ea580c] border border-[#333333] shadow-inner"
+              className="w-full h-3 bg-[#1e1e1e] rounded-lg appearance-none cursor-pointer accent-[#df9c43] border border-[#333333] shadow-inner"
             />
           </div>
 

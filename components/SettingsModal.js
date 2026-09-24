@@ -361,7 +361,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
               </div>
               <button
                 onClick={handleSaveModeSettings}
-                className="px-4 py-2 bg-[#df9c43] text-black font-bold text-xs rounded-xl hover:bg-[#e8aa55] transition-colors shadow-glow whitespace-nowrap ml-4"
+                className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs rounded-xl transition-all shadow-[0_0_10px_rgba(223,156,67,0.3)] whitespace-nowrap ml-4"
               >
                 💾 Enregistrer Tout
               </button>
@@ -512,7 +512,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
                     onClick={() => setTypeFilter(f.id)}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                       typeFilter === f.id
-                        ? 'bg-[#df9c43] text-black shadow-sm'
+                        ? 'bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]'
                         : 'text-white/60 hover:text-white'
                     }`}
                   >
@@ -537,7 +537,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
                   });
                   setIsAddingProvider(true);
                 }}
-                className="px-4 py-2.5 bg-[#df9c43] text-black font-bold text-xs rounded-xl hover:bg-[#e8aa55] transition-colors flex items-center justify-center gap-1.5 shadow-glow whitespace-nowrap"
+                className="px-4 py-2.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(223,156,67,0.3)] whitespace-nowrap"
               >
                 <span>+</span>
                 <span>Nouveau Provider</span>
@@ -561,7 +561,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
                           {p.id}
                         </span>
                         <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                          p.type === 'comfyui' ? 'bg-purple-500/20 text-purple-300' :
+                          p.type === 'comfyui' ? 'bg-[#b87524]/20 text-[#eaaf5d]' :
                           p.type.includes('local') ? 'bg-green-500/20 text-green-300' :
                           'bg-blue-500/20 text-blue-300'
                         }`}>
@@ -704,7 +704,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
             </button>
             <button
               onClick={handleSaveModeSettings}
-              className="px-5 py-2 bg-[#df9c43] text-black font-bold text-xs rounded-xl hover:bg-[#e8aa55] transition-colors shadow-glow"
+              className="px-5 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs rounded-xl transition-all shadow-[0_0_10px_rgba(223,156,67,0.3)]"
             >
               Enregistrer & Appliquer
             </button>
@@ -849,7 +849,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
                       <button
                         type="button"
                         onClick={() => handleSaveProvider(target)}
-                        className="px-4 py-2 bg-[#df9c43] text-black font-bold text-xs rounded-xl hover:bg-[#e8aa55] transition-colors"
+                        className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold text-xs rounded-xl transition-all shadow-[0_0_10px_rgba(223,156,67,0.3)]"
                       >
                         Enregistrer Provider
                       </button>

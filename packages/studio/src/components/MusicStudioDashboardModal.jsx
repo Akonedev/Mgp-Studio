@@ -220,12 +220,12 @@ export default function MusicStudio({
         <div className="h-14 bg-[#141414] border-b border-[#2b2b2b] px-5 flex items-center justify-between flex-shrink-0">
           {/* Left: Music Studio Logo & Title */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 bg-[#ea580c]/15 px-2.5 py-1 rounded-lg border border-[#ea580c]/40">
+            <div className="flex items-center gap-1.5 bg-[#b87524]/15 px-2.5 py-1 rounded-lg border border-[#df9c43]/40">
               <div className="grid grid-cols-2 gap-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#df9c43]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#df9c43]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#df9c43]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#df9c43]" />
               </div>
               <span className="font-extrabold text-sm tracking-wider text-white">MUSIC STUDIO</span>
             </div>
@@ -238,8 +238,8 @@ export default function MusicStudio({
               onClick={() => setActiveTab("user")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide transition flex items-center gap-1.5 ${
                 activeTab === "user"
-                  ? "bg-[#ea580c] text-white shadow-sm"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                  : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
               <FolderOpen size={13} />
@@ -250,8 +250,8 @@ export default function MusicStudio({
               onClick={() => setActiveTab("settings")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide transition flex items-center gap-1.5 ${
                 activeTab === "settings"
-                  ? "bg-[#ea580c] text-white shadow-sm"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                  : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
               <Settings size={13} />
@@ -262,8 +262,8 @@ export default function MusicStudio({
               onClick={() => setActiveTab("packages")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide transition flex items-center gap-1.5 ${
                 activeTab === "packages"
-                  ? "bg-[#ea580c] text-white shadow-sm"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                  : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
               <Package size={13} />
@@ -274,8 +274,8 @@ export default function MusicStudio({
               onClick={() => setActiveTab("help")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide transition flex items-center gap-1.5 ${
                 activeTab === "help"
-                  ? "bg-[#ea580c] text-white shadow-sm"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                  : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
               <HelpCircle size={13} />
@@ -343,7 +343,7 @@ export default function MusicStudio({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Filtrer les projets..."
-                    className="w-full bg-[#121212] border border-[#2d2d2d] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#ea580c]"
+                    className="w-full bg-[#121212] border border-[#2d2d2d] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#df9c43]"
                   />
                 </div>
               </div>
@@ -359,18 +359,18 @@ export default function MusicStudio({
                   ).map((tpl) => (
                     <div
                       key={tpl.id}
-                      className="bg-[#1e1e1e] hover:bg-[#232323] border border-[#2d2d2d] hover:border-[#ea580c]/60 rounded-xl p-4 flex flex-col justify-between transition-all group shadow-sm"
+                      className="bg-[#1e1e1e] hover:bg-[#232323] border border-[#2d2d2d] hover:border-[#df9c43]/60 rounded-xl p-4 flex flex-col justify-between transition-all group shadow-sm"
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#141414] text-[#ea580c] font-bold border border-white/5">
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#141414] text-[#df9c43] font-bold border border-white/5">
                             {tpl.category}
                           </span>
                           <span className="text-[11px] font-mono text-zinc-400">
                             {tpl.bpm} BPM • {tpl.key}
                           </span>
                         </div>
-                        <h4 className="font-bold text-sm text-white group-hover:text-[#ea580c] transition">
+                        <h4 className="font-bold text-sm text-white group-hover:text-[#df9c43] transition">
                           {tpl.name}
                         </h4>
                         <p className="text-xs text-zinc-400 leading-relaxed">{tpl.desc}</p>
@@ -385,9 +385,9 @@ export default function MusicStudio({
                             if (onSelectTemplate) onSelectTemplate(tpl);
                             onClose();
                           }}
-                          className="px-3 py-1.5 bg-[#ea580c] hover:bg-[#f97316] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow"
+                          className="px-3 py-1.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                         >
-                          <Play size={12} fill="white" />
+                          <Play size={12} fill="#eaaf5d" />
                           <span>Ouvrir</span>
                         </button>
                       </div>
@@ -411,7 +411,7 @@ export default function MusicStudio({
                         </div>
                         <h4 className="font-bold text-sm text-white">{demo.name}</h4>
                         <p className="text-xs text-zinc-400 leading-relaxed">{demo.desc}</p>
-                        <div className="text-[11px] font-mono text-[#ea580c]">
+                        <div className="text-[11px] font-mono text-[#df9c43]">
                           {demo.bpm} BPM • Tonalité {demo.key}
                         </div>
                       </div>
@@ -421,9 +421,9 @@ export default function MusicStudio({
                           if (onOpenProject) onOpenProject(demo);
                           onClose();
                         }}
-                        className="w-full py-2 bg-[#2c2c2c] hover:bg-[#ea580c] text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition"
+                        className="w-full py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition shadow-[0_0_10px_rgba(223,156,67,0.25)]"
                       >
-                        <Play size={12} fill="white" />
+                        <Play size={12} fill="#eaaf5d" />
                         <span>Charger la démo</span>
                       </button>
                     </div>
@@ -436,7 +436,7 @@ export default function MusicStudio({
                 <div className="space-y-2">
                   <div className="bg-[#141414] border border-[#282828] rounded-xl p-3 flex items-center justify-between hover:bg-[#1c1c1c] transition">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#252525] flex items-center justify-center text-[#ea580c]">
+                      <div className="w-10 h-10 rounded-lg bg-[#252525] flex items-center justify-center text-[#df9c43]">
                         <Music size={18} />
                       </div>
                       <div>
@@ -446,7 +446,7 @@ export default function MusicStudio({
                     </div>
                     <button
                       onClick={onClose}
-                      className="px-3.5 py-1.5 bg-[#ea580c] text-white text-xs font-bold rounded-lg hover:bg-[#f97316] transition"
+                      className="px-3.5 py-1.5 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-xs font-bold rounded-lg transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     >
                       Continuer
                     </button>
@@ -465,7 +465,7 @@ export default function MusicStudio({
               <div className="space-y-5">
                 <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-4 space-y-4">
                   <div className="flex items-center gap-2 border-b border-[#2b2b2b] pb-2 text-white font-bold text-sm">
-                    <Volume2 size={16} className="text-[#ea580c]" />
+                    <Volume2 size={16} className="text-[#df9c43]" />
                     <span>0.2.2.2. Réglages Audio</span>
                   </div>
 
@@ -506,7 +506,7 @@ export default function MusicStudio({
 
                 <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-4 space-y-4">
                   <div className="flex items-center gap-2 border-b border-[#2b2b2b] pb-2 text-white font-bold text-sm">
-                    <Sliders size={16} className="text-[#ea580c]" />
+                    <Sliders size={16} className="text-[#df9c43]" />
                     <span>0.2.2.1. Réglages de Comportement</span>
                   </div>
 
@@ -546,7 +546,7 @@ export default function MusicStudio({
               <div className="space-y-5">
                 <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-4 space-y-4">
                   <div className="flex items-center gap-2 border-b border-[#2b2b2b] pb-2 text-white font-bold text-sm">
-                    <Radio size={16} className="text-[#ea580c]" />
+                    <Radio size={16} className="text-[#df9c43]" />
                     <span>0.2.2.3. Réglages des Contrôleurs</span>
                   </div>
 
@@ -573,7 +573,7 @@ export default function MusicStudio({
                 <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-4 space-y-4">
                   <div className="flex items-center justify-between border-b border-[#2b2b2b] pb-2">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <Keyboard size={16} className="text-[#ea580c]" />
+                      <Keyboard size={16} className="text-[#df9c43]" />
                       <span>0.2.2.5. Raccourcis Clavier</span>
                     </div>
                     <input
@@ -594,7 +594,7 @@ export default function MusicStudio({
                     ).map((sc, i) => (
                       <div key={i} className="flex items-center justify-between bg-[#141414] px-2.5 py-1 rounded">
                         <span className="text-zinc-300 font-sans truncate mr-2">{sc.action}</span>
-                        <span className="bg-[#242424] px-1.5 py-0.5 rounded text-[#ea580c] whitespace-nowrap">
+                        <span className="bg-[#242424] px-1.5 py-0.5 rounded text-[#df9c43] whitespace-nowrap">
                           {sc.key}
                         </span>
                       </div>
@@ -612,7 +612,7 @@ export default function MusicStudio({
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl border border-[#2a2a2a]">
                 <div className="flex items-center gap-2">
-                  <Package size={16} className="text-[#ea580c]" />
+                  <Package size={16} className="text-[#df9c43]" />
                   <span className="font-bold text-xs text-white">Gestionnaire de Packages Music Studio</span>
                 </div>
                 <span className="text-xs text-emerald-400 font-mono">5 Packages installés • 4.9 Go</span>
@@ -626,7 +626,7 @@ export default function MusicStudio({
                   >
                     <div>
                       <div className="flex items-center justify-between text-[11px] font-mono mb-1">
-                        <span className="text-[#ea580c] font-bold">{pkg.category}</span>
+                        <span className="text-[#df9c43] font-bold">{pkg.category}</span>
                         <span className="text-zinc-400">{pkg.size}</span>
                       </div>
                       <h4 className="font-bold text-sm text-white">{pkg.title}</h4>
@@ -652,7 +652,7 @@ export default function MusicStudio({
           {activeTab === "help" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-5 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#ea580c]/15 text-[#ea580c] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-[#b87524]/15 text-[#df9c43] flex items-center justify-center">
                   <BookOpen size={20} />
                 </div>
                 <h4 className="font-bold text-base text-white">Guide de l'utilisateur de Music Studio</h4>

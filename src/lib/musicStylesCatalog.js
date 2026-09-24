@@ -453,7 +453,7 @@ Weekend away, lapho uthando lukhona.
     originUrl: "https://youtu.be/16lOqq4jipw",
     referenceArtists: "Burna Boy, Rema, Ayra Starr, Davido, Asake, Wizkid",
     badge: "Top Naija 2026",
-    color: "from-orange-500 to-amber-700",
+    color: "from-[#b87524] to-amber-800",
     coverUrl: "/assets/cinema/studio_digital_s35.webp",
     description: "Le son Afrobeats moderne numéro 1 des charts mondiaux. Groove percussif irrésistible avec talking drum (gangan), rimshots syncopés, cocottes de guitare highlife scintillantes, basse 808 mélodique rebondissante et refrains ultra-accrocheurs en pidgin anglais et yoruba.",
     defaultBpm: 104,

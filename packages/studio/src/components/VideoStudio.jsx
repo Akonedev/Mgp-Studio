@@ -119,9 +119,9 @@ function ModelDropdown({ imageMode, selectedModel, onSelect, onClose, dynamicMod
       );
 
   const getIconColor = (m, isV2V) => {
-    if (isV2V) return "bg-orange-500/10 text-orange-400";
+    if (isV2V) return "bg-[#b87524]/15 text-[#df9c43]";
     if (m.id.includes("kling")) return "bg-blue-500/10 text-blue-400";
-    if (m.id.includes("veo")) return "bg-purple-500/10 text-purple-400";
+    if (m.id.includes("veo")) return "bg-[#b87524]/15 text-[#df9c43]";
     if (m.id.includes("sora")) return "bg-[#df9c43]/10 text-[#df9c43]";
     return "bg-primary/10 text-primary";
   };
@@ -152,7 +152,7 @@ function ModelDropdown({ imageMode, selectedModel, onSelect, onClose, dynamicMod
             </span>
           )}
           {isV2V && (
-            <span className="text-[9px] text-orange-400/70">
+            <span className="text-[9px] text-[#df9c43]/70">
               Upload a video to use
             </span>
           )}
@@ -195,7 +195,7 @@ function ModelDropdown({ imageMode, selectedModel, onSelect, onClose, dynamicMod
         {filteredMain.map((m) => renderItem(m, false))}
         {filteredV2V.length > 0 && (
           <>
-            <div className="text-xs font-bold text-orange-400/70 px-3 py-2 mt-1 border-t border-white/5">
+            <div className="text-xs font-bold text-[#df9c43]/70 px-3 py-2 mt-1 border-t border-white/5">
               Video Tools
             </div>
             {filteredV2V.map((m) => renderItem(m, true))}
@@ -1279,7 +1279,7 @@ export default function VideoStudio({
                         e.stopPropagation();
                         handleRegenerateItem(entry);
                       }}
-                      className="p-2 bg-black/60 backdrop-blur-md rounded-full text-[#df9c43] hover:bg-[#df9c43] hover:text-black transition-all border border-[#df9c43]/30"
+                      className="p-2 bg-[#241808] hover:bg-[#2d1e0d] backdrop-blur-md rounded-full text-[#eaaf5d] hover:text-[#f5c277] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.25)] transition-all"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -1617,8 +1617,8 @@ export default function VideoStudio({
                   onClick={toggleDropdown("model")}
                   className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] rounded-md transition-all border border-white/[0.03] group whitespace-nowrap"
                 >
-                  <div className="w-4 h-4 bg-[#df9c43] rounded flex items-center justify-center shadow-lg shadow-[#df9c43]/10">
-                    <span className="text-[9px] font-bold text-black uppercase">
+                  <div className="w-4 h-4 bg-[#241808] border border-[#df9c43] rounded flex items-center justify-center shadow-[0_0_6px_rgba(223,156,67,0.3)]">
+                    <span className="text-[9px] font-bold text-[#eaaf5d] uppercase">
                       V
                     </span>
                   </div>
@@ -1833,11 +1833,11 @@ export default function VideoStudio({
               type="button"
               onClick={handleGenerate}
               disabled={generating}
-              className="bg-[#df9c43] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e8aa55] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#df9c43]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] px-4 py-2 rounded-md font-bold text-sm shadow-[0_0_12px_rgba(223,156,67,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? (
                 <>
-                  <span className="animate-spin inline-block text-black">
+                  <span className="animate-spin inline-block text-[#eaaf5d]">
                     ◌
                   </span>{" "}
                   Generating...

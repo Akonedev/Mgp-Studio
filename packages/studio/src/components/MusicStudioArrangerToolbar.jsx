@@ -113,10 +113,10 @@ export default function MusicStudio({
               if (onSetMainView) onSetMainView("arrange");
               if (setStatusHint) setStatusHint("Vue Arrangeur active");
             }}
-            className={`px-2 py-0.5 rounded text-[10.5px] font-bold transition flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition flex items-center gap-1.5 ${
               mainView === "arrange"
-                ? "bg-[#ea580c] text-white shadow-sm"
-                : "text-zinc-400 hover:text-white hover:bg-white/5"
+                ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
             }`}
             title="Afficher l'Arrangeur linéaire temporel (Tab)"
           >
@@ -130,10 +130,10 @@ export default function MusicStudio({
               if (onSetMainView) onSetMainView("clips");
               if (setStatusHint) setStatusHint("Vue Lanceur de clips active");
             }}
-            className={`px-2 py-0.5 rounded text-[10.5px] font-bold transition flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition flex items-center gap-1.5 ${
               mainView === "clips"
-                ? "bg-[#ea580c] text-white shadow-sm"
-                : "text-zinc-400 hover:text-white hover:bg-white/5"
+                ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
             }`}
             title="Afficher la matrice Lanceur de clips non-linéaire (Tab)"
           >
@@ -162,16 +162,16 @@ export default function MusicStudio({
                     if (onSelectTool) onSelectTool(t.id);
                     if (setStatusHint) setStatusHint(`Outil ${t.label} [${t.num}] actif : ${t.desc}`);
                   }}
-                  className={`h-6 px-2 rounded flex items-center gap-1.5 transition text-[11px] ${
+                  className={`h-6 px-2 rounded-md flex items-center gap-1.5 transition text-[11px] ${
                     isActive
-                      ? "bg-[#ea580c] text-white font-bold shadow-md ring-1 ring-[#ea580c]/60"
-                      : "text-zinc-400 hover:text-white hover:bg-white/5"
+                      ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] font-bold shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                      : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                   }`}
                   title={`${t.label} [${t.num}] - ${t.desc}`}
                 >
-                  <IconComp size={12} className={isActive ? "text-white" : "text-zinc-400"} />
+                  <IconComp size={12} className={isActive ? "text-[#df9c43]" : "text-zinc-400"} />
                   <span className="text-[10px] tracking-tight">{t.label}</span>
-                  <span className={`text-[8.5px] font-mono px-1 rounded ${isActive ? "bg-black/30 text-amber-200" : "bg-zinc-800 text-zinc-400"}`}>
+                  <span className={`text-[8.5px] font-mono px-1 rounded ${isActive ? "bg-black/40 text-amber-300 border border-white/5" : "bg-zinc-800 text-zinc-400"}`}>
                     {t.num}
                   </span>
                 </button>
@@ -202,7 +202,7 @@ export default function MusicStudio({
       {/* ── Center: Active Tool Feedback & Magnetic Snap Grid ── */}
       <div className="hidden lg:flex items-center gap-3">
         <div className="text-[10px] text-zinc-400 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#df9c43] animate-pulse" />
           <span className="font-semibold text-zinc-200">{currentToolObj.label} [{currentToolObj.num}]</span>
           <span className="text-zinc-500">• {currentToolObj.desc}</span>
         </div>
@@ -221,7 +221,7 @@ export default function MusicStudio({
               if (onSelectSnap) onSelectSnap(e.target.value);
               if (setStatusHint) setStatusHint(`Magnétisme calé sur : ${e.target.value}`);
             }}
-            className="bg-[#121212] border border-[#2d2d2d] text-zinc-200 text-[10px] font-mono rounded px-1.5 py-0.5 focus:outline-none focus:border-[#ea580c]"
+            className="bg-[#121212] border border-[#2d2d2d] text-zinc-200 text-[10px] font-mono rounded px-1.5 py-0.5 focus:outline-none focus:border-[#df9c43]"
           >
             <option value="adaptatif">Adaptatif</option>
             <option value="1/1">1/1 (Mesure)</option>
@@ -245,7 +245,7 @@ export default function MusicStudio({
               if (setStatusHint) setStatusHint(!showTrackIO ? "Entrées/Sorties affichées" : "Entrées/Sorties masquées");
             }}
             className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-mono transition ${
-              showTrackIO ? "bg-[#ea580c] text-white" : "text-zinc-400 hover:text-white"
+              showTrackIO ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "text-zinc-400 hover:text-white"
             }`}
             title="Afficher/masquer la section Entrées/Sorties des pistes (p. 84)"
           >
@@ -260,7 +260,7 @@ export default function MusicStudio({
               if (setStatusHint) setStatusHint(trackHeightMode === "normal" ? "Hauteur de piste : Demi-hauteur (Compact)" : "Hauteur de piste : Normale");
             }}
             className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition flex items-center gap-0.5 ${
-              trackHeightMode === "compact" ? "bg-[#ea580c] text-white" : "text-zinc-400 hover:text-white"
+              trackHeightMode === "compact" ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "text-zinc-400 hover:text-white"
             }`}
             title="Basculer entre hauteur normale (64px) et demi-hauteur (38px) (p. 84)"
           >

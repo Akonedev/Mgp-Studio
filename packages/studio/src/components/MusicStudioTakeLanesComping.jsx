@@ -99,7 +99,7 @@ export default function MusicStudio({
       {/* Takes Header Summary Bar */}
       <div className="h-6 px-3 bg-[#131313] flex items-center justify-between text-[9px] font-mono text-zinc-400 border-b border-[#222222]">
         <div className="flex items-center gap-2">
-          <Layers size={11} className="text-[#ea580c]" />
+          <Layers size={11} className="text-[#df9c43]" />
           <span className="font-bold uppercase tracking-wider text-zinc-300">
             Lignes de Prises (Comping Audio • Section 10.1.4)
           </span>
@@ -111,7 +111,7 @@ export default function MusicStudio({
             if (onAddTake) onAddTake(track.id);
             if (setStatusHint) setStatusHint("Nouvelle ligne de prise ajoutée à l'assemblage");
           }}
-          className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-800 hover:bg-[#ea580c] hover:text-white text-zinc-300 text-[9px] font-bold transition"
+          className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-800 hover:bg-[#241808] border border-transparent hover:border-[#df9c43] text-zinc-300 hover:text-[#eaaf5d] text-[9px] font-bold transition"
           title="Ajouter une nouvelle prise d'enregistrement (+)"
         >
           <Plus size={10} />

@@ -235,7 +235,7 @@ export function CinemaStudio() {
 
     // Generate Button
     const generateBtn = document.createElement('button');
-    generateBtn.className = 'h-[56px] px-8 bg-[#df9c43] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.className = 'h-[56px] px-8 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] rounded-xl font-black text-xs uppercase transition-all shadow-[0_0_12px_rgba(223,156,67,0.3)] disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
@@ -396,7 +396,7 @@ export function CinemaStudio() {
     const createActionBtn = (label, primary = false) => {
         const btn = document.createElement('button');
         btn.className = primary
-            ? 'bg-[#df9c43] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
+            ? 'bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide transition-all shadow-[0_0_10px_rgba(223,156,67,0.3)] hover:scale-105 active:scale-95'
             : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
         btn.textContent = label;
         return btn;

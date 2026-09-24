@@ -11,7 +11,7 @@ export const GENRE_CATEGORIES = [
   { id: "hiphop", label: "Hip-Hop & Urban", icon: "Disc", color: "from-amber-500/20 to-amber-800/20", borderColor: "border-amber-500/30" },
   { id: "african", label: "African & Afro-Roots", icon: "Sparkles", color: "from-emerald-500/20 to-teal-500/20", borderColor: "border-emerald-500/30" },
   { id: "latin", label: "Latin & Caribbean", icon: "Music", color: "from-amber-600/20 to-amber-800/20", borderColor: "border-amber-500/30" },
-  { id: "jazz", label: "Jazz, Soul & Blues", icon: "Sliders", color: "from-purple-500/20 to-indigo-500/20", borderColor: "border-purple-500/30" },
+  { id: "jazz", label: "Jazz, Soul & Blues", icon: "Sliders", color: "from-[#b87524]/20 to-[#8c5314]/20", borderColor: "border-[#df9c43]/30" },
   { id: "rock", label: "Rock & Alternative", icon: "Wrench", color: "from-red-500/20 to-amber-500/20", borderColor: "border-red-500/30" },
   { id: "pop", label: "Pop & Global Trends", icon: "Radio", color: "from-[#df9c43]/20 to-amber-600/20", borderColor: "border-[#df9c43]/30" },
   { id: "world", label: "Traditional & Classical", icon: "Library", color: "from-teal-500/20 to-cyan-500/20", borderColor: "border-teal-500/30" },

@@ -77,7 +77,8 @@ import {
   Cpu,
   LayoutGrid,
   List,
-  Globe
+  Globe,
+  Mic
 } from "lucide-react";
 import { VideoStudioModal } from "./VideoStudioModal";
 import { DemucsModal } from "./DemucsModal";
@@ -674,7 +675,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [isShuffle, setIsShuffle] = useState(false);
-  const [repeatMode, setRepeatMode] = useState("all"); // 'all' | 'one' | 'none'
+  const [repeatMode, setRepeatMode] = useState("none"); // 'none' | 'all' | 'one' - Default: stop automatically at end
   const [activeLyricsTab, setActiveLyricsTab] = useState("synced"); // 'synced' | 'plain' | 'params'
 
   // Stems Player State (in Right Sidebar)
@@ -1135,8 +1136,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
         grand_piano: "#06b6d4",
         synth_lead: "#df9c43",
         sub_808: "#c98837",
-        brass: "#f97316",
-        strings: "#a855f7"
+        brass: "#b87524",
+        strings: "#965b16"
       };
 
       const res = await axios.post("/api/music", {
@@ -1181,14 +1182,29 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
     const audio = audioRef.current;
     if (!audio) return;
 
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      // Auto-stop fallback if the browser reaches end of buffer
+      if (repeatMode === "none" && audio.duration > 0 && audio.currentTime >= audio.duration) {
+        audio.pause();
+        audio.currentTime = 0;
+        setCurrentTime(0);
+        setIsPlaying(false);
+      }
+    };
     const onLoadedMetadata = () => setSongDuration(audio.duration || 0);
     const onEnded = () => {
       if (repeatMode === "one") {
         audio.currentTime = 0;
         audio.play().catch(() => {});
-      } else {
+      } else if (repeatMode === "all") {
         handlePlayNext();
+      } else {
+        // Mode "none" : Arrêt automatique à la fin du morceau
+        audio.pause();
+        audio.currentTime = 0;
+        setCurrentTime(0);
+        setIsPlaying(false);
       }
     };
 
@@ -1767,7 +1783,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
       <header className="min-h-[3rem] h-12 bg-zinc-950/80 border-b border-white/10 px-2.5 sm:px-4 flex items-center justify-between gap-2 flex-shrink-0 z-30 backdrop-blur-md">
         {/* Left: Brand / Title + Cluster Status */}
         <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#df9c43] via-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-[#df9c43]/20 flex-shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#df9c43] via-[#b87524] to-[#8c5314] flex items-center justify-center shadow-md shadow-[#df9c43]/20 flex-shrink-0">
             <Music size={14} className="text-white" />
           </div>
           <div className="min-w-0">
@@ -1831,7 +1847,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
           {onSendToMontage && selectedTrack && (
             <button
               onClick={() => onSendToMontage(selectedTrack)}
-              className="px-2 sm:px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-colors shadow-sm whitespace-nowrap"
+              className="px-2 sm:px-2.5 py-1 rounded-lg bg-[#b87524]/20 hover:bg-[#b87524]/35 text-[#eaaf5d] border border-[#df9c43]/40 text-xs font-medium flex items-center gap-1 sm:gap-1.5 transition-colors shadow-sm whitespace-nowrap"
               title="Envoyer la musique directement sur la timeline du Studio Video"
             >
               <Film size={12} />
@@ -1895,7 +1911,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                 </div>
 
                 {/* ── Active ComfyUI Workflow Indicator & Graph Inspect Button ── */}
-                <div className="flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r from-[#241808]/40 via-zinc-900/60 to-purple-950/20 border border-[#df9c43]/20 rounded-xl text-[11px] shadow-sm">
+                <div className="flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r from-[#241808]/40 via-zinc-900/60 to-[#241808]/40 border border-[#df9c43]/20 rounded-xl text-[11px] shadow-sm">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
                     <div className="truncate">
@@ -1985,10 +2001,10 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             }
                           }}
                           disabled={isEnrichingPrompt}
-                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-purple-400 transition-colors disabled:opacity-50"
+                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-[#df9c43] transition-colors disabled:opacity-50"
                           title="Enrichir avec l'IA (Créer paroles, style, BPM et tonalité)"
                         >
-                          {isEnrichingPrompt ? <Loader2 size={14} className="animate-spin text-purple-400" /> : <Sparkles size={14} />}
+                          {isEnrichingPrompt ? <Loader2 size={14} className="animate-spin text-[#df9c43]" /> : <Sparkles size={14} />}
                         </button>
                       </div>
                     </div>
@@ -2024,38 +2040,43 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">INSTRUMENTAL</span>
                     <button
                       onClick={() => setInstrumental(!instrumental)}
-                      className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${
-                        instrumental ? "bg-[#df9c43]" : "bg-zinc-800"
+                      className={`w-11 h-6 rounded-full transition-all relative p-0.5 border ${
+                        instrumental ? "bg-[#241808] border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.35)]" : "bg-[#181818] border-zinc-700"
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                          instrumental ? "translate-x-5" : "translate-x-0"
+                        className={`w-4 h-4 rounded-full transition-all ${
+                          instrumental ? "translate-x-5 bg-[#df9c43] shadow-[0_0_6px_#df9c43]" : "translate-x-0.5 bg-zinc-500"
                         }`}
                       />
                     </button>
                   </div>
 
-                  {/* Vocal Language & Vocal Gender */}
+                  {/* Vocal Language & Vocal Gender Cards (Aligned, Equal Height, Homogeneous) */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
+                    {/* Card 1: Language */}
+                    <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
                       <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">VOCAL LANGUAGE</label>
+                        <div className="flex items-center gap-1.5">
+                          <Globe size={13} className="text-[#df9c43]" />
+                          <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                            LANGUE DU CHANT
+                          </label>
+                        </div>
                         <button
                           type="button"
                           onClick={() => setIsLanguagePickerOpen(true)}
-                          className="text-[10px] text-[#df9c43] hover:text-[#eaaf5d] font-semibold flex items-center gap-1 transition-colors"
+                          className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#241808] text-[#eaaf5d] border border-[#df9c43]/50 hover:bg-[#2e1f0b] transition flex items-center gap-1 shadow-sm"
                           title="Parcourir la totalité des 55 langues et créoles"
                         >
-                          <Globe size={11} />
-                          55 Langues
+                          <span>55 Langues</span>
                         </button>
                       </div>
 
                       <select
                         value={vocalLanguage}
                         onChange={(e) => setVocalLanguage(e.target.value)}
-                        className="w-full bg-zinc-900 text-xs text-zinc-200 border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-[#df9c43] cursor-pointer"
+                        className="w-full bg-[#202020] text-xs text-zinc-100 border border-[#333333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#df9c43] cursor-pointer"
                       >
                         <optgroup label="── Populaires & Monde (12) ──">
                           {VOCAL_LANGUAGES.filter(l => l.group === 'popular').map((l) => (
@@ -2084,8 +2105,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         </optgroup>
                       </select>
 
-                      {/* Quick language switch pills */}
-                      <div className="flex flex-wrap gap-1 pt-1">
+                      {/* Quick language switch pills (Clean single row with horizontal scroll) */}
+                      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
                         {[
                           { code: "fr", label: "FR" },
                           { code: "en", label: "EN" },
@@ -2102,10 +2123,10 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                               key={p.code}
                               type="button"
                               onClick={() => setVocalLanguage(p.code)}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap flex-shrink-0 transition-all ${
                                 isCur
-                                  ? "bg-[#df9c43]/40 text-[#eaaf5d] border border-[#df9c43]/50"
-                                  : "bg-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/10"
+                                  ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                                  : "bg-[#202020] text-zinc-400 hover:text-zinc-200 hover:bg-[#2a2a2a] border border-[#303030]"
                               }`}
                             >
                               {p.label}
@@ -2115,21 +2136,48 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       </div>
                     </div>
 
+                    {/* Card 2: Gender (Same height h-[132px], perfectly balanced) */}
+                    <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Mic size={13} className="text-[#df9c43]" />
+                          <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                            GENRE VOCAL
+                          </label>
+                        </div>
+                        <span className="text-[10px] font-mono text-zinc-400 font-semibold px-2 py-0.5 bg-[#202020] border border-[#2f2f2f] rounded">
+                          {vocalGender === "male" ? "♂ Masculin" : vocalGender === "female" ? "♀ Féminin" : "Auto / Duo"}
+                        </span>
+                      </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">VOCAL GENDER</label>
-                      <div className="grid grid-cols-2 gap-1 bg-zinc-900 p-1 rounded-lg border border-white/10">
-                        {["male", "female"].map((g) => (
+                      {/* Segmented Selector with Image 0 Style */}
+                      <div className="grid grid-cols-2 gap-1.5 bg-[#202020] p-1 rounded-lg border border-[#303030]">
+                        {[
+                          { id: "male", label: "♂ Masculin" },
+                          { id: "female", label: "♀ Féminin" }
+                        ].map((g) => (
                           <button
-                            key={g}
-                            onClick={() => setVocalGender(g)}
-                            className={`py-1 text-xs rounded capitalize transition-all ${
-                              vocalGender === g ? "bg-zinc-800 text-[#df9c43] font-bold" : "text-zinc-400 hover:text-white"
+                            key={g.id}
+                            type="button"
+                            onClick={() => setVocalGender(g.id)}
+                            className={`py-1.5 text-xs rounded-md font-bold transition-all flex items-center justify-center gap-1 ${
+                              vocalGender === g.id
+                                ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                                : "text-zinc-400 hover:text-white hover:bg-[#282828] border border-transparent"
                             }`}
                           >
-                            {g}
+                            <span>{g.label}</span>
                           </button>
                         ))}
+                      </div>
+
+                      {/* Subtle status indication to balance with language quick chips */}
+                      <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Sparkles size={10} className="text-[#df9c43]" />
+                          Synthèse vocale réaliste 48kHz
+                        </span>
+                        <span className="font-mono text-[9px] text-[#df9c43]">ACE-Step v1.5</span>
                       </div>
                     </div>
                   </div>
@@ -2330,7 +2378,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       <div className="p-2 space-y-2">
                         <div className="flex items-center justify-between bg-white/[0.02] p-2 rounded-lg">
                           <div className="flex items-center gap-2 truncate">
-                            <Layers size={16} className="text-purple-400 flex-shrink-0" />
+                            <Layers size={16} className="text-[#df9c43] flex-shrink-0" />
                             <span className="text-xs text-zinc-200 truncate">{sourceAudioTitle || "Cover Source Audio"}</span>
                           </div>
                           <button
@@ -2396,7 +2444,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                   step="0.05"
                                   value={repaintStrength}
                                   onChange={(e) => setRepaintStrength(Number(e.target.value))}
-                                  className="flex-1 h-1 accent-purple-500 cursor-pointer bg-zinc-800 rounded"
+                                  className="flex-1 h-1 accent-[#df9c43] cursor-pointer bg-zinc-800 rounded"
                                 />
                                 <span className="text-[10px] text-zinc-400 tabular-nums w-8 text-right">
                                   {Math.round(repaintStrength * 100)}%
@@ -2462,10 +2510,14 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         <button
                           type="button"
                           onClick={() => setInstrumental(!instrumental)}
-                          className={`relative w-8 h-4 rounded-full transition-colors ${!instrumental ? "bg-[#df9c43]" : "bg-zinc-700"}`}
+                          className={`relative w-8 h-4 rounded-full transition-all border ${
+                            !instrumental ? "bg-[#241808] border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.35)]" : "bg-[#181818] border-zinc-700"
+                          }`}
                           title={instrumental ? "Instrumental" : "Vocal"}
                         >
-                          <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${!instrumental ? "left-[17px]" : "left-0.5"}`} />
+                          <span className={`absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all ${
+                            !instrumental ? "left-[17px] bg-[#df9c43] shadow-[0_0_6px_#df9c43]" : "left-0.5 bg-zinc-500"
+                          }`} />
                         </button>
                       </div>
                       <div className="flex items-center gap-1">
@@ -2497,7 +2549,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             ];
                             setLyrics(sampleLyrics[Math.floor(Math.random() * sampleLyrics.length)]);
                           }}
-                          className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-purple-400"
+                          className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-[#df9c43]"
                           title="Random Lyrics"
                         >
                           <Dices size={13} />
@@ -2534,7 +2586,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             key={chord}
                             type="button"
                             onClick={() => setLyrics(prev => prev ? `${prev} ${chord}` : chord)}
-                            className="px-1.5 py-0.5 rounded bg-zinc-800/50 hover:bg-purple-600/30 hover:border-purple-500/50 border border-white/5 text-[9px] font-mono text-purple-300 transition-colors"
+                            className="px-1.5 py-0.5 rounded bg-zinc-800/50 hover:bg-[#b87524]/30 hover:border-[#df9c43]/50 border border-white/5 text-[9px] font-mono text-[#eaaf5d] transition-colors"
                           >
                             {chord}
                           </button>
@@ -2559,26 +2611,29 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   {/* Vocal Language & Gender */}
                   {!instrumental && (
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between px-0.5">
-                          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">
-                            VOCAL LANGUAGE
-                          </label>
+                      {/* Card 1: Language */}
+                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Globe size={13} className="text-[#df9c43]" />
+                            <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                              LANGUE DU CHANT
+                            </label>
+                          </div>
                           <button
                             type="button"
                             onClick={() => setIsLanguagePickerOpen(true)}
-                            className="text-[10px] text-[#df9c43] hover:text-[#eaaf5d] font-semibold flex items-center gap-1 transition-colors"
+                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#241808] text-[#eaaf5d] border border-[#df9c43]/50 hover:bg-[#2e1f0b] transition flex items-center gap-1 shadow-sm"
                             title="Parcourir la totalité des 55 langues et créoles"
                           >
-                            <Globe size={11} />
-                            55 Langues
+                            <span>55 Langues</span>
                           </button>
                         </div>
 
                         <select
                           value={vocalLanguage}
                           onChange={(e) => setVocalLanguage(e.target.value)}
-                          className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-[#df9c43] cursor-pointer"
+                          className="w-full bg-[#202020] text-xs text-zinc-100 border border-[#333333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#df9c43] cursor-pointer"
                         >
                           <optgroup label="── Populaires & Monde (12) ──">
                             {VOCAL_LANGUAGES.filter(l => l.group === 'popular').map((l) => (
@@ -2607,8 +2662,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                           </optgroup>
                         </select>
 
-                        {/* Quick language switch pills */}
-                        <div className="flex flex-wrap gap-1 pt-1">
+                        {/* Quick language switch pills (Clean single row with horizontal scroll) */}
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
                           {[
                             { code: "fr", label: "FR" },
                             { code: "en", label: "EN" },
@@ -2625,10 +2680,10 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                 key={p.code}
                                 type="button"
                                 onClick={() => setVocalLanguage(p.code)}
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap flex-shrink-0 transition-all ${
                                   isCur
-                                    ? "bg-[#df9c43]/40 text-[#eaaf5d] border border-[#df9c43]/50"
-                                    : "bg-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/10"
+                                    ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                                    : "bg-[#202020] text-zinc-400 hover:text-zinc-200 hover:bg-[#2a2a2a] border border-[#303030]"
                                 }`}
                               >
                                 {p.label}
@@ -2638,19 +2693,49 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         </div>
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide px-0.5">
-                          VOCAL GENDER
-                        </label>
-                        <select
-                          value={vocalGender}
-                          onChange={(e) => setVocalGender(e.target.value)}
-                          className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-[#df9c43] cursor-pointer"
-                        >
-                          <option value="auto">Auto</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                        </select>
+                      {/* Card 2: Gender (Same height h-[132px], perfectly balanced) */}
+                      <div className="bg-[#161616] border border-[#282828] rounded-xl p-3 flex flex-col justify-between h-[132px] shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Mic size={13} className="text-[#df9c43]" />
+                            <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                              GENRE VOCAL
+                            </label>
+                          </div>
+                          <span className="text-[10px] font-mono text-zinc-400 font-semibold px-2 py-0.5 bg-[#202020] border border-[#2f2f2f] rounded">
+                            {vocalGender === "male" ? "♂ Masculin" : vocalGender === "female" ? "♀ Féminin" : "Auto / Duo"}
+                          </span>
+                        </div>
+
+                        {/* Segmented Selector with Image 0 Style */}
+                        <div className="grid grid-cols-2 gap-1.5 bg-[#202020] p-1 rounded-lg border border-[#303030]">
+                          {[
+                            { id: "male", label: "♂ Masculin" },
+                            { id: "female", label: "♀ Féminin" }
+                          ].map((g) => (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => setVocalGender(g.id)}
+                              className={`py-1.5 text-xs rounded-md font-bold transition-all flex items-center justify-center gap-1 ${
+                                vocalGender === g.id
+                                  ? "bg-[#241808] text-[#eaaf5d] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                                  : "text-zinc-400 hover:text-white hover:bg-[#282828] border border-transparent"
+                              }`}
+                            >
+                              <span>{g.label}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Subtle status indication to balance with language quick chips */}
+                        <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Sparkles size={10} className="text-[#df9c43]" />
+                            Synthèse vocale réaliste 48kHz
+                          </span>
+                          <span className="font-mono text-[9px] text-[#df9c43]">ACE-Step v1.5</span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -2685,7 +2770,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                           onClick={() => setIsFormatCaption(!isFormatCaption)}
                           className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
                             isFormatCaption
-                              ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                              ? "bg-[#b87524]/20 text-[#eaaf5d] border border-[#df9c43]/40"
                               : "text-zinc-500 hover:text-zinc-300"
                           }`}
                         >
@@ -2713,7 +2798,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         <button
                           type="button"
                           onClick={handleRandomStyleTag}
-                          className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-purple-400 transition-colors"
+                          className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-[#df9c43] transition-colors"
                           title="Style aléatoire et renouvellement des tags"
                         >
                           <Dices size={13} />
@@ -2907,7 +2992,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             onClick={() => setBulkCount(count)}
                             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                               bulkCount === count
-                                ? "bg-gradient-to-r from-orange-500 to-[#c98837] text-white shadow-md"
+                                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
                                 : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
                             }`}
                           >
@@ -3206,11 +3291,11 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         type="button"
                         onClick={handleApplyLmSettings}
                         disabled={isApplyingLmSettings}
-                        className="w-full py-2 rounded-lg text-xs font-medium bg-purple-600/80 hover:bg-purple-600 disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                        className="w-full py-2 rounded-lg text-xs font-bold bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5 shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                       >
                         {isApplyingLmSettings ? (
                           <>
-                            <RefreshCw size={13} className="animate-spin text-white" />
+                            <RefreshCw size={13} className="animate-spin text-[#eaaf5d]" />
                             <span>Vérification pipeline Spark...</span>
                           </>
                         ) : (
@@ -3811,7 +3896,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     <span>{studioTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
                   </button>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#df9c43] to-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
+                    <div className="w-5 h-5 rounded-full bg-[#241808] border border-[#df9c43] flex items-center justify-center text-[#eaaf5d] text-[10px] font-bold shadow-[0_0_6px_rgba(223,156,67,0.3)]">
                       L
                     </div>
                     <span className="text-xs text-zinc-300 font-medium">laye</span>
@@ -3831,10 +3916,10 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   <button
                     onClick={handleGenerate}
                     disabled={isGenerating}
-                    className={`w-full py-3.5 rounded-xl font-bold text-sm text-white shadow-xl flex items-center justify-center gap-2 transition-all ${
+                    className={`w-full py-3.5 rounded-xl font-extrabold text-sm shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
                       isGenerating
-                        ? "bg-zinc-800 cursor-not-allowed opacity-80"
-                        : "bg-gradient-to-r from-[#df9c43] via-[#eaaf5d] to-[#c98837] hover:brightness-110 shadow-[0_4px_20px_rgba(223,156,67,0.35)] text-zinc-950 font-extrabold active:scale-[0.98]"
+                        ? "bg-zinc-800 cursor-not-allowed opacity-80 text-zinc-400 border border-zinc-700"
+                        : "bg-gradient-to-r from-[#241808] via-[#2f1f0b] to-[#241808] hover:bg-[#38250d] border-2 border-[#df9c43] text-[#eaaf5d] hover:text-white shadow-[0_0_20px_rgba(223,156,67,0.35)] active:scale-[0.98]"
                     }`}
                   >
                     {isGenerating ? (
@@ -3844,7 +3929,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       </>
                     ) : (
                       <>
-                        <Sparkles size={16} className="text-white" />
+                        <Sparkles size={16} className="text-[#eaaf5d]" />
                         <span>
                           {bulkCount > 1
                             ? `Create ${bulkCount} jobs (${bulkCount * batchSize} variations)`
@@ -3894,7 +3979,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   title="Ouvrir Mode Custom"
                   className={`p-2 rounded-xl transition-all ${
                     createMode === "custom"
-                      ? "bg-purple-500/20 text-purple-400 border border-purple-500/40"
+                      ? "bg-[#b87524]/20 text-[#eaaf5d] border border-[#df9c43]/40"
                       : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                   }`}
                 >
@@ -3916,7 +4001,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   type="button"
                   onClick={() => setIsLeftPanelOpen(true)}
                   title="Générer de la musique"
-                  className="p-2 rounded-xl bg-gradient-to-tr from-[#df9c43] to-purple-600 text-white shadow-lg shadow-[#df9c43]/20 hover:scale-105 transition-transform"
+                  className="p-2 rounded-xl bg-gradient-to-tr from-[#df9c43] to-[#8c5314] text-white shadow-lg shadow-[#df9c43]/20 hover:scale-105 transition-transform"
                 >
                   <Sparkles size={15} />
                 </button>
@@ -4003,7 +4088,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     <button
                       onClick={() => setFilterMode("stems")}
                       className={`px-2 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                        filterMode === "stems" ? "bg-zinc-800 text-indigo-400 font-bold shadow-sm" : "text-zinc-400 hover:text-white"
+                        filterMode === "stems" ? "bg-zinc-800 text-[#df9c43] font-bold shadow-sm" : "text-zinc-400 hover:text-white"
                       }`}
                     >
                       Stems
@@ -4024,7 +4109,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     >
                       <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${
                         selectedTrackIds.size === filteredSongs.length && filteredSongs.length > 0
-                          ? "bg-[#df9c43] border-[#df9c43] text-white shadow-sm shadow-[#df9c43]/30"
+                          ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.35)]"
                           : "border-white/30 bg-black/40 group-hover:border-white/50"
                       }`}>
                         {selectedTrackIds.size === filteredSongs.length && filteredSongs.length > 0 && (
@@ -4174,7 +4259,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                 <h4 className="font-bold text-sm text-[#df9c43] truncate hover:underline">
                                   {track.title}
                                 </h4>
-                                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-purple-600 text-white flex-shrink-0">
+                                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#241808] border border-[#df9c43] text-[#eaaf5d] flex-shrink-0 shadow-[0_0_6px_rgba(223,156,67,0.25)]">
                                   XL
                                 </span>
                                 <span className="text-[11px] text-zinc-500 flex items-center gap-1 font-mono flex-shrink-0">
@@ -4187,7 +4272,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                              <div className="w-4 h-4 rounded-full bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                              <div className="w-4 h-4 rounded-full bg-[#241808] border border-[#df9c43] text-[#eaaf5d] text-[9px] font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_6px_rgba(223,156,67,0.25)]">
                                 L
                               </div>
                               <span className="text-xs text-zinc-400 font-medium truncate">
@@ -4246,7 +4331,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                   setSelectedTrack(track);
                                   setIsDemucsModalOpen(true);
                                 }}
-                                className="hover:text-indigo-400 transition-colors"
+                                className="hover:text-[#df9c43] transition-colors"
                                 title="Extract Stems (Demucs)"
                               >
                                 <Layers size={14} />
@@ -4256,7 +4341,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                   setSelectedTrack(track);
                                   setSubView("daw");
                                 }}
-                                className="hover:text-purple-400 transition-colors"
+                                className="hover:text-[#df9c43] transition-colors"
                                 title="Edit Audio (AudioMass)"
                               >
                                 <Edit3 size={14} />
@@ -4322,7 +4407,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                        }}
                                        className="w-full px-3 py-2 text-left text-xs text-zinc-200 hover:bg-white/5 flex items-center gap-2.5"
                                      >
-                                       <Edit3 size={14} className="text-purple-400" />
+                                       <Edit3 size={14} className="text-[#df9c43]" />
                                        <span>Éditer Audio (AudioMass)</span>
                                      </button>
                                      <button
@@ -4343,7 +4428,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                        }}
                                        className="w-full px-3 py-2 text-left text-xs text-zinc-200 hover:bg-white/5 flex items-center gap-2.5"
                                      >
-                                       <Layers size={14} className="text-indigo-400" />
+                                       <Layers size={14} className="text-[#df9c43]" />
                                        <span>Extraire les Stems</span>
                                      </button>
 
@@ -4378,7 +4463,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                                        onClick={() => handleExportTrack(track, "flac")}
                                        className="w-full px-3 py-2 text-left text-xs text-zinc-200 hover:bg-white/5 flex items-center gap-2.5"
                                      >
-                                       <Download size={14} className="text-indigo-400" />
+                                       <Download size={14} className="text-[#df9c43]" />
                                        <span>Télécharger FLAC (Lossless)</span>
                                      </button>
                                      <button
@@ -4451,7 +4536,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     onClick={() => togglePlay(selectedTrack)}
                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   >
-                    <div className="w-16 h-16 rounded-full bg-[#df9c43] flex items-center justify-center text-white shadow-xl transform group-hover:scale-105 transition-transform">
+                    <div className="w-16 h-16 rounded-full bg-[#241808]/90 border-2 border-[#df9c43] flex items-center justify-center text-[#eaaf5d] shadow-[0_0_20px_rgba(223,156,67,0.45)] backdrop-blur-md transform group-hover:scale-110 transition-transform">
                       {currentSong?.id === selectedTrack.id && isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
                     </div>
                   </div>
@@ -4462,7 +4547,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   <h3 className="font-bold text-lg text-white leading-tight">{selectedTrack.title}</h3>
                   <p className="text-xs text-zinc-400 mt-0.5">{selectedTrack.artist || "AI Music Engine"}</p>
                   {selectedTrack.curatedStyle && (
-                    <div className="mt-2 flex items-center justify-between p-2 rounded-xl bg-gradient-to-r from-[#df9c43]/15 to-purple-500/15 border border-[#df9c43]/30">
+                    <div className="mt-2 flex items-center justify-between p-2 rounded-xl bg-gradient-to-r from-[#df9c43]/15 to-[#b87524]/15 border border-[#df9c43]/30">
                       <div className="min-w-0">
                         <span className="text-[9px] uppercase font-bold text-[#df9c43] block tracking-wider">Style Curé Référence</span>
                         <span className="text-xs font-bold text-white truncate block">{selectedTrack.curatedStyle.name}</span>
@@ -4473,7 +4558,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                           const s = getCuratedStyleById(selectedTrack.curatedStyle.id);
                           if (s) handleOpenCuratedModal(s);
                         }}
-                        className="px-2 py-1 rounded-lg bg-[#df9c43] hover:bg-[#df9c43] text-white text-[10px] font-bold flex items-center gap-1 transition-all shadow-sm"
+                        className="px-2.5 py-1 rounded-lg bg-[#241808] hover:bg-[#2e1f0c] text-[#eaaf5d] hover:text-white border border-[#df9c43] text-[10px] font-bold flex items-center gap-1 transition-all shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                         title="Consulter la fiche musicologique"
                       >
                         <Info size={11} />
@@ -4492,7 +4577,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     }}
                     className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 flex flex-col items-center gap-1 text-[10px] font-medium transition-colors"
                   >
-                    <Edit3 size={15} className="text-purple-400" />
+                    <Edit3 size={15} className="text-[#df9c43]" />
                     <span>AudioMass</span>
                   </button>
                   <button
@@ -4515,7 +4600,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     }}
                     className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 flex flex-col items-center gap-1 text-[10px] font-medium transition-colors"
                   >
-                    <Layers size={15} className="text-indigo-400" />
+                    <Layers size={15} className="text-[#df9c43]" />
                     <span>Stems Demucs</span>
                   </button>
                   <button
@@ -4573,13 +4658,13 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
 
                 {/* Stems Player (4 Tracks: Vocals, Drums, Bass, Instruments) */}
                 {selectedTrack.stems && (
-                  <div className="bg-zinc-900/80 border border-indigo-500/30 rounded-2xl p-3.5 space-y-3 shadow-lg">
+                  <div className="bg-zinc-900/80 border border-[#df9c43]/30 rounded-2xl p-3.5 space-y-3 shadow-lg">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#eaaf5d] uppercase tracking-wider">
                         <Layers size={14} />
                         <span>Lecteur 4-Stems Isolables</span>
                       </div>
-                      <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">Demucs</span>
+                      <span className="text-[10px] bg-indigo-500/20 text-[#eaaf5d] px-2 py-0.5 rounded font-mono">Demucs</span>
                     </div>
 
                     <div className="space-y-2 text-xs">
@@ -4587,7 +4672,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         { key: "vocals", name: "🎤 Vocals", color: "text-amber-400" },
                         { key: "drums", name: "🥁 Drums", color: "text-blue-400" },
                         { key: "bass", name: "🎸 Bass", color: "text-red-400" },
-                        { key: "instruments", name: "🎹 Instruments", color: "text-purple-400" },
+                        { key: "instruments", name: "🎹 Instruments", color: "text-[#eaaf5d]" },
                       ].map((stem) => (
                         <div key={stem.key} className="flex items-center justify-between gap-3 bg-zinc-950/60 p-2 rounded-lg border border-white/5">
                           <span className={`font-semibold text-xs ${stem.color} w-24 truncate`}>{stem.name}</span>
@@ -4599,7 +4684,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                             onChange={(e) =>
                               setStemVolumes((prev) => ({ ...prev, [stem.key]: Number(e.target.value) }))
                             }
-                            className="flex-1 accent-indigo-500 h-1 bg-zinc-800 rounded cursor-pointer"
+                            className="flex-1 accent-[#df9c43] h-1 bg-zinc-800 rounded cursor-pointer"
                           />
                           <button
                             onClick={() =>
@@ -4715,7 +4800,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                               const s = getCuratedStyleById(selectedTrack.curatedStyle.id);
                               if (s) handleOpenCuratedModal(s);
                             }}
-                            className="px-2 py-1 rounded bg-[#df9c43] hover:bg-[#df9c43] text-white font-semibold text-[10px] flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-[#241808] hover:bg-[#2e1f0c] text-[#eaaf5d] hover:text-white border border-[#df9c43] text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                           >
                             <Info size={11} />
                             <span>Fiche</span>
@@ -4989,7 +5074,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       key={pl.id}
                       className="p-4 rounded-2xl bg-zinc-900 border border-white/10 hover:border-[#df9c43]/40 transition-all cursor-pointer group space-y-3"
                     >
-                      <div className="w-full h-32 rounded-xl bg-gradient-to-br from-[#df9c43]/20 via-purple-500/10 to-transparent border border-[#df9c43]/20 flex items-center justify-center text-[#df9c43] group-hover:scale-[1.02] transition-transform">
+                      <div className="w-full h-32 rounded-xl bg-gradient-to-br from-[#df9c43]/20 via-[#b87524]/10 to-transparent border border-[#df9c43]/20 flex items-center justify-center text-[#df9c43] group-hover:scale-[1.02] transition-transform">
                         <ListPlus size={32} />
                       </div>
                       <div>
@@ -5081,7 +5166,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     key={creator.name}
                     className="p-4 bg-zinc-900/60 border border-white/5 hover:border-white/20 rounded-2xl flex items-center gap-3.5"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#df9c43] to-purple-600 flex items-center justify-center text-white font-bold text-base shadow-md">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#df9c43] to-[#8c5314] flex items-center justify-center text-white font-bold text-base shadow-md">
                       {creator.name[0]}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -5106,7 +5191,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                 {[
                   { name: "90s Hip-Hop & Boom Bap", count: 8, color: "from-amber-500/20 to-[#c98837]/20" },
                   { name: "Cyberpunk & Dark Synthwave", count: 14, color: "from-cyan-500/20 to-blue-500/20" },
-                  { name: "Cinematic Orchestral & Epic", count: 6, color: "from-purple-500/20 to-[#c98837]/20" },
+                  { name: "Cinematic Orchestral & Epic", count: 6, color: "from-[#b87524]/20 to-[#8c5314]/20" },
                 ].map((pl) => (
                   <div
                     key={pl.name}
@@ -5150,7 +5235,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       onClick={() => setCuratedCategoryFilter(cat)}
                       className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                         curatedCategoryFilter === cat
-                          ? "bg-[#df9c43] text-white shadow-md shadow-[#df9c43]/20"
+                          ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
                           : "bg-zinc-900/80 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-white/5"
                       }`}
                     >
@@ -5236,7 +5321,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                           handleApplyCuratedStyle(style, false);
                           setSubView("create");
                         }}
-                        className="px-2.5 py-1.5 rounded-xl bg-[#df9c43] hover:bg-[#df9c43] text-white text-xs font-bold flex items-center justify-center gap-1 transition-all shadow-md shadow-[#df9c43]/20 cursor-pointer active:scale-95"
+                        className="px-2.5 py-1.5 rounded-xl bg-[#241808] hover:bg-[#2d1e0d] text-[#eaaf5d] hover:text-white border border-[#df9c43] text-xs font-bold flex items-center justify-center gap-1 transition-all shadow-[0_0_8px_rgba(223,156,67,0.25)] cursor-pointer active:scale-95"
                       >
                         <Sparkles size={13} />
                         <span>Créer</span>
@@ -5272,8 +5357,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     onClick={() => setGenreViewMode("cards")}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                       genreViewMode === "cards"
-                        ? "bg-[#df9c43] text-white shadow-md shadow-[#df9c43]/25"
-                        : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
+                        : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                     }`}
                     title="Affichage en Grille de Cartes"
                   >
@@ -5285,8 +5370,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     onClick={() => setGenreViewMode("list")}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                       genreViewMode === "list"
-                        ? "bg-[#df9c43] text-white shadow-md shadow-[#df9c43]/25"
-                        : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
+                        : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                     }`}
                     title="Affichage en Liste Détaillée"
                   >
@@ -5298,8 +5383,8 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                     onClick={() => setGenreViewMode("pills")}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                       genreViewMode === "pills"
-                        ? "bg-[#df9c43] text-white shadow-md shadow-[#df9c43]/25"
-                        : "text-zinc-400 hover:text-white hover:bg-white/5"
+                        ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
+                        : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
                     }`}
                     title="Affichage en Badges Compacts"
                   >
@@ -5322,7 +5407,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       onClick={() => setSelectedGenreCategory(cat.id)}
                       className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                         isSelected
-                          ? "bg-[#df9c43] text-white shadow-md shadow-[#df9c43]/20"
+                          ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)] font-bold"
                           : "bg-zinc-900/80 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-white/5"
                       }`}
                     >
@@ -5405,7 +5490,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
 
                               <button
                                 onClick={() => handleApplyGenre(genre)}
-                                className="px-2.5 py-1.5 rounded-xl bg-[#df9c43] hover:bg-[#df9c43] text-white text-xs font-bold flex items-center justify-center gap-1 transition-all shadow-md shadow-[#df9c43]/20 cursor-pointer active:scale-95"
+                                className="px-2.5 py-1.5 rounded-xl bg-[#241808] hover:bg-[#2d1e0d] text-[#eaaf5d] hover:text-white border border-[#df9c43] text-xs font-bold flex items-center justify-center gap-1 transition-all shadow-[0_0_8px_rgba(223,156,67,0.25)] cursor-pointer active:scale-95"
                                 title="Configurer le studio avec ce genre, tempo et tonalité"
                               >
                                 <Sparkles size={13} />
@@ -5459,7 +5544,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                               </button>
                               <button
                                 onClick={() => handleApplyGenre(genre)}
-                                className="px-3 py-1.5 rounded-xl bg-[#df9c43] hover:bg-[#df9c43] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-[#df9c43]/20 cursor-pointer active:scale-95"
+                                className="px-3 py-1.5 rounded-xl bg-[#241808] hover:bg-[#2d1e0d] text-[#eaaf5d] hover:text-white border border-[#df9c43] text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_8px_rgba(223,156,67,0.25)] cursor-pointer active:scale-95"
                               >
                                 <Sparkles size={13} />
                                 <span>Créer</span>
@@ -5645,7 +5730,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
 
                 <button
                   onClick={() => alert(`Merged ${mergeModelA} & ${mergeModelB} with alpha ${mergeAlpha} on DGX Spark!`)}
-                  className="w-full py-3 bg-gradient-to-r from-purple-600 to-[#c98837] hover:from-purple-500 hover:to-[#c98837] text-white font-bold rounded-xl shadow-lg shadow-purple-500/20"
+                  className="w-full py-3 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded-xl shadow-[0_0_12px_rgba(223,156,67,0.3)] transition-all"
                 >
                   Start Model Merge
                 </button>
@@ -5730,7 +5815,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                 { id: "export", label: "Export" },
               ].map((step, idx) => (
                 <div key={step.id} className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${trainingPipelineStep === step.id ? "bg-[#df9c43] text-white" : "bg-white/5 text-zinc-400"}`}>
+                  <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${trainingPipelineStep === step.id ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.3)]" : "bg-white/5 text-zinc-400"}`}>
                     {step.label}
                   </span>
                   {idx < 5 && <span className="text-zinc-600">&gt;</span>}
@@ -5938,7 +6023,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                 </div>
                 <button
                   onClick={() => alert("Downloaded LoRA checkpoint (.safetensors) successfully!")}
-                  className="w-full py-3 bg-gradient-to-r from-[#df9c43] to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-[#df9c43]/20"
+                  className="w-full py-3 bg-gradient-to-r from-[#df9c43] to-[#8c5314] text-white font-bold rounded-xl shadow-lg shadow-[#df9c43]/20"
                 >
                   Download LoRA Adapter
                 </button>
@@ -5960,24 +6045,24 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setDawViewMode("studio_daw")}
-                  className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all ${
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all ${
                     dawViewMode === "studio_daw"
-                      ? "bg-[#ea580c] text-white shadow"
-                      : "text-zinc-400 hover:text-white bg-[#252525]"
+                      ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                      : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                   }`}
                 >
-                  <Sliders size={13} />
+                  <Sliders size={13} className={dawViewMode === "studio_daw" ? "text-[#df9c43]" : "text-zinc-400"} />
                   <span>Music Studio DAW</span>
                 </button>
                 <button
                   onClick={() => setDawViewMode("audiomass")}
-                  className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all ${
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all ${
                     dawViewMode === "audiomass"
-                      ? "bg-[#df9c43] text-white shadow"
-                      : "text-zinc-400 hover:text-white bg-[#252525]"
+                      ? "bg-[#241808] border-2 border-[#df9c43] text-[#eaaf5d] shadow-[0_0_10px_rgba(223,156,67,0.3)]"
+                      : "bg-[#1c1c1c] border border-[#333333] text-zinc-400 hover:text-white hover:border-[#df9c43]/40"
                   }`}
                 >
-                  <Edit3 size={13} />
+                  <Edit3 size={13} className={dawViewMode === "audiomass" ? "text-[#df9c43]" : "text-zinc-400"} />
                   <span>AudioMass Wave Editor</span>
                 </button>
               </div>
@@ -6272,7 +6357,13 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
               className={`p-1.5 rounded-full transition-colors ${
                 repeatMode !== "none" ? "text-[#df9c43]" : "text-zinc-500 hover:text-white"
               }`}
-              title={`Répétition: ${repeatMode}`}
+              title={
+                repeatMode === "none"
+                  ? "Lecture unique : arrêt automatique à la fin"
+                  : repeatMode === "one"
+                  ? "Répéter ce morceau en boucle"
+                  : "Répéter tous les morceaux"
+              }
             >
               {repeatMode === "one" ? <Repeat1 size={14} /> : <Repeat size={14} />}
             </button>
@@ -6432,7 +6523,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                         }
                         setShowAudioModal(false);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#df9c43] text-xs font-bold text-white transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-xs font-bold text-[#eaaf5d] hover:text-[#f5c277] shadow-[0_0_8px_rgba(223,156,67,0.25)] transition-all"
                     >
                       Use Track
                     </button>
@@ -6776,11 +6867,11 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                       onClick={() => setAddInstrumentType(inst.id)}
                       className={`p-3 rounded-xl border cursor-pointer transition-all ${
                         isSel
-                          ? "bg-[#df9c43]/15 border-[#df9c43] text-white shadow-sm"
+                          ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                           : "bg-zinc-950/60 border-white/5 text-zinc-400 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      <span className="font-bold text-xs text-white block">{inst.name}</span>
+                      <span className={`font-bold text-xs block ${isSel ? "text-[#eaaf5d]" : "text-white"}`}>{inst.name}</span>
                       <span className="text-[10px] text-zinc-400 block mt-0.5">{inst.desc}</span>
                     </div>
                   );
@@ -6825,7 +6916,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
             <button
               onClick={() => handleAddInstrumentAndGenerate(addInstrumentType, addInstrumentPrompt)}
               disabled={isAddingInstrument}
-              className="w-full py-3 bg-gradient-to-r from-[#df9c43] to-indigo-600 hover:from-[#df9c43] hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-gradient-to-r from-[#df9c43] to-[#8c5314] hover:from-[#df9c43] hover:to-[#a06618] text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isAddingInstrument ? (
                 <>
@@ -6888,13 +6979,13 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
 
             <div className="p-4 overflow-y-auto custom-scrollbar space-y-4 text-xs">
               {/* Architecture & Cluster Banner */}
-              <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 space-y-1">
-                <div className="flex items-center justify-between text-purple-300 font-semibold text-[11px]">
+              <div className="p-3 rounded-xl bg-[#241808]/40 border border-[#df9c43]/30 space-y-1">
+                <div className="flex items-center justify-between text-[#eaaf5d] font-semibold text-[11px]">
                   <span>Cluster Hardware : NVIDIA DGX Spark GB10</span>
                   <span className="font-mono text-[10px]">128 GB VRAM Unifiée</span>
                 </div>
                 <p className="text-zinc-400 text-[11px] leading-relaxed">
-                  Ce modèle exécute le graphe officiel ComfyUI sur le serveur Spark distant (<code className="text-purple-300">192.168.1.219:61009</code>). Aucune simulation ni synthèse approximative.
+                  Ce modèle exécute le graphe officiel ComfyUI sur le serveur Spark distant (<code className="text-[#eaaf5d]">192.168.1.219:61009</code>). Aucune simulation ni synthèse approximative.
                 </p>
               </div>
 
@@ -6914,7 +7005,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   </div>
                   <div className="p-2.5 rounded-lg bg-zinc-950 border border-white/5 flex items-center justify-between">
                     <span className="text-zinc-500">3. LM Actif & Backend</span>
-                    <span className="text-purple-300 font-semibold">{lmModel} ({lmBackend.toUpperCase()})</span>
+                    <span className="text-[#eaaf5d] font-semibold">{lmModel} ({lmBackend.toUpperCase()})</span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-zinc-950 border border-white/5 flex items-center justify-between">
                     <span className="text-zinc-500">4. VAE Audio</span>
@@ -6942,15 +7033,15 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
                   {selectedModel.lmOptions?.map((opt) => (
                     <div
                       key={opt.id}
-                      className={`p-2.5 rounded-lg border flex items-center justify-between ${
+                      className={`p-2.5 rounded-lg border flex items-center justify-between transition-all ${
                         lmModel === opt.id
-                          ? "bg-[#df9c43]/10 border-[#df9c43]/40 text-white"
+                          ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                           : "bg-zinc-950/60 border-white/5 text-zinc-400"
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${lmModel === opt.id ? "bg-[#df9c43]" : "bg-zinc-700"}`} />
-                        <span className="text-xs font-medium">{opt.label}</span>
+                        <span className={`w-2 h-2 rounded-full ${lmModel === opt.id ? "bg-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.5)]" : "bg-zinc-700"}`} />
+                        <span className={`text-xs font-medium ${lmModel === opt.id ? "text-[#eaaf5d] font-bold" : "text-zinc-300"}`}>{opt.label}</span>
                       </div>
                       <span className="text-[10px] font-mono text-zinc-500">{opt.vram}</span>
                     </div>
@@ -6966,7 +7057,7 @@ export default function MusicStudio({ apiKey, onSendToMontage, onNavigateTab }) 
               <button
                 type="button"
                 onClick={() => setIsWorkflowModalOpen(false)}
-                className="px-4 py-1.5 bg-[#df9c43] hover:bg-[#df9c43] text-white font-medium text-xs rounded-lg transition-colors"
+                className="px-4 py-1.5 bg-[#241808] hover:bg-[#2d1e0d] text-[#eaaf5d] hover:text-white border border-[#df9c43] font-bold text-xs rounded-lg transition-all shadow-[0_0_8px_rgba(223,156,67,0.25)]"
               >
                 Fermer
               </button>
