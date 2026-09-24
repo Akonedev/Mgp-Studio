@@ -1062,9 +1062,30 @@
       - `daw_64_rack_deffets_image_0_live.png` : Rack d'effets actif avec LFO Filter et Steps Groove modulators, onglet capsule Image 0.
       - `daw_65_the_grid_modular_image_0_live.png` : Environnement modulaire DSP The Grid avec câbles audio et patch points Or Sahel (`#df9c43`), bouton Tester le Patch.
       - `daw_66_audio_warp_image_0_live.png` : Moteur Audio Warp avec mode Stretch Polyphonique actif Image 0, bouton Bounce, pins warp losange dorés.
-      - `daw_67_cinema_studio_image_0_live.png` : Cinema Studio avec prompt bar cinématique, sélecteur DreamShaper 8 SD 1.5 (Spark GB10) et ratio 16:9 2K.
-      - `daw_68_apps_studio_image_0_live.png` : Hub Applications & Templates avec badges `Workflow Prêt`, boutons `Exécuter Studio`, `Installer en 1-Clic` et filtres Image 0.
-      - `daw_69_workflows_studio_image_0_live.png` : Workflows ComfyUI avec bouton `+ CREATE WORKFLOW` Image 0, onglets dorés et catalogue de pipelines Spark.
-      - `daw_70_agents_studio_image_0_live.png` : Agents & Skills avec onglet actif Image 0, bouton `+ Créer un Agent` et cartes directeurs avec pills de compétences et chat vLLM Qwen3-VL.
+  - [x] **Sprint N : Format DAWproject & Moteur Mathématique DSP Spectral Suite (Zéro-Mock)** :
+    * Moteur binaire ZIP conforme PKWARE (`PK\x03\x04`), checksum IEEE 802.3 CRC-32 (`0x2DB86B51`).
+    * Roundtrip d'encodage/décodage de projet `.dawproject` validé.
+    * DSP Spectral Suite : Polynômes de Chebyshev $T_2$ et $T_3$, Loud Split, Transient Split avec double enveloppe différentielle (5ms / 80ms).
+    * Opérateurs Bitwig : Chance (0-100%) et Récurence (cycles de mesures).
+    * Modulateurs ParSeq-8 et LFO 4 formes d'onde (Sine, Tri, Saw, Square).
+
+  - [x] **Sprint O : The Grid Modulaire & 14 Catégories DSP (Chapitre 17 & 19.28)** :
+    * Intégration de Chebyshev Shaper, Math Processor (Add, Mult, Invert, Abs, Min/Max), Oscilloscope SVG avec tracé interactif animé.
+    * 7 Portes Logiques réelles (AND, OR, XOR, NOT, NAND, NOR, XNOR), Comparateurs (=, ≠, >, <, ≥, ≤), Diviseur d'Horloge (`Clock Divide`).
+    * Rampe de phase continue `Phasor` 0-1 avec inversion.
+    * Générateur de bruit spectral `Noise Generator` (White, Pink, Brown) et `Dice` stochastique.
+    * Échantillonneur `Sample & Hold` sur front montant et `Bias & Level`.
+
+  - [x] **Sprint P : Outils Arrangeur & Transport Avancé (Chapitre 2.3.2 & 5.1.6)** :
+    * Outil 6 Coulisser (Slip Tool) permettant le déplacement de contenu audio/MIDI par $\Delta x$ sans modifier les limites du clip (`startBar` et `bars` invariants). Rendu en temps réel par `translateX` dans `StudioWaveformCanvas`.
+    * Boutons de transport Punch In (`[•`) et Punch Out (`•]`) avec halo rouge d'enregistrement.
+    * Pre-roll métronomique configurable cyclique (`PR:Ø`, `PR:1b`, `PR:2b`).
+
+  - [x] **Sprint Q : Modulateurs Bitwig SOTA, Actions Suivantes & Comping (Chapitres 6, 10 & 19.27)** :
+    * Modulateurs : `Polynom` ($y = ax^3 + bx^2 + cx + d$), `Quantize` (paliers discrets), `Expressions MPE` (Timbre, Pression, Vélocité), `Keytrack+` (suivi de clavier avec point pivot), `4-Stage` (enveloppe multi-étages).
+    * Actions Suivantes (Next Actions) : Déclenchement conditionnel (mesures/boucle), actions (Next, Prev, First, Last, Random, Repeat, Stop), probabilité ($0-100\%$) et repli alternatif.
+    * Quantification de lancement : $1/16$ à $4\text{ Bars}$.
+    * Swipe Comping & Pistes de Prises (Take Lanes) avec découpage chirurgical sans trou et micro-crossfades à puissance constante.
+    * Suite de tests unitaires et mathématiques (9 sections) validée à 100%. Validation live navigateur via CDP à 1920x1080 (0 erreur console).
 
 

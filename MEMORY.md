@@ -1233,3 +1233,28 @@
       * [`daw_69_workflows_studio_image_0_live.png`](file:///home/akone/Documents/Dev/01_Dev/03_Multimedia/Open-Generative-AI/public/outputs/daw_69_workflows_studio_image_0_live.png) : Workflows ComfyUI avec bouton `+ CREATE WORKFLOW` Image 0, onglets dorés et catalogue de pipelines Spark.
       * [`daw_70_agents_studio_image_0_live.png`](file:///home/akone/Documents/Dev/01_Dev/03_Multimedia/Open-Generative-AI/public/outputs/daw_70_agents_studio_image_0_live.png) : Agents & Skills avec onglet actif Image 0, bouton `+ Créer un Agent` et cartes directeurs avec pills de compétences et chat vLLM Qwen3-VL.
 
+54. **Sprint N : Format DAWproject Binaire & DSP Spectral Suite (Bitwig Ch. 21)** :
+    - Format `.dawproject` : Encodeur et décodeur d'archive PKWARE ZIP (`PK\x03\x04`) natif pur JS avec calcul de redondance cyclique standard IEEE 802.3 CRC-32 (`0xEDB88320`). Export/import XML (`project.xml`, `metadata.xml`).
+    - DSP Spectral Suite : Polynômes de Chebyshev $T_2$ et $T_3$, Loud Split dynamique sur seuil dB, Transient Split avec double enveloppe différentielle (attaque 5 ms / maintien 80 ms).
+    - Opérateurs Bitwig : Chance ($0-100\%$) et Récurence par cycles de mesures.
+
+55. **Sprint O : The Grid Modulaire & 14 Catégories DSP (Bitwig Ch. 17 & 19.28)** :
+    - Intégration de Chebyshev Shaper ($T_2-T_5$), Math Processor (Add, Mult, Invert, Abs, Min/Max), Oscilloscope SVG avec tracé interactif animé.
+    - 7 Portes Logiques réelles (AND, OR, XOR, NOT, NAND, NOR, XNOR), Comparateurs (=, ≠, >, <, ≥, ≤), Diviseur d'Horloge (`Clock Divide`).
+    - Rampe de phase continue `Phasor` 0-1 avec inversion.
+    - Générateur de bruit spectral `Noise Generator` (White, Pink, Brown) et `Dice` stochastique.
+    - Échantillonneur `Sample & Hold` sur front montant et module `Bias & Level`.
+
+56. **Sprint P : Outils Arrangeur & Transport Avancé (Bitwig Ch. 2.3.2 & 5.1.6)** :
+    - Outil 6 Coulisser (Slip Tool) permettant le déplacement de contenu audio/MIDI par $\Delta x$ sans modifier les limites du clip (`startBar` et `bars` invariants). Rendu en temps réel par `translateX` dans `StudioWaveformCanvas`.
+    - Boutons de transport Punch In (`[•`) et Punch Out (`•]`) avec halo rouge d'enregistrement.
+    - Pre-roll métronomique configurable cyclique (`PR:Ø`, `PR:1b`, `PR:2b`).
+
+57. **Sprint Q : Modulateurs SOTA, Actions Suivantes & Comping (Bitwig Ch. 6, 10 & 19.27)** :
+    - Modulateurs : `Polynom` ($y = ax^3 + bx^2 + cx + d$), `Quantize` (paliers discrets), `Expressions MPE` (Timbre, Pression, Vélocité), `Keytrack+` (suivi de clavier avec point pivot), `4-Stage` (enveloppe multi-étages).
+    - Actions Suivantes (Next Actions) : Déclenchement conditionnel (mesures/boucle), actions (Next, Prev, First, Last, Random, Repeat, Stop), probabilité ($0-100\%$) et repli alternatif.
+    - Quantification de lancement : $1/16$ à $4\text{ Bars}$.
+    - Swipe Comping & Pistes de Prises (Take Lanes) avec découpage chirurgical sans trou et micro-crossfades à puissance constante.
+    - Suite de 9 sections de tests unitaires et mathématiques validée à 100%. Validation live navigateur via CDP à 1920x1080 (0 erreur console).
+
+

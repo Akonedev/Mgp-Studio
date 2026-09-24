@@ -483,3 +483,35 @@
      - Spatialisation stéréo via `StereoPannerNode` et modulation de coupure de filtre réactif par la Pression Aftertouch.
 - **Justification** : Conformité stricte aux Chapitres 11 et 12 du guide utilisateur officiel Bitwig Studio French, zéro mock, calculs DSP audio réels.
 
+## 32. Format Universel DAWproject (Chapitre 21) & Moteur ZIP Binaire Pur JS avec CRC-32 IEEE 802.3
+- **Problème** : L'interopérabilité native entre DAWs (Bitwig Studio, PreSonus Studio One, etc.) requiert le format ouvert `.dawproject` qui est une archive ZIP standard contenant `project.xml` et `metadata.xml`. L'environnement navigateur ne doit pas dépendre de librairies externes lourdes ou non-libres pour manipuler ce format.
+- **Décision d'Architecture** :
+  1. Implémentation d'un moteur binaire ZIP natif en pur JavaScript dans `packages/studio/src/components/MusicStudioDawproject.js` selon la spécification PKWARE (`PK\x03\x04` pour les Local File Headers, `PK\x01\x02` pour le Central Directory, `PK\x05\x06` pour l'End of Central Directory).
+  2. Implémentation de la table de calcul de redondance cyclique CRC-32 conforme au polynôme standard IEEE 802.3 (`0xEDB88320`).
+  3. Exportation et importation complètes des pistes, clips audio/MIDI, tempo BPM, marqueurs et signatures rythmiques.
+- **Justification** : Zéro dépendance, conformité standard Bitwig Chapitre 21, validation mathématique du CRC-32 et des en-têtes binaires.
+
+## 33. The Grid Modulaire & 14 Catégories DSP (Chapitre 17 & 19.28)
+- **Problème** : L'environnement modulaire The Grid de Bitwig comportait initialement une sélection restreinte de modules. Le manuel officiel décrit 14 catégories fondamentales de traitement audio et de contrôle (I/O, Oscillateurs, Filtres, Enveloppes, Modulateurs, Shapers, Math & Level, Logique, Phase, Aléatoire, Niveau, Delay & FX, Affichage).
+- **Décisions d'Architecture** :
+  1. Extension du catalogue `GRID_MODULE_CATALOG` et des catégories `GRID_MODULE_CATEGORIES` dans `MusicStudioTheGridModular.jsx`.
+  2. Intégration de `Chebyshev Shaper` (polynômes orthogonaux $T_2$ à $T_5$), `Math Processor` (Add, Mult, Invert, Abs, Min/Max), `Oscilloscope` temps réel avec tracé SVG animé.
+  3. Intégration des modules logiques (portes `AND`, `OR`, `XOR`, `NOT`, `NAND`, `NOR`, `XNOR`, comparateurs `=`, `≠`, `>`, `<`, `≥`, `≤`, diviseur d'horloge `Clock Divide`), de phase (`Phasor` 0-1 avec inversion), de bruit spectral (`Noise Generator` White/Pink/Brown) et d'échantillonnage (`Sample & Hold` sur front montant).
+- **Justification** : Conformité aux Sections 19.28.1 à 19.28.16 du manuel Bitwig, zéro mock, exécution audio temps réel.
+
+## 34. Modulateurs Avancés (Chapitre 16 & 19.27)
+- **Problème** : Le système de modulation devait intégrer les processeurs de modulation mathématiques et contrôlés par note décrits dans Bitwig Studio.
+- **Décisions d'Architecture** :
+  1. Intégration dans `MusicStudioModulatorSystem.jsx` de `Polynom` ($y = ax^3 + bx^2 + cx + d$), `Quantize` (paliers discrets de modulation), `Expressions MPE` (Timbre, Pression, Vélocité), `Keytrack+` (suivi de clavier avec point pivot et pente relative), et `4-Stage` (générateur multi-segments).
+  2. Évaluation déterministe et vectorielle dans `evaluateModulatorValue` avec dispatch en temps réel vers les nœuds Web Audio.
+- **Justification** : Respect des spécifications Bitwig Section 19.27.
+
+## 35. Outils Arrangeur (Slip Tool), Transport & Actions Suivantes (Next Actions)
+- **Problème** : Le manuel officiel spécifie l'outil Coulisser (Slip / Slide, Section 5.1.6), les modes de transport Punch In/Out et Pre-roll (Section 2.3.2), et le système d'Actions Suivantes (Section 6.2.5.3) pour le déclenchement non-linéaire de clips.
+- **Décisions d'Architecture** :
+  1. Ajout de l'Outil 6 `Coulisser` (`activeEditingTool === "slip"`) permettant de translater le contenu audio/MIDI par $\Delta x$ (`clip.slipOffset`) sans modifier les frontières du clip (`startBar` et `bars` invariants). Rendu instantané via `translateX` dans `StudioWaveformCanvas`.
+  2. Ajout des boutons de transport Punch In `[•`, Punch Out `•]` et Pre-roll `PR:Ø`, `PR:1b`, `PR:2b`.
+  3. Extension de `MusicStudioInspectorPanel.jsx` avec le panneau complet des Actions Suivantes (Play Next, Play Previous, Play First, Play Last, Play Random, Repeat, Stop), condition de mesures, probabilité ($0-100\%$), action de repli alternative et quantification de lancement ($1/16$ à $4\text{ Bars}$).
+- **Justification** : Conformité stricte aux Chapitres 2.3.2, 5.1.6 et 6.2.5.3 de la documentation officielle Bitwig Studio French.
+
+
