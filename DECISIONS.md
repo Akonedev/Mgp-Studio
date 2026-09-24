@@ -582,6 +582,27 @@
   3. Gestionnaire Web Audio `applyHrtfSpatialPanner` configurant un `PannerNode` en mode `panningModel = 'HRTF'` et `distanceModel = 'inverse'`.
 - **Justification** : Immersion spatiale cinématographique réaliste, compatibilité casque stéréo sans matériel multicanal obligatoire.
 
+## 44. Poignées de Courbure Bézier Interactives & Rendu SVG de Tension d'Automation
+- **Problème** : L'édition graphique d'automation nécessitait une manipulation visuelle intuitive des courbes de transition entre points d'ancrage avec rétroaction immédiate, semblable au système de tension de Bitwig Studio.
+- **Décisions d'Architecture** :
+  1. Fonction pure `buildAutomationCurveSvg` générant dynamiquement les coordonnées d'ancrage, les poignées de tension au milieu de chaque segment et les commandes SVG de Bézier quadratique (`Q midX,ctrlY x2,y2`).
+  2. Poignées de tension (`tension-knobs`) déplaçables verticalement avec curseur `cursor-ns-resize`, modulant la tension $k \in [-0.95, +0.95]$.
+  3. Rendu d'une zone ombrée en dégradé SVG (`linearGradient`) épousant fidèlement la courbure jusqu'au bas de la piste (`heightPx`).
+- **Justification** : Ergonomie de pointe conforme au Chapitre 14 de Bitwig, rendu vectoriel 60 fps sans recalcul lourd.
 
+## 45. Radar Audio-Visuel 3D Circulaire dans le Panneau Inspecteur
+- **Problème** : L'ajustement du positionnement spatial tridimensionnel des pistes par de simples curseurs numériques manquait de repère spatial intuitif pour l'ingénieur du son.
+- **Décisions d'Architecture** :
+  1. Nouvel onglet « Radar 3D » intégré dans le Panneau Inspecteur Universel (`MusicStudioInspectorPanel.jsx`).
+  2. Écran radar circulaire avec cercles concentriques de distance (1m, 2.5m, 5m), repères cardinaux (A, G, D, ARR), tête d'écoute centrale et nœud d'objet sonore interactif glissant.
+  3. Fonctions de projection bidirectionnelle `calculateRadarScreenPosition` et `calculateRadarCoordinatesFromScreen` assurant la translation rigoureuse entre l'espace métrique réel $(x, z)$ et l'espace écran en pixels avec bornage sphérique.
+  4. Bandeau de métriques numériques en direct affichant la Distance ($m$), l'Azimut ($\theta^\circ$), l'Élévation ($\phi^\circ$) et l'Atténuation acoustique ($\%$).
+- **Justification** : Visualisation spatiale instantanée, alignement visuel et acoustique pour le mixage immersif et la synchronisation cinéma.
 
-
+## 46. Exportateur 1-Clic de Stems Séparés en Archive ZIP (WAV 24-bit PCM + Manifeste JSON)
+- **Problème** : La livraison professionnelle de stems pour le mixage externe, le mastering ou le montage vidéo (DaVinci Resolve / Fairlight) exigeait auparavant l'export manuel piste par piste.
+- **Décisions d'Architecture** :
+  1. Création de `handleExportStemsZip` dans `MusicStudioDaw.jsx` générant simultanément les stems individuels de toutes les pistes actives (Drums, Basse, Synthés, Vocaux, etc.) ainsi que le mixdown Master complet en encodage bit-perfect RIFF WAV 24-bit PCM 48kHz.
+  2. Génération automatique d'un fichier de métadonnées `manifest.json` incluant le titre du projet, le tempo BPM, la métrique, l'horodatage ISO, le format d'encodage et la liste ordonnée des fichiers.
+  3. Empaquetage direct dans le navigateur en archive ZIP standard PKWARE via `createZipArchive` avec calculs de somme de contrôle CRC-32 conformes IEEE 802.3, sans aucun appel serveur ni utilisation de VRAM/GPU.
+- **Justification** : Productivité maximale pour les créateurs, respect strict des normes d'interopérabilité broadcast et protection totale des ressources GPU.

@@ -483,3 +483,103 @@ export function applyHrtfSpatialPanner(pannerNode, { x, y, z, audioCtx }) {
     pannerNode.setPosition(x, y, z);
   }
 }
+
+/**
+ * Maps 3D Cartesian coordinates (x, z) in meters to 2D circular radar screen coordinates (px)
+ */
+export function calculateRadarScreenPosition({ x = 0, z = 2.5, center = 90, maxRadius = 80, maxRange = 5.0 }) {
+  const normX = Math.max(-1, Math.min(1, x / maxRange));
+  const normZ = Math.max(-1, Math.min(1, z / maxRange));
+  const screenX = center + normX * maxRadius;
+  const screenY = center - normZ * maxRadius; // Inverted because front/forward (+Z) is UP on radar screen
+  return { screenX, screenY };
+}
+
+/**
+ * Maps 2D circular radar screen coordinates (px) back to 3D Cartesian coordinates (x, z) in meters
+ */
+export function calculateRadarCoordinatesFromScreen({ screenX, screenY, center = 90, maxRadius = 80, maxRange = 5.0 }) {
+  const normX = (screenX - center) / maxRadius;
+  const normZ = -(screenY - center) / maxRadius;
+  const clampedX = Math.max(-1, Math.min(1, normX));
+  const clampedZ = Math.max(-1, Math.min(1, normZ));
+  const x = Number((clampedX * maxRange).toFixed(2));
+  const z = Number((clampedZ * maxRange).toFixed(2));
+  return { x, z };
+}
+
+/**
+ * Computes SVG path strings and tension handles for automation curve visualization
+ */
+export function buildAutomationCurveSvg(
+  points = [],
+  widthPx = 800,
+  heightPx = 56,
+  totalBars = 148,
+  minVal = 0,
+  maxVal = 100,
+  startBarOffset = 1
+) {
+  if (!points || points.length === 0) {
+    return { linePath: "", areaPath: "", anchorCoords: [], tensionHandles: [] };
+  }
+
+  const sorted = [...points].sort((a, b) => a.bar - b.bar);
+  const range = maxVal - minVal || 1;
+
+  const anchorCoords = sorted.map((p) => {
+    const barNorm = (p.bar - startBarOffset) / (totalBars || 1);
+    const px = Math.max(0, Math.min(widthPx, barNorm * widthPx));
+    const py = Math.max(2, Math.min(heightPx - 2, heightPx - ((p.value - minVal) / range) * heightPx));
+    return { id: p.id, bar: p.bar, value: p.value, tension: p.tension || 0, x: px, y: py, point: p };
+  });
+
+  let linePath = `M ${anchorCoords[0].x},${anchorCoords[0].y}`;
+  let areaSegments = `L ${anchorCoords[0].x},${anchorCoords[0].y}`;
+  const tensionHandles = [];
+
+  for (let i = 0; i < anchorCoords.length - 1; i++) {
+    const p1 = anchorCoords[i];
+    const p2 = anchorCoords[i + 1];
+    const tension = p1.tension || 0;
+
+    if (Math.abs(tension) < 0.02) {
+      linePath += ` L ${p2.x},${p2.y}`;
+      areaSegments += ` L ${p2.x},${p2.y}`;
+      tensionHandles.push({
+        id: `th_${p1.id}_${p2.id}`,
+        pointId: p1.id,
+        pointIndex: i,
+        p1,
+        p2,
+        x: (p1.x + p2.x) / 2,
+        y: (p1.y + p2.y) / 2,
+        tension: 0
+      });
+    } else {
+      const midX = (p1.x + p2.x) / 2;
+      const midY = (p1.y + p2.y) / 2;
+      const dy = p2.y - p1.y;
+      const ctrlY = midY - tension * Math.max(14, Math.abs(dy) * 0.5);
+      linePath += ` Q ${midX},${ctrlY} ${p2.x},${p2.y}`;
+      areaSegments += ` Q ${midX},${ctrlY} ${p2.x},${p2.y}`;
+      const handleY = 0.25 * p1.y + 0.5 * ctrlY + 0.25 * p2.y;
+      tensionHandles.push({
+        id: `th_${p1.id}_${p2.id}`,
+        pointId: p1.id,
+        pointIndex: i,
+        p1,
+        p2,
+        x: midX,
+        y: handleY,
+        tension
+      });
+    }
+  }
+
+  const firstX = anchorCoords[0].x;
+  const lastX = anchorCoords[anchorCoords.length - 1].x;
+  const areaPath = `M ${firstX},${heightPx} ${areaSegments} L ${lastX},${heightPx} Z`;
+
+  return { linePath, areaPath, anchorCoords, tensionHandles };
+}

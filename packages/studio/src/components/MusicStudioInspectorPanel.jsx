@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Activity
 } from "lucide-react";
+import { calculateSpatialCoordinates, calculateRadarScreenPosition } from "./MusicStudioAutomationEngine";
 
 /**
  * Music Studio Panneau Inspecteur Universel Contextuel
@@ -126,6 +127,16 @@ export default function MusicStudioInspectorPanel({
               }`}
             >
               Macros
+            </button>
+            <button
+              onClick={() => setInspectorTab("spatial")}
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase transition ${
+                inspectorTab === "spatial"
+                  ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                  : "text-zinc-400 hover:text-white border border-transparent"
+              }`}
+            >
+              Radar 3D
             </button>
           </div>
 
@@ -693,6 +704,188 @@ export default function MusicStudioInspectorPanel({
 
             <div className="bg-[#141414] p-2 rounded-lg border border-[#262626] text-[10px] text-zinc-400 leading-normal">
               💡 Cliquez sur un potentiomètre pour ajuster sa valeur ou affectez des contrôleurs MIDI via clic droit.
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════
+            MODE SPATIAL 3D & RADAR BINAURAL HRTF (Recommendation 2)
+        ════════════════════════════════════════════════════════════ */}
+        {inspectorTab === "spatial" && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-zinc-400">
+                Positionnement Spatial 3D (HRTF)
+              </span>
+              <span className="text-[9px] font-mono text-[#eaaf5d] bg-[#241808] px-1.5 py-0.5 rounded border border-[#df9c43]/40">
+                Binaural 360°
+              </span>
+            </div>
+
+            {/* Circular Radar Canvas Screen */}
+            <div className="bg-[#12100e] border border-[#3e342a] rounded-xl p-2.5 flex flex-col items-center relative overflow-hidden">
+              <div className="w-[180px] h-[180px] relative rounded-full border border-[#3e342a] bg-[#0c0a09] flex items-center justify-center select-none">
+                {/* Distance Rings */}
+                <div className="absolute w-[160px] h-[160px] rounded-full border border-dashed border-[#2e261f]" title="5.0 mètres" />
+                <div className="absolute w-[100px] h-[100px] rounded-full border border-[#2e261f]" title="2.5 mètres" />
+                <div className="absolute w-[44px] h-[44px] rounded-full border border-[#3e342a]" title="1.0 mètre" />
+
+                {/* Crosshairs Axes */}
+                <div className="absolute w-full h-[1px] bg-[#221c17]" />
+                <div className="absolute h-full w-[1px] bg-[#221c17]" />
+
+                {/* Labels */}
+                <span className="absolute top-1 text-[8px] font-mono text-zinc-500 font-bold">AVANT (+Z)</span>
+                <span className="absolute bottom-1 text-[8px] font-mono text-zinc-500 font-bold">ARRIÈRE (-Z)</span>
+                <span className="absolute left-1 text-[8px] font-mono text-zinc-500 font-bold">G</span>
+                <span className="absolute right-1 text-[8px] font-mono text-zinc-500 font-bold">D</span>
+
+                {/* Center Listener Head */}
+                <div className="w-5 h-5 rounded-full bg-[#241808] border border-[#df9c43] flex items-center justify-center text-[8px] font-bold text-[#eaaf5d] z-10 shadow-[0_0_8px_rgba(223,156,67,0.4)]">
+                  👂
+                </div>
+
+                {/* Interactive Draggable Sound Source Node */}
+                {(() => {
+                  const posX = selectedTrack?.spatialCoordinates?.x || 0;
+                  const posZ = selectedTrack?.spatialCoordinates?.z !== undefined ? selectedTrack.spatialCoordinates.z : 2.5;
+                  const { screenX, screenY } = calculateRadarScreenPosition({
+                    x: posX,
+                    z: posZ,
+                    center: 90,
+                    maxRadius: 80,
+                    maxRange: 5.0
+                  });
+                  const spatialInfo = calculateSpatialCoordinates({
+                    x: posX,
+                    y: selectedTrack?.spatialCoordinates?.y || 0,
+                    z: posZ
+                  });
+
+                  return (
+                    <div
+                      style={{ left: `${screenX}px`, top: `${screenY}px` }}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing z-20 group"
+                      title={`Azimut: ${spatialInfo.azimuthDeg}° | Distance: ${spatialInfo.distance}m`}
+                    >
+                      <div className="w-4 h-4 rounded-full bg-[#df9c43] border border-white flex items-center justify-center shadow-[0_0_10px_#df9c43] animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      </div>
+                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[7.5px] font-mono font-bold text-[#f5c277] bg-black/80 px-1 rounded whitespace-nowrap">
+                        {spatialInfo.distance}m
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Numerical Metrics Strip */}
+              {(() => {
+                const posX = selectedTrack?.spatialCoordinates?.x || 0;
+                const posY = selectedTrack?.spatialCoordinates?.y || 0;
+                const posZ = selectedTrack?.spatialCoordinates?.z !== undefined ? selectedTrack.spatialCoordinates.z : 2.5;
+                const sp = calculateSpatialCoordinates({ x: posX, y: posY, z: posZ });
+                return (
+                  <div className="w-full grid grid-cols-4 gap-1 pt-2 text-center text-[8.5px] font-mono">
+                    <div className="bg-[#181513] p-1 rounded border border-[#2e261f]">
+                      <span className="text-zinc-500 block text-[7.5px]">DIST</span>
+                      <span className="text-white font-bold">{sp.distance}m</span>
+                    </div>
+                    <div className="bg-[#181513] p-1 rounded border border-[#2e261f]">
+                      <span className="text-zinc-500 block text-[7.5px]">AZIMUT</span>
+                      <span className="text-[#eaaf5d] font-bold">{sp.azimuthDeg}°</span>
+                    </div>
+                    <div className="bg-[#181513] p-1 rounded border border-[#2e261f]">
+                      <span className="text-zinc-500 block text-[7.5px]">ÉLÉV</span>
+                      <span className="text-cyan-400 font-bold">{sp.elevationDeg}°</span>
+                    </div>
+                    <div className="bg-[#181513] p-1 rounded border border-[#2e261f]">
+                      <span className="text-zinc-500 block text-[7.5px]">ATTÉN</span>
+                      <span className="text-emerald-400 font-bold">{(sp.attenuation * 100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Cartesian Sliders (X, Y, Z) */}
+            <div className="bg-[#1f1f1f] p-2.5 rounded-lg border border-[#2d2d2d] space-y-2.5">
+              <span className="text-[10px] uppercase font-bold text-zinc-400">Coordonnées Cartésiennes (mètres)</span>
+
+              {/* X: Panoramique Latéral */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-mono">
+                  <span className="text-zinc-400">X (Gauche / Droite) :</span>
+                  <span className="text-[#eaaf5d] font-bold">
+                    {(selectedTrack?.spatialCoordinates?.x || 0).toFixed(1)} m
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="-5"
+                  max="5"
+                  step="0.1"
+                  value={selectedTrack?.spatialCoordinates?.x || 0}
+                  onChange={(e) => {
+                    const x = parseFloat(e.target.value);
+                    const prevCoords = selectedTrack?.spatialCoordinates || { x: 0, y: 0, z: 2.5 };
+                    onUpdateTrack && onUpdateTrack(selectedTrack?.id, {
+                      spatialCoordinates: { ...prevCoords, x }
+                    });
+                  }}
+                  className="w-full accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Y: Hauteur / Élévation */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-mono">
+                  <span className="text-zinc-400">Y (Hauteur / Plafond) :</span>
+                  <span className="text-cyan-400 font-bold">
+                    {(selectedTrack?.spatialCoordinates?.y || 0).toFixed(1)} m
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="-3"
+                  max="3"
+                  step="0.1"
+                  value={selectedTrack?.spatialCoordinates?.y || 0}
+                  onChange={(e) => {
+                    const y = parseFloat(e.target.value);
+                    const prevCoords = selectedTrack?.spatialCoordinates || { x: 0, y: 0, z: 2.5 };
+                    onUpdateTrack && onUpdateTrack(selectedTrack?.id, {
+                      spatialCoordinates: { ...prevCoords, y }
+                    });
+                  }}
+                  className="w-full accent-cyan-400 h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Z: Profondeur / Distance */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-mono">
+                  <span className="text-zinc-400">Z (Avant / Arrière) :</span>
+                  <span className="text-white font-bold">
+                    {(selectedTrack?.spatialCoordinates?.z !== undefined ? selectedTrack.spatialCoordinates.z : 2.5).toFixed(1)} m
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="-5"
+                  max="5"
+                  step="0.1"
+                  value={selectedTrack?.spatialCoordinates?.z !== undefined ? selectedTrack.spatialCoordinates.z : 2.5}
+                  onChange={(e) => {
+                    const z = parseFloat(e.target.value);
+                    const prevCoords = selectedTrack?.spatialCoordinates || { x: 0, y: 0, z: 2.5 };
+                    onUpdateTrack && onUpdateTrack(selectedTrack?.id, {
+                      spatialCoordinates: { ...prevCoords, z }
+                    });
+                  }}
+                  className="w-full accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                />
+              </div>
             </div>
           </div>
         )}

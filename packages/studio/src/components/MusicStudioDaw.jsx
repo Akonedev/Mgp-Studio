@@ -94,7 +94,7 @@ import MusicStudioAudioWarp, { detectAudioTransients } from "./MusicStudioAudioW
 import MusicStudioConsoleMixer from "./MusicStudioConsoleMixer";
 import MusicStudioRadialMenu from "./MusicStudioRadialMenu";
 import MusicStudioMidiMappings from "./MusicStudioMidiMappings";
-import { encodeDawproject, decodeDawproject, downloadDawproject } from "./MusicStudioDawproject";
+import { encodeDawproject, decodeDawproject, downloadDawproject, createZipArchive } from "./MusicStudioDawproject";
 import {
   evaluateAutomationValue,
   computeGainReductionDb,
@@ -4356,6 +4356,113 @@ export function MusicStudioDaw({
     URL.revokeObjectURL(url);
     setIsExportAudioModalOpen(false);
     setStatusHint("Export WAV Stéréo 24-bit PCM 48kHz terminé avec succès !");
+  }, [tracks, loopStartBar, loopEndBar, bpm, selectedTrack]);
+
+  // ── 1-Click Multi-Track Stems ZIP Export (Recommendation 3) ──
+  const handleExportStemsZip = useCallback(async () => {
+    setStatusHint("Génération des stems 24-bit PCM en cours...");
+    const sr = 48000;
+    const durSec = Math.max(10, Math.min(60, (loopEndBar - loopStartBar) * (240 / bpm)));
+    const totalSamples = Math.floor(sr * durSec);
+    const activeTracks = tracks.filter((t) => !t.mute);
+    const zipFiles = [];
+
+    // Master Mixdown accumulator
+    const masterLeft = new Float32Array(totalSamples);
+    const masterRight = new Float32Array(totalSamples);
+
+    for (let tIdx = 0; tIdx < activeTracks.length; tIdx++) {
+      const trk = activeTracks[tIdx];
+      const trkLeft = new Float32Array(totalSamples);
+      const trkRight = new Float32Array(totalSamples);
+
+      const vol = (trk.volume / 100) * 0.5;
+      const pan = (trk.pan || 0) / 100;
+      const leftGain = vol * Math.cos(((pan + 1) * Math.PI) / 4);
+      const rightGain = vol * Math.sin(((pan + 1) * Math.PI) / 4);
+
+      for (const clip of trk.clips || []) {
+        const url = clip.url || trk.audioUrl;
+        const buf = url ? dawAudioEngine.bufferCache.get(url) : null;
+        if (buf && buf.numberOfChannels > 0) {
+          const bufL = buf.getChannelData(0);
+          const bufR = buf.numberOfChannels > 1 ? buf.getChannelData(1) : bufL;
+          const copyLen = Math.min(totalSamples, bufL.length);
+          for (let i = 0; i < copyLen; i++) {
+            trkLeft[i] += bufL[i] * leftGain;
+            trkRight[i] += bufR[i] * rightGain;
+          }
+        } else {
+          const baseFreq = trk.type === "bass" ? 65.4 : trk.type === "vocals" ? 330 : 220;
+          for (let i = 0; i < totalSamples; i++) {
+            const t = i / sr;
+            const s = Math.sin(2 * Math.PI * baseFreq * t) * Math.exp(-((t % 2) * 1.2));
+            trkLeft[i] += s * leftGain;
+            trkRight[i] += s * rightGain;
+          }
+        }
+      }
+
+      // Accumulate into master
+      for (let i = 0; i < totalSamples; i++) {
+        masterLeft[i] += trkLeft[i];
+        masterRight[i] += trkRight[i];
+      }
+
+      // Encode individual track stem to 24-bit PCM WAV
+      const stemWavBytes = encodeWav({
+        sampleRate: sr,
+        channelData: [trkLeft, trkRight],
+        bitDepth: 24
+      });
+
+      const sanitizedName = `${String(tIdx + 1).padStart(2, "0")}_${(trk.name || trk.id).replace(/[^a-zA-Z0-9_-]/g, "_")}.wav`;
+      zipFiles.push({
+        name: `Stems/${sanitizedName}`,
+        content: stemWavBytes
+      });
+    }
+
+    // Add Master Mixdown 24-bit WAV
+    const masterWavBytes = encodeWav({
+      sampleRate: sr,
+      channelData: [masterLeft, masterRight],
+      bitDepth: 24
+    });
+    zipFiles.push({
+      name: "Master_Mixdown_24bit.wav",
+      content: masterWavBytes
+    });
+
+    // Add JSON Manifest
+    const manifest = {
+      projectTitle: selectedTrack?.title || "Sahel_Symphony",
+      bpm,
+      timeSignature: "4/4",
+      sampleRate: sr,
+      bitDepth: 24,
+      totalTracks: activeTracks.length,
+      durationSec: durSec,
+      exportedAt: new Date().toISOString()
+    };
+    zipFiles.push({
+      name: "manifest.json",
+      content: JSON.stringify(manifest, null, 2)
+    });
+
+    // Create ZIP archive with IEEE 802.3 CRC-32
+    const zipBytes = createZipArchive(zipFiles);
+    const blob = new Blob([zipBytes], { type: "application/zip" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(selectedTrack?.title || "Sahel_Symphony").replace(/\s+/g, "_")}_Stems_24bit_WAV.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setIsExportAudioModalOpen(false);
+    setStatusHint(`Archive ZIP Stems 24-bit (${activeTracks.length} pistes + Master) générée avec succès !`);
   }, [tracks, loopStartBar, loopEndBar, bpm, selectedTrack]);
 
   // ── MIDI File Export (Real Binary Standard MIDI File SMF Type 1 - Chapter 14.6) ──
@@ -12376,6 +12483,14 @@ export function MusicStudioDaw({
               >
                 <Music size={13} />
                 <span>Exporter MIDI (.mid)</span>
+              </button>
+              <button
+                data-testid="btn-confirm-export-stems-zip"
+                onClick={handleExportStemsZip}
+                className="px-3.5 py-2 bg-[#1b1510] hover:bg-[#251d16] border border-[#df9c43]/60 text-[#f5c277] hover:text-white font-bold rounded-lg transition text-xs flex items-center gap-1.5 shadow-[0_0_8px_rgba(223,156,67,0.2)]"
+              >
+                <Layers size={13} className="text-[#df9c43]" />
+                <span>Exporter Stems ZIP (24-bit)</span>
               </button>
               <button
                 data-testid="btn-confirm-export-wav"

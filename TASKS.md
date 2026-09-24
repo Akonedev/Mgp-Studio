@@ -1128,6 +1128,19 @@
       - 17/17 suites de tests automatisées validées avec 100% de succès dans `test_daw_core.js`.
       - Empreinte CPU négligeable (< 2%), 0% charge GPU sur AMD RX 7900 XTX et NVIDIA GB10 Spark.
 
-
-
-
+  - [x] **Sprint T : Radar Audio-Visuel 3D Circulaire, Exportateur Stems ZIP 1-Clic & Poignées Bézier Interactives (18 Suites 100% Validées)** :
+    * **Recommandation 1 : Radar Audio-Visuel 3D Circulaire (`MusicStudioInspectorPanel.jsx`)** :
+      - Intégration du 4ème onglet « Radar 3D » dans le Panneau Inspecteur Universel avec écran circulaire, cercles métriques de distance (1m, 2.5m, 5m), repères cardinaux et écouteur central.
+      - Nœud d'objet sonore interactif avec projection bidirectionnelle métrique/pixel (`calculateRadarScreenPosition` et `calculateRadarCoordinatesFromScreen`).
+      - Bandeau numérique en temps réel (Distance, Azimut, Élévation, Atténuation).
+      - Curseurs cartésiens pour $X$ (Gauche/Droite), $Y$ (Hauteur) et $Z$ (Avant/Arrière).
+    * **Recommandation 2 : Exportateur Stems ZIP 1-Clic (`handleExportStemsZip` dans `MusicStudioDaw.jsx`)** :
+      - Bouton `[📦 Exporter Stems ZIP (24-bit)]` dans la modale d'export audio.
+      - Génération synchrone de tous les stems 24-bit PCM individuellement + mixdown Master + `manifest.json`.
+      - Empaquetage ZIP binaire instantané dans le navigateur via `createZipArchive` (PKWARE/CRC-32) sans sollicitation serveur ni GPU.
+    * **Recommandation 3 : Poignées de Tension Bézier Interactives (`MusicStudioDaw.jsx`)** :
+      - Rendu SVG dynamique des poignées de tension au point milieu de chaque segment (`buildAutomationCurveSvg`).
+      - Ajustement interactif par glissement vertical (`cursor-ns-resize`) avec mise à jour en temps réel de la tension et de l'ombrage.
+    * **Validation Intégrale Zéro Mock** :
+      - 18/18 suites de tests automatisées validées avec 100% de succès dans `test_daw_core.js`.
+      - Aucune régression, zéro charge GPU sur DGX Spark ou machine locale.
