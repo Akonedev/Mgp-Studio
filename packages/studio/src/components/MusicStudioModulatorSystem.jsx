@@ -128,6 +128,73 @@ export const STUDIO_MODULATOR_TYPES = [
       bipolar: true,
       mode: "sampleHold" // sampleHold, randomWalk
     }
+  },
+  {
+    type: "polynom",
+    name: "Polynom",
+    category: "Modifier",
+    desc: "Transformateur polynomial cubique y = ax³ + bx² + cx + d (Section 19.27.5.3)",
+    icon: TrendingUp,
+    defaultConfig: {
+      a: 0.0,
+      b: 0.0,
+      c: 1.0,
+      d: 0.0,
+      rateSync: "1/4",
+      bipolar: true
+    }
+  },
+  {
+    type: "quantize",
+    name: "Quantize",
+    category: "Modifier",
+    desc: "Quantificateur de paliers de modulation continus (Section 19.27.5.4)",
+    icon: Sliders,
+    defaultConfig: {
+      steps: 8,
+      rateSync: "1/4",
+      bipolar: false
+    }
+  },
+  {
+    type: "expressions",
+    name: "Expressions MPE",
+    category: "Note-driven",
+    desc: "Source d'expression polyphonique : Timbre, Pression, Vélocité (Section 19.27.6.2)",
+    icon: Zap,
+    defaultConfig: {
+      source: "timbre", // timbre, pressure, velocity, release
+      value: 64,
+      smoothing: 10
+    }
+  },
+  {
+    type: "keytrack",
+    name: "Keytrack+",
+    category: "Note-driven",
+    desc: "Suivi de clavier relatif avec point pivot et pente (Section 19.27.6.3)",
+    icon: Compass,
+    defaultConfig: {
+      rootKey: 60,
+      spread: 100,
+      currentNote: 60
+    }
+  },
+  {
+    type: "four_stage",
+    name: "4-Stage",
+    category: "Sequencing",
+    desc: "Enveloppe/séquence 4 étages avec temps et niveaux indépendants (Section 19.27.7.1)",
+    icon: Layers,
+    defaultConfig: {
+      stages: [
+        { time: 0.25, level: 1.0 },
+        { time: 0.25, level: 0.4 },
+        { time: 0.25, level: 0.8 },
+        { time: 0.25, level: 0.0 }
+      ],
+      loop: true
+    }
   }
 ];
 
@@ -228,6 +295,64 @@ export function evaluateModulatorValue(mod, timeSec, bpm = 120, isPlaying = true
     const currentStep = Math.floor(timeSec / stepDuration) % 8;
     const item = cfg.steps[currentStep] || { val: 0.5, prob: 100 };
     return item.val;
+  }
+
+  if (mod.type === "polynom") {
+    const cfg = mod.config;
+    const qn = syncToQuarterNotes(cfg.rateSync || "1/4");
+    const freq = (bpm / 60) / qn;
+    const x = Math.sin(2 * Math.PI * timeSec * freq); // input signal in [-1, 1]
+    const { a = 0, b = 0, c = 1, d = 0 } = cfg;
+    const y = a * Math.pow(x, 3) + b * Math.pow(x, 2) + c * x + d;
+    return Math.max(-1, Math.min(1, y));
+  }
+
+  if (mod.type === "quantize") {
+    const cfg = mod.config;
+    const qn = syncToQuarterNotes(cfg.rateSync || "1/4");
+    const freq = (bpm / 60) / qn;
+    const ramp = (timeSec * freq) % 1.0;
+    const steps = Math.max(2, cfg.steps || 8);
+    const quantized = Math.round(ramp * steps) / steps;
+    return cfg.bipolar ? (quantized * 2 - 1) : quantized;
+  }
+
+  if (mod.type === "expressions") {
+    const cfg = mod.config;
+    return Math.max(0, Math.min(1, (cfg.value ?? 64) / 127));
+  }
+
+  if (mod.type === "keytrack") {
+    const cfg = mod.config;
+    const semitones = (cfg.currentNote || 60) - (cfg.rootKey || 60);
+    const octaves = semitones / 12;
+    const spread = (cfg.spread || 100) / 100;
+    return Math.max(-1, Math.min(1, octaves * spread));
+  }
+
+  if (mod.type === "four_stage") {
+    const cfg = mod.config;
+    const stages = cfg.stages || [
+      { time: 0.25, level: 1.0 },
+      { time: 0.25, level: 0.4 },
+      { time: 0.25, level: 0.8 },
+      { time: 0.25, level: 0.0 }
+    ];
+    const totalTime = stages.reduce((acc, s) => acc + (s.time || 0.25), 0);
+    if (totalTime <= 0) return 0;
+    const elapsed = cfg.loop ? (timeSec % totalTime) : Math.min(timeSec, totalTime);
+    let accum = 0;
+    let prevLevel = stages[stages.length - 1].level || 0;
+    for (const st of stages) {
+      const dur = st.time || 0.25;
+      if (elapsed <= accum + dur) {
+        const prog = (elapsed - accum) / dur;
+        return prevLevel * (1 - prog) + st.level * prog;
+      }
+      accum += dur;
+      prevLevel = st.level;
+    }
+    return stages[stages.length - 1].level;
   }
 
   return 0;

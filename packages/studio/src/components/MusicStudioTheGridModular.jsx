@@ -47,6 +47,10 @@ export const GRID_MODULE_CATEGORIES = [
   { id: "mod", label: "Modulateurs" },
   { id: "shaper", label: "Shapers" },
   { id: "math", label: "Math & Level" },
+  { id: "logic", label: "Logique" },
+  { id: "phase", label: "Phase" },
+  { id: "random", label: "Aléatoire" },
+  { id: "level", label: "Niveau" },
   { id: "fx", label: "Delay & FX" },
   { id: "display", label: "Affichage" }
 ];
@@ -341,6 +345,114 @@ export const GRID_MODULE_CATALOG = [
     inputs: [{ label: "Sig In", signal: "audio", color: "#df9c43" }],
     outputs: [{ label: "Thru Out", signal: "audio", color: "#df9c43" }],
     defaultParams: { scale: 1.0, speed: 50 }
+  },
+
+  // 10. Logic (Section 19.28.16)
+  {
+    type: "logic_gate",
+    name: "Logic Gate",
+    category: "logic",
+    categoryLabel: "Logique",
+    color: "#14b8a6",
+    desc: "Porte logique booléenne : AND, OR, XOR, NOT, NAND, NOR, XNOR (Section 19.28.16)",
+    inputs: [
+      { label: "Gate A", signal: "pitch", color: "#38bdf8" },
+      { label: "Gate B", signal: "pitch", color: "#38bdf8" }
+    ],
+    outputs: [{ label: "Gate Out", signal: "pitch", color: "#14b8a6" }],
+    defaultParams: { logicOp: "AND" }
+  },
+  {
+    type: "logic_compare",
+    name: "Comparator",
+    category: "logic",
+    categoryLabel: "Logique",
+    color: "#0d9488",
+    desc: "Comparateur de valeurs : =, ≠, >, <, ≥, ≤ (Section 19.28.16)",
+    inputs: [
+      { label: "Val A", signal: "mod", color: "#a855f7" },
+      { label: "Val B", signal: "mod", color: "#a855f7" }
+    ],
+    outputs: [{ label: "Gate Out", signal: "pitch", color: "#14b8a6" }],
+    defaultParams: { compareOp: ">", threshold: 0.5 }
+  },
+  {
+    type: "clock_divide",
+    name: "Clock Divide",
+    category: "logic",
+    categoryLabel: "Logique",
+    color: "#0f766e",
+    desc: "Diviseur d'horloge et battements rythmiques (Section 19.28.16.3)",
+    inputs: [{ label: "Clock In", signal: "pitch", color: "#38bdf8" }],
+    outputs: [{ label: "Div Out", signal: "pitch", color: "#14b8a6" }],
+    defaultParams: { division: 2 }
+  },
+
+  // 11. Phase (Section 19.28.3)
+  {
+    type: "phasor",
+    name: "Phasor",
+    category: "phase",
+    categoryLabel: "Phase",
+    color: "#8b5cf6",
+    desc: "Rampe de phase continue 0 à 1 synchronisée ou libre (Section 19.28.3.1)",
+    inputs: [
+      { label: "Sync In", signal: "pitch", color: "#38bdf8" },
+      { label: "Rate Mod", signal: "mod", color: "#a855f7" }
+    ],
+    outputs: [{ label: "Phase Ø", signal: "mod", color: "#8b5cf6" }],
+    defaultParams: { freq: 2.0, reverse: false }
+  },
+
+  // 12. Random (Section 19.28.6)
+  {
+    type: "noise_gen",
+    name: "Noise Generator",
+    category: "random",
+    categoryLabel: "Aléatoire",
+    color: "#ec4899",
+    desc: "Générateur de bruit White, Pink et Brown avec filtrage spectral DSP (Section 19.28.6.1)",
+    inputs: [],
+    outputs: [{ label: "Noise Out", signal: "audio", color: "#df9c43" }],
+    defaultParams: { noiseColor: "white", level: 0.7 }
+  },
+  {
+    type: "dice",
+    name: "Dice",
+    category: "random",
+    categoryLabel: "Aléatoire",
+    color: "#db2777",
+    desc: "Générateur stochastique de valeurs discrètes cadencé (Section 19.28.6.4)",
+    inputs: [{ label: "Trigger", signal: "pitch", color: "#38bdf8" }],
+    outputs: [{ label: "Dice Out", signal: "mod", color: "#db2777" }],
+    defaultParams: { sides: 6 }
+  },
+
+  // 13. Level (Section 19.28.13)
+  {
+    type: "sample_hold",
+    name: "Sample & Hold",
+    category: "level",
+    categoryLabel: "Niveau",
+    color: "#eab308",
+    desc: "Échantillonneur-bloqueur de signal sur front montant (Section 19.28.13.18)",
+    inputs: [
+      { label: "Sig In", signal: "mod", color: "#a855f7" },
+      { label: "Trigger", signal: "pitch", color: "#38bdf8" }
+    ],
+    outputs: [{ label: "S/H Out", signal: "mod", color: "#eab308" }],
+    defaultParams: { mode: "track" }
+  },
+  {
+    type: "bias_amp",
+    name: "Bias & Level",
+    category: "level",
+    categoryLabel: "Niveau",
+    color: "#ca8a04",
+    desc: "Contrôle d'offset continu (Bias) et conversion Bipolaire/Unipolaire (Section 19.28.13.5)",
+    inputs: [{ label: "Sig In", signal: "mod", color: "#a855f7" }],
+    outputs: [{ label: "Sig Out", signal: "mod", color: "#ca8a04" }],
+    defaultParams: { bias: 0.0, amplify: 1.0, mode: "bipolar" }
   }
 ];
 
@@ -1136,8 +1248,219 @@ export default function MusicStudioTheGridModular({
                   </div>
                 )}
 
+                {/* 11. Logic Gate Controls (Section 19.28.16) */}
+                {mod.type === "logic_gate" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Porte :</span>
+                      <select
+                        value={mod.logicOp || "AND"}
+                        onChange={(e) => handleUpdateParam(mod.id, "logicOp", e.target.value)}
+                        className="bg-[#222] text-teal-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="AND">AND (ET)</option>
+                        <option value="OR">OR (OU)</option>
+                        <option value="XOR">XOR (OU Exclusif)</option>
+                        <option value="NOT">NOT (NON A)</option>
+                        <option value="NAND">NAND (NON-ET)</option>
+                        <option value="NOR">NOR (NON-OU)</option>
+                        <option value="XNOR">XNOR (Équivalence)</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>État Sortie :</span>
+                      <span className="text-teal-400 font-mono font-bold">GATE HIGH / LOW</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 12. Comparator Controls (Section 19.28.16) */}
+                {mod.type === "logic_compare" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Comparaison :</span>
+                      <select
+                        value={mod.compareOp || ">"}
+                        onChange={(e) => handleUpdateParam(mod.id, "compareOp", e.target.value)}
+                        className="bg-[#222] text-teal-300 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value=">">A &gt; B</option>
+                        <option value="<">A &lt; B</option>
+                        <option value="=">A = B</option>
+                        <option value="≠">A ≠ B</option>
+                        <option value="≥">A ≥ B</option>
+                        <option value="≤">A ≤ B</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Seuil :</span>
+                      <span className="text-teal-300 font-mono font-bold">{mod.threshold || 0.5}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="1.0"
+                      step="0.05"
+                      value={mod.threshold || 0.5}
+                      onChange={(e) => handleUpdateParam(mod.id, "threshold", Number(e.target.value))}
+                      className="w-full accent-teal-400 h-1 bg-zinc-800 rounded"
+                    />
+                  </div>
+                )}
+
+                {/* 13. Clock Divide Controls (Section 19.28.16.3) */}
+                {mod.type === "clock_divide" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Division :</span>
+                      <select
+                        value={mod.division || 2}
+                        onChange={(e) => handleUpdateParam(mod.id, "division", Number(e.target.value))}
+                        className="bg-[#222] text-teal-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="2">/ 2 (Demi-temps)</option>
+                        <option value="4">/ 4 (1 mesure)</option>
+                        <option value="8">/ 8 (2 mesures)</option>
+                        <option value="16">/ 16 (4 mesures)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* 14. Phasor Controls (Section 19.28.3.1) */}
+                {mod.type === "phasor" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Fréquence :</span>
+                      <span className="text-violet-400 font-mono font-bold">{mod.freq || 2.0} Hz</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="20.0"
+                      step="0.1"
+                      value={mod.freq || 2.0}
+                      onChange={(e) => handleUpdateParam(mod.id, "freq", Number(e.target.value))}
+                      className="w-full accent-violet-400 h-1 bg-zinc-800 rounded"
+                    />
+                    <div className="flex justify-between items-center pt-0.5">
+                      <span className="text-zinc-400">Sens :</span>
+                      <button
+                        onClick={() => handleUpdateParam(mod.id, "reverse", !mod.reverse)}
+                        className={`px-1.5 py-0.5 rounded text-[8.5px] font-bold font-mono transition ${
+                          mod.reverse
+                            ? "bg-violet-950 border border-violet-500 text-violet-300"
+                            : "bg-[#252525] text-zinc-400"
+                        }`}
+                      >
+                        {mod.reverse ? "INVERSÉ ↘" : "NORMAL ↗"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 15. Noise Generator Controls (Section 19.28.6.1) */}
+                {mod.type === "noise_gen" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Couleur spectrale :</span>
+                      <select
+                        value={mod.noiseColor || "white"}
+                        onChange={(e) => handleUpdateParam(mod.id, "noiseColor", e.target.value)}
+                        className="bg-[#222] text-pink-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="white">Blanc (Uniforme)</option>
+                        <option value="pink">Rose (-3 dB/oct)</option>
+                        <option value="brown">Brun (-6 dB/oct)</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Niveau :</span>
+                      <span className="text-pink-400 font-mono font-bold">{Math.round((mod.level || 0.7) * 100)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="1.0"
+                      step="0.05"
+                      value={mod.level || 0.7}
+                      onChange={(e) => handleUpdateParam(mod.id, "level", Number(e.target.value))}
+                      className="w-full accent-pink-400 h-1 bg-zinc-800 rounded"
+                    />
+                  </div>
+                )}
+
+                {/* 16. Dice Controls (Section 19.28.6.4) */}
+                {mod.type === "dice" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Faces du dé :</span>
+                      <select
+                        value={mod.sides || 6}
+                        onChange={(e) => handleUpdateParam(mod.id, "sides", Number(e.target.value))}
+                        className="bg-[#222] text-pink-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="4">D4 (1 à 4)</option>
+                        <option value="6">D6 (1 à 6)</option>
+                        <option value="8">D8 (1 à 8)</option>
+                        <option value="12">D12 (1 à 12)</option>
+                        <option value="20">D20 (1 à 20)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* 17. Sample & Hold Controls (Section 19.28.13.18) */}
+                {mod.type === "sample_hold" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Mode :</span>
+                      <select
+                        value={mod.mode || "track"}
+                        onChange={(e) => handleUpdateParam(mod.id, "mode", e.target.value)}
+                        className="bg-[#222] text-amber-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="track">Track & Hold</option>
+                        <option value="discrete">Échantillonnage Discret</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* 18. Bias & Level Controls (Section 19.28.13.5) */}
+                {mod.type === "bias_amp" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Offset (Bias) :</span>
+                      <span className="text-amber-400 font-mono font-bold">{mod.bias || 0.0}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="-1.0"
+                      max="1.0"
+                      step="0.05"
+                      value={mod.bias || 0.0}
+                      onChange={(e) => handleUpdateParam(mod.id, "bias", Number(e.target.value))}
+                      className="w-full accent-amber-400 h-1 bg-zinc-800 rounded"
+                    />
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Amplification :</span>
+                      <span className="text-amber-400 font-mono font-bold">{mod.amplify || 1.0}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="3.0"
+                      step="0.1"
+                      value={mod.amplify || 1.0}
+                      onChange={(e) => handleUpdateParam(mod.id, "amplify", Number(e.target.value))}
+                      className="w-full accent-amber-400 h-1 bg-zinc-800 rounded"
+                    />
+                  </div>
+                )}
+
                 {/* Generic fallback for other modules */}
-                {!["oscillator", "filter", "lfo", "envelope", "shaper", "delay", "output", "chebyshev", "math_calc", "oscilloscope"].includes(mod.type) && (
+                {!["oscillator", "filter", "lfo", "envelope", "shaper", "delay", "output", "chebyshev", "math_calc", "oscilloscope", "logic_gate", "logic_compare", "clock_divide", "phasor", "noise_gen", "dice", "sample_hold", "bias_amp"].includes(mod.type) && (
                   <div className="text-zinc-500 italic text-[9px] py-0.5">
                     Paramètres actifs • Prêt au patch
                   </div>

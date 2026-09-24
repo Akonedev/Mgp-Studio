@@ -373,17 +373,117 @@ export default function MusicStudioInspectorPanel({
               </div>
             </div>
 
-            {/* Action Suivante (Next Action - Section 6.2.5.3, p. 198) */}
-            <div className="bg-[#1f1f1f] p-2.5 rounded-lg border border-[#2d2d2d] space-y-2 text-[11px]">
-              <span className="text-[10px] uppercase font-bold text-zinc-400">Action Suivante (p. 198)</span>
-
+            {/* ── Actions Suivantes & Launch Quantization (Section 6.2.5.3, p. 198-205) ── */}
+            <div className="bg-[#1f1f1f] p-2.5 rounded-lg border border-[#2d2d2d] space-y-2.5 text-[11px]">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">Après 4 mesures :</span>
-                <select className="bg-[#121212] border border-[#333333] rounded px-2 py-0.5 text-white text-[10px]">
-                  <option value="next">Lire le clip suivant</option>
-                  <option value="loop">Reboucler ce clip</option>
-                  <option value="random">Lire un clip aléatoire</option>
-                  <option value="stop">Arrêter la lecture</option>
+                <span className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1">
+                  <ArrowRight size={12} className="text-[#df9c43]" />
+                  <span>Actions Suivantes (Next Action)</span>
+                </span>
+                <span className="px-1.5 py-0.2 rounded bg-amber-950/70 border border-amber-800/60 text-[#eaaf5d] font-mono text-[9px]">
+                  {selectedClip?.nextAction || "next"}
+                </span>
+              </div>
+
+              {/* Déclenchement temporel (Condition) */}
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-400">Déclencher après :</span>
+                <select
+                  value={selectedClip?.nextActionBars || "4"}
+                  onChange={(e) =>
+                    onUpdateClip &&
+                    onUpdateClip(selectedClip?.id, { nextActionBars: e.target.value })
+                  }
+                  className="bg-[#121212] border border-[#333333] rounded px-2 py-0.5 text-white text-[10px] font-mono"
+                >
+                  <option value="1">1 Mesure</option>
+                  <option value="2">2 Mesures</option>
+                  <option value="4">4 Mesures</option>
+                  <option value="8">8 Mesures</option>
+                  <option value="16">16 Mesures</option>
+                  <option value="loop">Fin de Boucle</option>
+                </select>
+              </div>
+
+              {/* Action Principale */}
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-400">Action principale :</span>
+                <select
+                  value={selectedClip?.nextAction || "play_next"}
+                  onChange={(e) =>
+                    onUpdateClip &&
+                    onUpdateClip(selectedClip?.id, { nextAction: e.target.value })
+                  }
+                  className="bg-[#121212] border border-[#333333] rounded px-2 py-0.5 text-[#eaaf5d] font-bold text-[10px]"
+                >
+                  <option value="none">Aucune (Off)</option>
+                  <option value="play_next">Suivant (Play Next)</option>
+                  <option value="play_prev">Précédent (Play Previous)</option>
+                  <option value="play_first">Premier (Play First)</option>
+                  <option value="play_last">Dernier (Play Last)</option>
+                  <option value="play_random">Aléatoire (Play Random)</option>
+                  <option value="repeat">Répéter (Repeat)</option>
+                  <option value="stop">Arrêter (Stop)</option>
+                </select>
+              </div>
+
+              {/* Probabilité de l'action suivante */}
+              <div className="space-y-1 pt-1 border-t border-[#292929]">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-zinc-400">Probabilité :</span>
+                  <span className="font-mono text-amber-400 font-bold">
+                    {selectedClip?.nextActionProb ?? 100}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={selectedClip?.nextActionProb ?? 100}
+                  onChange={(e) =>
+                    onUpdateClip &&
+                    onUpdateClip(selectedClip?.id, { nextActionProb: parseInt(e.target.value, 10) })
+                  }
+                  className="w-full accent-[#df9c43] h-1.5 bg-[#121212] rounded appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Action Alternative */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-zinc-400">Sinon (Alternative) :</span>
+                <select
+                  value={selectedClip?.altAction || "repeat"}
+                  onChange={(e) =>
+                    onUpdateClip &&
+                    onUpdateClip(selectedClip?.id, { altAction: e.target.value })
+                  }
+                  className="bg-[#121212] border border-[#333333] rounded px-2 py-0.5 text-zinc-300 text-[10px]"
+                >
+                  <option value="repeat">Répéter le clip</option>
+                  <option value="stop">Arrêter</option>
+                  <option value="play_random">Clip aléatoire</option>
+                </select>
+              </div>
+
+              {/* Quantification de Lancement */}
+              <div className="flex items-center justify-between pt-1 border-t border-[#292929]">
+                <span className="text-zinc-400">Quantification :</span>
+                <select
+                  value={selectedClip?.launchQuantize || "1bar"}
+                  onChange={(e) =>
+                    onUpdateClip &&
+                    onUpdateClip(selectedClip?.id, { launchQuantize: e.target.value })
+                  }
+                  className="bg-[#121212] border border-[#333333] rounded px-2 py-0.5 text-white font-mono text-[10px]"
+                >
+                  <option value="off">Désactivée (Off)</option>
+                  <option value="1/16">1/16</option>
+                  <option value="1/8">1/8</option>
+                  <option value="1/4">1/4</option>
+                  <option value="1bar">1 Mesure</option>
+                  <option value="2bars">2 Mesures</option>
+                  <option value="4bars">4 Mesures</option>
                 </select>
               </div>
             </div>
