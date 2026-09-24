@@ -7,6 +7,7 @@ import {
   Pencil,
   Eraser,
   Scissors,
+  MoveHorizontal,
   Layers,
   SlidersHorizontal,
   Eye,
@@ -20,7 +21,7 @@ import {
 
 /**
  * Music Studio 5/6 Universal Arranger Toolbar & Switches
- * Reference: Music Studio User Guide French (Section 3.1.4, p. 81–85)
+ * Reference: Music Studio User Guide French (Section 3.1.4, p. 81–85 & Section 5.1.6, p. 165–167)
  *
  * Tools:
  * [1] Pointeur : Sélection et déplacement d'objets (clips, notes, automation)
@@ -28,6 +29,7 @@ import {
  * [3] Crayon : Dessin de nouveaux événements et clips
  * [4] Gomme : Suppression d'événements au clic ou par zone
  * [5] Cutter : Scission chirurgicale de clips en deux à la position cliquée
+ * [6] Coulisser (Slip) : Déplacement du contenu sans bouger les frontières du clip
  *
  * Switches (p. 84):
  * - [E/S] : Entrées / Sorties des pistes
@@ -72,6 +74,13 @@ export const STUDIO_TOOLS = [
     label: "Cutter",
     desc: "Scinder un clip en deux à la mesure cliquée",
     icon: Scissors
+  },
+  {
+    id: "slip",
+    num: "6",
+    label: "Coulisser",
+    desc: "Faire coulisser le contenu d'un clip sans modifier ses frontières (Section 5.1.6)",
+    icon: MoveHorizontal
   }
 ];
 

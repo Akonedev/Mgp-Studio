@@ -2432,6 +2432,7 @@ export function StudioWaveformCanvas({ clip, track, widthPx, heightPx = 28 }) {
   const isAudio = track.isAudio || track.type === "audio" || clip.isAudio;
   const waveformKey = clip.waveformKey || (track.id === "trk_drum_break" ? "drum_break" : "piano_lr_1");
   const peakData = REAL_STUDIO_AUDIO_PEAKS[waveformKey] || REAL_STUDIO_AUDIO_PEAKS.piano_lr_1;
+  const slipOffset = clip.slipOffset || 0;
 
   if (isAudio && peakData) {
     const { peaksL, peaksR } = peakData;
@@ -2459,7 +2460,7 @@ export function StudioWaveformCanvas({ clip, track, widthPx, heightPx = 28 }) {
 
       return (
         <div className="w-full h-full bg-black/40 rounded overflow-hidden relative flex flex-col justify-center">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40" style={{ transform: slipOffset ? `translateX(${slipOffset}px)` : undefined }}>
             <line x1="0" y1="10" x2="100" y2="10" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="1.5 1.5" opacity="0.4" />
             <line x1="0" y1="20" x2="100" y2="20" stroke="#ffffff" strokeWidth="0.5" opacity="0.2" />
             <line x1="0" y1="30" x2="100" y2="30" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="1.5 1.5" opacity="0.4" />
@@ -2484,7 +2485,7 @@ export function StudioWaveformCanvas({ clip, track, widthPx, heightPx = 28 }) {
 
       return (
         <div className="w-full h-full bg-black/40 rounded overflow-hidden relative flex flex-col justify-center">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40" style={{ transform: slipOffset ? `translateX(${slipOffset}px)` : undefined }}>
             <line x1="0" y1="20" x2="100" y2="20" stroke="#ffffff" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.4" />
             <path d={pathMono} fill="rgba(254, 202, 202, 0.5)" stroke="rgba(255, 255, 255, 0.9)" strokeWidth="0.8" />
             {clip.warpMarkers && clip.warpMarkers.map((wm, widx) => (
@@ -2507,7 +2508,7 @@ export function StudioWaveformCanvas({ clip, track, widthPx, heightPx = 28 }) {
         <div className="w-full h-px bg-white" />
         <div className="w-full h-px bg-white" />
       </div>
-      <div className="w-full h-full relative z-10 flex items-center">
+      <div className="w-full h-full relative z-10 flex items-center" style={{ transform: slipOffset ? `translateX(${slipOffset}px)` : undefined }}>
         {Array.from({ length: numNotes }).map((_, idx) => {
           const pitch = notePitches[idx % notePitches.length];
           const leftPct = (idx / numNotes) * 100;
@@ -2954,10 +2955,14 @@ export function MusicStudioDaw({
   const [draggingAnchor, setDraggingAnchor] = useState(null);
   const [hoveredAnchorTooltip, setHoveredAnchorTooltip] = useState(null);
 
-  // ── Music Studio 5 Universal Editing Tools (Section 3.1.4, p. 81-84) ──
-  // 'pointer' (1) | 'time' (2) | 'pencil' (3) | 'eraser' (4) | 'knife' (5)
+  // ── Music Studio 5/6 Universal Editing Tools (Section 3.1.4, p. 81-85 & Section 5.1.6, p. 165-167) ──
+  // 'pointer' (1) | 'time' (2) | 'pencil' (3) | 'eraser' (4) | 'knife' (5) | 'slip' (6)
   const [activeEditingTool, setActiveEditingTool] = useState("pointer");
   const [arrangerSnap, setArrangerSnap] = useState("1/16");
+
+  // ── Punch In / Punch Out Transport State (Section 2.3.2.3 & 5.6.3) ──
+  const [isPunchIn, setIsPunchIn] = useState(false);
+  const [isPunchOut, setIsPunchOut] = useState(false);
 
   // ── Track Header Bottom Switches (Section 3.1.4, p. 84) ──
   const [showTrackIO, setShowTrackIO] = useState(false); // [E/S]
@@ -4181,6 +4186,7 @@ export function MusicStudioDaw({
   // Clip Context Menu & Trimming
   const [clipContextMenu, setClipContextMenu] = useState(null); // { x, y, trackId, clipId }
   const [isResizingClip, setIsResizingClip] = useState(null); // { trackId, clipId, startX, initialBars }
+  const [isSlippingClip, setIsSlippingClip] = useState(null); // { trackId, clipId, startX, initialOffset }
 
   // Microphone Recording Refs
   const transportMediaRecorderRef = useRef(null);
@@ -4360,6 +4366,43 @@ export function MusicStudioDaw({
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizingClip, barWidthPx]);
+
+  // ── Clip Slipping Mouse Handlers (Section 5.1.6, p. 165–167) ──
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isSlippingClip) return;
+      const deltaX = e.clientX - isSlippingClip.startX;
+      const newOffset = Math.round(isSlippingClip.initialOffset + deltaX);
+      setTracks((prev) =>
+        prev.map((t) =>
+          t.id === isSlippingClip.trackId
+            ? {
+                ...t,
+                clips: (t.clips || []).map((c) =>
+                  c.id === isSlippingClip.clipId ? { ...c, slipOffset: newOffset } : c
+                )
+              }
+            : t
+        )
+      );
+      if (setStatusHint) {
+        setStatusHint(`Coulissement (Slip): ${newOffset >= 0 ? "+" : ""}${newOffset}px`);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isSlippingClip) {
+        setIsSlippingClip(null);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isSlippingClip, setStatusHint]);
 
   // Close clip context menu on click outside
   useEffect(() => {
@@ -7053,6 +7096,46 @@ export function MusicStudioDaw({
             <Circle size={12} fill="currentColor" className="text-red-500" />
           </button>
 
+          {/* Punch In Toggle (Bitwig Section 2.3.2.3) */}
+          <button
+            data-testid="btn-transport-punch-in"
+            onClick={() => {
+              setIsPunchIn((prev) => {
+                const nextVal = !prev;
+                if (setStatusHint) setStatusHint(nextVal ? "Punch In activé (Enregistrement automatique au début de boucle)" : "Punch In désactivé");
+                return nextVal;
+              });
+            }}
+            className={`h-8 px-1.5 rounded flex items-center justify-center text-[10px] font-bold font-mono transition ${
+              isPunchIn
+                ? "bg-red-950/80 border border-red-500 text-red-400 shadow-[0_0_6px_rgba(239,68,68,0.3)]"
+                : "bg-[#2c2c2c] hover:bg-[#383838] text-zinc-400"
+            }`}
+            title="Punch In : Déclencher l'enregistrement au début de boucle (Section 2.3.2)"
+          >
+            [•
+          </button>
+
+          {/* Punch Out Toggle (Bitwig Section 2.3.2.3) */}
+          <button
+            data-testid="btn-transport-punch-out"
+            onClick={() => {
+              setIsPunchOut((prev) => {
+                const nextVal = !prev;
+                if (setStatusHint) setStatusHint(nextVal ? "Punch Out activé (Arrêt automatique en fin de boucle)" : "Punch Out désactivé");
+                return nextVal;
+              });
+            }}
+            className={`h-8 px-1.5 rounded flex items-center justify-center text-[10px] font-bold font-mono transition ${
+              isPunchOut
+                ? "bg-red-950/80 border border-red-500 text-red-400 shadow-[0_0_6px_rgba(239,68,68,0.3)]"
+                : "bg-[#2c2c2c] hover:bg-[#383838] text-zinc-400"
+            }`}
+            title="Punch Out : Stopper l'enregistrement en fin de boucle (Section 2.3.2)"
+          >
+            •]
+          </button>
+
           {/* Loop Toggle */}
           <button
             onClick={() => setIsLooping(!isLooping)}
@@ -7064,6 +7147,26 @@ export function MusicStudioDaw({
             title={`Boucle: Mesure ${loopStartBar} à ${loopEndBar}`}
           >
             <Repeat size={14} />
+          </button>
+
+          {/* Pre-Roll Quick Toggle (Bitwig Section 2.3.2) */}
+          <button
+            data-testid="btn-transport-preroll"
+            onClick={() => {
+              const modes = ["off", "1bar", "2bars"];
+              const currentIdx = modes.indexOf(playbackSettings.preroll || "off");
+              const nextMode = modes[(currentIdx + 1) % modes.length];
+              setPlaybackSettings((prev) => ({ ...prev, preroll: nextMode }));
+              if (setStatusHint) setStatusHint(`Pre-roll: ${nextMode === "off" ? "Désactivé" : nextMode === "1bar" ? "1 mesure" : "2 mesures"}`);
+            }}
+            className={`h-8 px-1.5 rounded flex items-center justify-center text-[9.5px] font-bold font-mono transition ${
+              playbackSettings.preroll && playbackSettings.preroll !== "off"
+                ? "bg-[#241808] border border-[#df9c43] text-[#eaaf5d] shadow-[0_0_6px_rgba(223,156,67,0.3)]"
+                : "bg-[#2c2c2c] hover:bg-[#383838] text-zinc-400"
+            }`}
+            title="Pre-roll : Décompte avant l'enregistrement (Clic pour alterner Off / 1 bar / 2 bars)"
+          >
+            PR:{playbackSettings.preroll === "1bar" ? "1b" : playbackSettings.preroll === "2bars" ? "2b" : "Ø"}
           </button>
 
           {/* Metronome Toggle */}
@@ -8253,8 +8356,12 @@ export function MusicStudioDaw({
                                     return (
                                       <div
                                         key={clip.id}
-                                        draggable={true}
+                                        draggable={activeEditingTool === "pointer"}
                                         onDragStart={(e) => {
+                                          if (activeEditingTool !== "pointer") {
+                                            e.preventDefault();
+                                            return;
+                                          }
                                           e.stopPropagation();
                                           if (typeof window !== "undefined") {
                                             window.__isInternalDragging = true;
@@ -8286,6 +8393,20 @@ export function MusicStudioDaw({
                                           }
                                           setClipDragGhost(null);
                                           setDragOverTrackId(null);
+                                        }}
+                                        onMouseDown={(e) => {
+                                          if (activeEditingTool === "slip") {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            setIsSlippingClip({
+                                              trackId: trk.id,
+                                              clipId: clip.id,
+                                              startX: e.clientX,
+                                              initialOffset: clip.slipOffset || 0
+                                            });
+                                            setSelectedClipId(clip.id);
+                                            setSelectedTrackId(trk.id);
+                                          }
                                         }}
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -8323,14 +8444,18 @@ export function MusicStudioDaw({
                                           setBottomPanelTab("pianoroll");
                                         }}
                                         data-clip-id={clip.id}
-                                        className={`h-12 rounded-md border flex flex-col justify-between p-1.5 cursor-move transition-all absolute top-2 group ${
+                                        className={`h-12 rounded-md border flex flex-col justify-between p-1.5 transition-all absolute top-2 group ${
                                           isClipSelected
                                             ? "ring-2 ring-amber-400 border-2 border-white shadow-[0_0_20px_rgba(251,191,36,0.8)] brightness-110 z-20 scale-[1.01]"
                                             : "border-black/30 hover:border-white/40 opacity-90 hover:opacity-100 shadow-sm"
                                         } ${
-                                          activeEditingTool === "knife" ? "hover:ring-2 hover:ring-red-400 cursor-crosshair" : ""
-                                        } ${
-                                          activeEditingTool === "eraser" ? "hover:ring-2 hover:ring-red-600 hover:opacity-60 cursor-pointer" : ""
+                                          activeEditingTool === "slip"
+                                            ? "cursor-ew-resize hover:ring-2 hover:ring-cyan-400"
+                                            : activeEditingTool === "knife"
+                                            ? "hover:ring-2 hover:ring-red-400 cursor-crosshair"
+                                            : activeEditingTool === "eraser"
+                                            ? "hover:ring-2 hover:ring-red-600 hover:opacity-60 cursor-pointer"
+                                            : "cursor-move"
                                         }`}
                                         style={{
                                           left: `${clipStartOffsetPx}px`,
@@ -8346,6 +8471,11 @@ export function MusicStudioDaw({
                                             {isClipSelected && (
                                               <span className="bg-amber-400 text-black px-1 py-0.2 rounded-[3px] text-[7.5px] font-black uppercase tracking-wider shadow">
                                                 SÉLECT
+                                              </span>
+                                            )}
+                                            {clip.slipOffset !== undefined && clip.slipOffset !== 0 && (
+                                              <span className="bg-cyan-950/90 text-cyan-300 border border-cyan-500/40 px-1 py-0.2 rounded-[2px] text-[7.5px] font-mono tracking-tighter">
+                                                SLIP {clip.slipOffset > 0 ? `+${clip.slipOffset}` : clip.slipOffset}px
                                               </span>
                                             )}
                                             {clip.name}
