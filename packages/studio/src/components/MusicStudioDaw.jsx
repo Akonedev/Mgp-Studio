@@ -94,6 +94,8 @@ import MusicStudioAudioWarp, { detectAudioTransients } from "./MusicStudioAudioW
 import MusicStudioConsoleMixer from "./MusicStudioConsoleMixer";
 import MusicStudioRadialMenu from "./MusicStudioRadialMenu";
 import MusicStudioMidiMappings from "./MusicStudioMidiMappings";
+import { encodeDawproject, decodeDawproject, downloadDawproject } from "./MusicStudioDawproject";
+import MusicStudioHelpView from "./MusicStudioHelpView";
 
 // ── Web Audio Synth & Multitrack DSP Engine (Zero-Mock Real Signal Processing) ──
 class DawWebAudioEngine {
@@ -742,7 +744,11 @@ const STUDIO_DEVICES = [
   { id: "dev_psn", name: "Polysynth Analog", type: "Instrument", category: "Synth", desc: "Synthétiseur polyphonique soustractif vintage" },
   { id: "dev_rev", name: "Studio Reverb", type: "Audio FX", category: "Reverb", desc: "Réverbération algorithmique de pièce et hall avec diffusion" },
   { id: "dev_smp", name: "Multi-Sampler", type: "Instrument", category: "Sampler", desc: "Lecteur multi-échantillons avec modes granulaire et cycle" },
-  { id: "dev_tol", name: "Mastering Tool", type: "Audio FX", category: "Utility", desc: "Gain, panoramique, inversion de phase et largeur stéréo" }
+  { id: "dev_tol", name: "Mastering Tool", type: "Audio FX", category: "Utility", desc: "Gain, panoramique, inversion de phase et largeur stéréo" },
+  { id: "dev_spt", name: "Transient Split", type: "Audio FX", category: "Spectral", desc: "Séparation dynamique transitoires vs composantes tonales" },
+  { id: "dev_spl", name: "Loud Split", type: "Audio FX", category: "Spectral", desc: "Division de signal par seuil d'amplitude et hystérésis" },
+  { id: "dev_spf", name: "Freq Split", type: "Audio FX", category: "Spectral", desc: "Répartiteur spectral 4 bandes avec traitement indépendant" },
+  { id: "dev_sph", name: "Harmonic Split", type: "Audio FX", category: "Spectral", desc: "Séparation harmoniques paires, impaires et bruit inharmonique" }
 ];
 
 // ── Helper to encode Float32Array to 16-bit Mono WAV format ──
@@ -3032,6 +3038,7 @@ export function MusicStudioDaw({
 
   // ── Modals State ──
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isHelpViewOpen, setIsHelpViewOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
@@ -4223,6 +4230,61 @@ export function MusicStudioDaw({
   const [colorPickerTrackId, setColorPickerTrackId] = useState(null);
   const COLOR_PALETTE = ["#df9c43", "#eab308", "#d97706", "#10b981", "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#df9c43", "#ef4444"];
 
+  // ── DAWproject Format Interchange Handlers (Bitwig Studio Chapter 14.3) ──
+  const dawprojectFileInputRef = useRef(null);
+
+  const handleExportDawproject = useCallback(() => {
+    const projectData = {
+      title: selectedTrack?.title || "Projet_Music_Studio",
+      bpm,
+      musicalKey,
+      timeSignature,
+      tracks,
+      markers,
+      loopStartBar,
+      loopEndBar,
+      pianoRollNotes,
+      trackModulators
+    };
+    try {
+      const filename = `${(selectedTrack?.title || "Projet_Music_Studio").replace(/\s+/g, "_")}.dawproject`;
+      downloadDawproject(projectData, filename);
+      setStatusHint(`Projet exporté avec succès au format officiel Bitwig DAWproject 1.0 container (${filename})`);
+    } catch (e) {
+      console.warn("DAWproject export error:", e);
+      setStatusHint("Erreur lors de l'export DAWproject");
+    }
+  }, [selectedTrack, bpm, musicalKey, timeSignature, tracks, markers, loopStartBar, loopEndBar, pianoRollNotes, trackModulators]);
+
+  const handleImportDawprojectFile = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const buffer = await file.arrayBuffer();
+      const decoded = decodeDawproject(buffer);
+      if (decoded.tracks && decoded.tracks.length > 0) {
+        setTracks(decoded.tracks);
+        setActiveTrackId(decoded.tracks[0]?.id || null);
+      }
+      if (decoded.bpm) setBpm(decoded.bpm);
+      if (decoded.timeSignature) setTimeSignature(decoded.timeSignature);
+      if (decoded.musicalKey) setMusicalKey(decoded.musicalKey);
+      if (decoded.markers) setMarkers(decoded.markers);
+      if (decoded.pianoRollNotes && decoded.pianoRollNotes.length > 0) {
+        setPianoRollNotes(decoded.pianoRollNotes);
+      }
+      if (decoded.trackModulators) {
+        setTrackModulators(decoded.trackModulators);
+      }
+      setStatusHint(`Projet "${decoded.title}" importé avec succès (${decoded.tracks.length} pistes, ${decoded.bpm} BPM)`);
+    } catch (err) {
+      console.warn("DAWproject import error:", err);
+      setStatusHint("Erreur lors de l'importation du fichier DAWproject");
+    } finally {
+      if (dawprojectFileInputRef.current) dawprojectFileInputRef.current.value = "";
+    }
+  }, []);
+
   // ── Preload Audio Buffers into WebAudio Engine ──
   useEffect(() => {
     dawAudioEngine.preloadTrackBuffers(tracks);
@@ -4383,10 +4445,14 @@ export function MusicStudioDaw({
         e.preventDefault();
         setZoomLevel((z) => Math.min(3.0, Number((z + 0.15).toFixed(2))));
         setStatusHint("Zoom Avant (Touche +)");
-      } else if (e.key === "-") {
+      } else if (e.key === "-" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setZoomLevel((z) => Math.max(0.10, Number((z - 0.15).toFixed(2))));
         setStatusHint("Zoom Arrière (Touche -)");
+      } else if (e.key === "F1" || e.key === "?") {
+        e.preventDefault();
+        setIsHelpViewOpen((prev) => !prev);
+        setStatusHint("Fenêtre d'Aide & Guide Interactif Bitwig Studio [F1]");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -6236,10 +6302,23 @@ export function MusicStudioDaw({
                     <span className="text-[10px] text-zinc-500 font-mono">SMF Type 1</span>
                   </button>
                   <button
-                    onClick={() => { setOpenMenu(null); handleSaveProject(); }}
+                    data-testid="menu-btn-export-dawproject"
+                    onClick={() => { setOpenMenu(null); handleExportDawproject(); }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-[#df9c43] flex items-center justify-between"
+                  >
+                    <span>Exporter DAWproject (.dawproject)...</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">ZIP v1.0</span>
+                  </button>
+                  <button
+                    data-testid="menu-btn-import-dawproject"
+                    onClick={() => {
+                      setOpenMenu(null);
+                      if (dawprojectFileInputRef.current) dawprojectFileInputRef.current.click();
+                    }}
                     className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
                   >
-                    <span>Exporter DAWproject</span>
+                    <span>Importer DAWproject (.dawproject)...</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">Ouvrir</span>
                   </button>
 
                   <div className="border-t border-[#333333] my-1" />
@@ -6760,11 +6839,18 @@ export function MusicStudioDaw({
               {openMenu === "help" && (
                 <div className="absolute left-0 top-full mt-1.5 w-64 bg-[#1e1e1e] border border-[#3e3e3e] rounded-lg shadow-[0_12px_36px_rgba(0,0,0,0.95)] py-1.5 z-[100] text-zinc-200 text-xs flex flex-col whitespace-normal">
                   <button
+                    onClick={() => { setOpenMenu(null); setIsHelpViewOpen(true); }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-[#df9c43] font-bold flex items-center justify-between"
+                  >
+                    <span>Guide & Aide Interactive</span>
+                    <span className="text-[10px] text-[#df9c43] font-mono font-bold">F1</span>
+                  </button>
+                  <button
                     onClick={() => { setOpenMenu(null); setIsShortcutsModalOpen(true); }}
                     className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
                   >
                     <span>Raccourcis clavier</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">F1</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">?</span>
                   </button>
                   <button
                     onClick={() => {
@@ -7182,6 +7268,19 @@ export function MusicStudioDaw({
             if (targetClip?.id) setSelectedClipId(targetClip.id);
             setShowBottomPanel(true);
             setBottomPanelTab("audiowarp");
+          }}
+          onOpenRadialMenu={(clip, track) => {
+            const targetClip = clip || selectedClip;
+            const targetTrack = track || selectedTrack;
+            const cx = typeof window !== "undefined" ? window.innerWidth / 2 : 500;
+            const cy = typeof window !== "undefined" ? window.innerHeight / 2 : 400;
+            setRadialMenuState({
+              x: cx,
+              y: cy,
+              clip: targetClip,
+              track: targetTrack
+            });
+            setStatusHint("Menu Radial Tactile à 8 actions ouvert (Chapitre 18)");
           }}
           setStatusHint={setStatusHint}
         />
@@ -9476,6 +9575,45 @@ export function MusicStudioDaw({
                     }}
                     mappingModulatorId={mappingModulatorId}
                     onAssignModTarget={handleAssignModTarget}
+                    modulators={trackModulators[activeTrack?.id] || []}
+                    onUpdateModTargetDepth={(modId, targetParam, newDepth) => {
+                      setTrackModulators((prev) => {
+                        const list = prev[activeTrack?.id] || [];
+                        return {
+                          ...prev,
+                          [activeTrack?.id]: list.map((m) => {
+                            if (m.id === modId) {
+                              return {
+                                ...m,
+                                targets: (m.targets || []).map((t) =>
+                                  t.targetParam === targetParam ? { ...t, depth: newDepth } : t
+                                )
+                              };
+                            }
+                            return m;
+                          })
+                        };
+                      });
+                    }}
+                    onRemoveModTarget={(modId, targetParam) => {
+                      setTrackModulators((prev) => {
+                        const list = prev[activeTrack?.id] || [];
+                        return {
+                          ...prev,
+                          [activeTrack?.id]: list.map((m) => {
+                            if (m.id === modId) {
+                              return {
+                                ...m,
+                                targets: (m.targets || []).filter((t) => t.targetParam !== targetParam)
+                              };
+                            }
+                            return m;
+                          })
+                        };
+                      });
+                    }}
+                    bpm={bpm}
+                    isPlaying={isPlaying}
                     setStatusHint={setStatusHint}
                   />
                 </div>
@@ -10659,6 +10797,21 @@ export function MusicStudioDaw({
             <span>[ i ]</span>
           </button>
 
+          {/* Help View & Info Pane Toggle Button [ ? ] (Section 2.4, p. 55-60) */}
+          <button
+            data-testid="btn-bottom-help-view"
+            onClick={() => setIsHelpViewOpen((prev) => !prev)}
+            className={`h-6 px-2 rounded text-[10px] font-bold tracking-wider transition flex items-center gap-1 ${
+              isHelpViewOpen
+                ? "text-[#df9c43] bg-[#241808] border border-[#df9c43] shadow-[0_0_8px_rgba(223,156,67,0.3)]"
+                : "text-zinc-400 hover:text-[#df9c43] hover:bg-[#202020]"
+            }`}
+            title="Ouvrir le Guide & Fenêtre d'Aide Interactive (F1 / ?)"
+          >
+            <HelpCircle size={11} />
+            <span>[ ? ]</span>
+          </button>
+
           <div className="h-4 w-px bg-[#333333] mx-0.5" />
 
           {/* ARRANGE View Button */}
@@ -11193,6 +11346,15 @@ export function MusicStudioDaw({
           </div>
         </div>
       )}
+
+      {/* ────────────────────────────────────────────────────────────
+          MODAL 0: GUIDE & AIDE INTERACTIVE (Section 2.4, p. 55-60)
+      ──────────────────────────────────────────────────────────── */}
+      <MusicStudioHelpView
+        isOpen={isHelpViewOpen}
+        onClose={() => setIsHelpViewOpen(false)}
+      />
+
       {/* ────────────────────────────────────────────────────────────
           MODAL 1: RACCOURCIS CLAVIER (Keyboard Shortcuts)
       ──────────────────────────────────────────────────────────── */}
@@ -11710,6 +11872,16 @@ export function MusicStudioDaw({
           setStatusHint(`Mapping MIDI assigné : CC ${newMap.channel}:${newMap.cc} ➔ ${newMap.targetParameter}`);
         }}
         setStatusHint={setStatusHint}
+      />
+
+      {/* Hidden file input for DAWproject package import (Chapter 14.3) */}
+      <input
+        type="file"
+        ref={dawprojectFileInputRef}
+        accept=".dawproject,.json"
+        onChange={handleImportDawprojectFile}
+        className="hidden"
+        data-testid="input-import-dawproject"
       />
     </div>
   );

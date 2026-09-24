@@ -17,6 +17,7 @@ import {
   Filter,
   Maximize2
 } from "lucide-react";
+import { evaluateModulatorValue } from "./MusicStudioModulatorSystem";
 
 /**
  * ════════════════════════════════════════════════════════════════════════════════
@@ -48,14 +49,31 @@ class DeviceWebAudioEngine {
     }
   }
 
-  // Generate real audio for ANY of the 21 devices with live DSP parameters
-  playDeviceAudition(device, customParam = null) {
+  // Generate real audio for ANY of the 21 devices with live DSP parameters and active modulations
+  playDeviceAudition(device, customParam = null, modulators = [], currentSec = 0, bpm = 120) {
     this.init();
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     const devId = (device.id || "").toLowerCase();
     const name = (device.name || "").toLowerCase();
     const p = { ...(device.params || {}), ...(customParam || {}) };
+
+    // Helper to evaluate effective parameter with active modulations (Bitwig Chapter 16.2)
+    const getModVal = (paramKey, defaultVal, minVal = 0, maxVal = 100) => {
+      let val = p[paramKey] !== undefined ? p[paramKey] : defaultVal;
+      for (const m of (modulators || [])) {
+        const tgt = (m.targets || []).find(
+          (x) => x.targetParam === paramKey && (!x.deviceId || x.deviceId === device.id)
+        );
+        if (tgt) {
+          const modNorm = evaluateModulatorValue(m, currentSec, bpm, true);
+          const span = maxVal - minVal;
+          val += modNorm * ((tgt.depth || 0) / 100) * span;
+          val = Math.max(minVal, Math.min(maxVal, val));
+        }
+      }
+      return val;
+    };
 
     try {
       // 1. Amp Simulator (Distortion & Cab)
@@ -72,8 +90,8 @@ class DeviceWebAudioEngine {
         osc.type = "sawtooth";
         osc.frequency.setValueAtTime(164.81, t);
 
-        // Tube transfer curve
-        const drive = (p.drive !== undefined ? p.drive : 65) / 20;
+        // Tube transfer curve with modulated drive
+        const drive = getModVal("drive", 65, 0, 100) / 20;
         const curve = new Float32Array(512);
         for (let i = 0; i < 512; i++) {
           const x = (i * 2) / 512 - 1;
@@ -931,6 +949,182 @@ class DeviceWebAudioEngine {
         osc.start(t);
         osc.stop(t + 0.81);
       }
+
+      // 22. Transient Split (Spectral Suite - Chapter 21.1)
+      else if (name.includes("transient") || devId.includes("spt")) {
+        const osc = this.ctx.createOscillator();
+        const fastHp = this.ctx.createBiquadFilter();
+        const slowBp = this.ctx.createBiquadFilter();
+        const transGain = this.ctx.createGain();
+        const toneGain = this.ctx.createGain();
+        const master = this.ctx.createGain();
+
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(146.83, t);
+
+        fastHp.type = "highpass";
+        fastHp.frequency.value = 1800;
+        const transBoostDb = getModVal("transientBoost", 2, -12, 12);
+        const transAmp = Math.pow(10, transBoostDb / 20);
+        transGain.gain.setValueAtTime(0.001, t);
+        transGain.gain.linearRampToValueAtTime(0.4 * transAmp, t + 0.005);
+        transGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+        slowBp.type = "bandpass";
+        slowBp.frequency.value = 293.66;
+        slowBp.Q.value = 4.0;
+        const toneSustainDb = getModVal("toneSustain", 0, -12, 12);
+        const toneAmp = Math.pow(10, toneSustainDb / 20);
+        toneGain.gain.setValueAtTime(0.001, t + 0.02);
+        toneGain.gain.linearRampToValueAtTime(0.25 * toneAmp, t + 0.06);
+        toneGain.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
+
+        osc.connect(fastHp);
+        fastHp.connect(transGain);
+        transGain.connect(master);
+
+        osc.connect(slowBp);
+        slowBp.connect(toneGain);
+        toneGain.connect(master);
+
+        master.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.86);
+      }
+
+      // 23. Loud Split (Spectral Suite - Chapter 21.2)
+      else if (name.includes("loud") || devId.includes("spl")) {
+        const osc = this.ctx.createOscillator();
+        const quietGain = this.ctx.createGain();
+        const loudComp = this.ctx.createDynamicsCompressor();
+        const loudGain = this.ctx.createGain();
+        const master = this.ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(220, t);
+
+        const qDb = getModVal("quietGain", 4, -24, 12);
+        const lDb = getModVal("loudGain", 0, -24, 12);
+        const qAmp = Math.pow(10, qDb / 20);
+        const lAmp = Math.pow(10, lDb / 20);
+
+        loudComp.threshold.setValueAtTime(-18, t);
+        loudComp.ratio.setValueAtTime(8, t);
+
+        quietGain.gain.setValueAtTime(0.12 * qAmp, t);
+        quietGain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+
+        loudGain.gain.setValueAtTime(0.001, t);
+        loudGain.gain.linearRampToValueAtTime(0.35 * lAmp, t + 0.03);
+        loudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+        osc.connect(loudComp);
+        loudComp.connect(loudGain);
+        loudGain.connect(master);
+
+        osc.connect(quietGain);
+        quietGain.connect(master);
+
+        master.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.91);
+      }
+
+      // 24. Freq Split (Spectral Suite - Chapter 21.3)
+      else if (name.includes("freq split") || devId.includes("spf")) {
+        const osc = this.ctx.createOscillator();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(110, t);
+
+        const fLow = this.ctx.createBiquadFilter();
+        const fLowMid = this.ctx.createBiquadFilter();
+        const fHighMid = this.ctx.createBiquadFilter();
+        const fHigh = this.ctx.createBiquadFilter();
+
+        const gLow = this.ctx.createGain();
+        const gLowMid = this.ctx.createGain();
+        const gHighMid = this.ctx.createGain();
+        const gHigh = this.ctx.createGain();
+        const master = this.ctx.createGain();
+
+        fLow.type = "lowpass";
+        fLow.frequency.value = 250;
+        fLowMid.type = "bandpass";
+        fLowMid.frequency.value = 600;
+        fLowMid.Q.value = 1.0;
+        fHighMid.type = "bandpass";
+        fHighMid.frequency.value = 2500;
+        fHighMid.Q.value = 1.0;
+        fHigh.type = "highpass";
+        fHigh.frequency.value = 5000;
+
+        const b1 = Math.pow(10, getModVal("band1", 2, -24, 6) / 20);
+        const b2 = Math.pow(10, getModVal("band2", 0, -24, 6) / 20);
+        const b3 = Math.pow(10, getModVal("band3", -1, -24, 6) / 20);
+        const b4 = Math.pow(10, getModVal("band4", 3, -24, 6) / 20);
+
+        gLow.gain.value = 0.12 * b1;
+        gLowMid.gain.value = 0.12 * b2;
+        gHighMid.gain.value = 0.10 * b3;
+        gHigh.gain.value = 0.08 * b4;
+
+        osc.connect(fLow); fLow.connect(gLow); gLow.connect(master);
+        osc.connect(fLowMid); fLowMid.connect(gLowMid); gLowMid.connect(master);
+        osc.connect(fHighMid); fHighMid.connect(gHighMid); gHighMid.connect(master);
+        osc.connect(fHigh); fHigh.connect(gHigh); gHigh.connect(master);
+
+        master.gain.setValueAtTime(0.001, t);
+        master.gain.linearRampToValueAtTime(0.3, t + 0.03);
+        master.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
+
+        master.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.86);
+      }
+
+      // 25. Harmonic Split (Spectral Suite - Chapter 21.4)
+      else if (name.includes("harmonic split") || devId.includes("sph")) {
+        const osc = this.ctx.createOscillator();
+        const shaperEven = this.ctx.createWaveShaper();
+        const shaperOdd = this.ctx.createWaveShaper();
+        const gEven = this.ctx.createGain();
+        const gOdd = this.ctx.createGain();
+        const master = this.ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(174.61, t);
+
+        const curveEven = new Float32Array(512);
+        for (let i = 0; i < 512; i++) {
+          const x = (i * 2) / 512 - 1;
+          curveEven[i] = 2 * x * x - 1;
+        }
+        shaperEven.curve = curveEven;
+
+        const curveOdd = new Float32Array(512);
+        for (let i = 0; i < 512; i++) {
+          const x = (i * 2) / 512 - 1;
+          curveOdd[i] = 4 * x * x * x - 3 * x;
+        }
+        shaperOdd.curve = curveOdd;
+
+        const oddNorm = getModVal("odd", 60, 0, 100) / 100;
+        const evenNorm = getModVal("even", 40, 0, 100) / 100;
+
+        gEven.gain.value = 0.15 * evenNorm;
+        gOdd.gain.value = 0.15 * oddNorm;
+
+        osc.connect(shaperEven); shaperEven.connect(gEven); gEven.connect(master);
+        osc.connect(shaperOdd); shaperOdd.connect(gOdd); gOdd.connect(master);
+
+        master.gain.setValueAtTime(0.001, t);
+        master.gain.linearRampToValueAtTime(0.32, t + 0.03);
+        master.gain.exponentialRampToValueAtTime(0.001, t + 0.88);
+
+        master.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.89);
+      }
     } catch (err) {
       console.warn("[DeviceWebAudioEngine] Error playing device audition:", err);
     }
@@ -938,6 +1132,233 @@ class DeviceWebAudioEngine {
 }
 
 export const deviceAudioEngine = new DeviceWebAudioEngine();
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════════
+ * BITWIG STUDIO MODULATION RING & HALO PARAMETER CONTROL (Chapter 16.2, p. 468-475)
+ * Displays:
+ * 1. Base parameter label, value and unit
+ * 2. Visual Modulation Arc / Halo along slider track showing modulation depth
+ * 3. Real-time animated cursor indicating the live oscillating modulated value
+ * 4. Interactive [+ LIER] button when mappingModulatorId is active
+ * 5. Interactive modulation badge with popup depth slider & unmap action
+ * ════════════════════════════════════════════════════════════════════════════════
+ */
+export function ModulatedParamSlider({
+  label,
+  paramKey,
+  value,
+  min = 0,
+  max = 100,
+  step = 1,
+  unit = "",
+  deviceId,
+  deviceName,
+  trackId,
+  modulators = [],
+  mappingModulatorId = null,
+  onParamChange,
+  onAssignModTarget,
+  onUpdateModTargetDepth,
+  onRemoveModTarget,
+  currentSec = 0,
+  bpm = 120,
+  isPlaying = false
+}) {
+  const [showDepthEditor, setShowDepthEditor] = useState(false);
+
+  // Find if this parameter is mapped to any modulator
+  let mappedMod = null;
+  let mappedTarget = null;
+  for (const m of (modulators || [])) {
+    const t = (m.targets || []).find(
+      (tgt) => tgt.targetParam === paramKey && (!tgt.deviceId || tgt.deviceId === deviceId)
+    );
+    if (t) {
+      mappedMod = m;
+      mappedTarget = t;
+      break;
+    }
+  }
+
+  const baseVal = value !== undefined ? value : min;
+  const range = max - min || 1;
+  const baseNorm = Math.max(0, Math.min(1, (baseVal - min) / range));
+
+  // Compute live modulated offset if mapped
+  let liveNorm = baseNorm;
+  let liveVal = baseVal;
+  let arcStartNorm = baseNorm;
+  let arcEndNorm = baseNorm;
+
+  if (mappedMod && mappedTarget) {
+    const modValue = evaluateModulatorValue(mappedMod, currentSec, bpm, isPlaying);
+    const depthFrac = (mappedTarget.depth || 0) / 100;
+    const offsetFrac = modValue * depthFrac;
+    liveNorm = Math.max(0, Math.min(1, baseNorm + offsetFrac));
+    liveVal = min + liveNorm * range;
+
+    const span1 = baseNorm;
+    const span2 = Math.max(0, Math.min(1, baseNorm + depthFrac));
+    arcStartNorm = Math.min(span1, span2);
+    arcEndNorm = Math.max(span1, span2);
+  }
+
+  const isAssignable = Boolean(mappingModulatorId);
+
+  return (
+    <div className="space-y-1 relative group/param py-0.5 select-none">
+      {/* Parameter Header: Label, Live Value, Modulation Badge & Mapping Trigger */}
+      <div className="flex items-center justify-between text-[9px] gap-1">
+        <div className="flex items-center gap-1 min-w-0">
+          <span className="text-zinc-400 font-medium truncate" title={label}>{label}</span>
+
+          {/* Interactive Modulation Badge */}
+          {mappedMod && mappedTarget && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDepthEditor((prev) => !prev);
+              }}
+              className="px-1 py-0.2 rounded text-[7.5px] font-mono bg-cyan-950/90 text-cyan-300 border border-cyan-500/70 hover:border-cyan-300 flex items-center gap-0.5 transition shadow-[0_0_6px_rgba(6,182,212,0.3)] active:scale-95"
+              title="Cliquer pour ajuster la profondeur de modulation ou supprimer le lien"
+            >
+              <span className="truncate max-w-[42px]">{mappedMod.name}</span>
+              <span className="font-bold">{mappedTarget.depth > 0 ? `+${mappedTarget.depth}%` : `${mappedTarget.depth}%`}</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Mapping Mode Quick Action Button */}
+          {isAssignable && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onAssignModTarget) {
+                  onAssignModTarget(trackId, mappingModulatorId, {
+                    targetParam: paramKey,
+                    targetName: `${deviceName} ${label}`,
+                    depth: 45,
+                    deviceId
+                  });
+                }
+              }}
+              className="px-1.5 py-0.5 rounded bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-[8px] animate-pulse flex items-center gap-0.5 shadow-[0_0_8px_#06b6d4] transition active:scale-95 cursor-pointer"
+              title="Lier ce paramètre au modulateur sélectionné"
+            >
+              <span>+ LIER</span>
+            </button>
+          )}
+
+          {/* Value Display */}
+          <span className="text-amber-400 font-mono">
+            {mappedMod ? (
+              <span className="text-cyan-300 font-bold">
+                {step < 1 ? liveVal.toFixed(1) : Math.round(liveVal)}
+                {unit}
+              </span>
+            ) : (
+              `${step < 1 ? baseVal.toFixed(1) : Math.round(baseVal)}${unit}`
+            )}
+          </span>
+        </div>
+      </div>
+
+      {/* Popover Depth Adjustment Modal */}
+      {showDepthEditor && mappedMod && mappedTarget && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute z-30 bottom-full left-0 right-0 mb-1 bg-[#161f2c] border border-cyan-500/80 rounded-lg p-2 shadow-2xl flex flex-col gap-1.5 text-[9px]"
+        >
+          <div className="flex items-center justify-between text-cyan-300 font-bold border-b border-cyan-900/60 pb-1">
+            <span>Modulation: {mappedMod.name}</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (onRemoveModTarget) onRemoveModTarget(mappedMod.id, paramKey);
+                setShowDepthEditor(false);
+              }}
+              className="text-red-400 hover:text-red-300 font-bold p-0.5 cursor-pointer"
+              title="Supprimer la liaison"
+            >
+              Délier
+            </button>
+          </div>
+          <div className="flex items-center justify-between text-zinc-300">
+            <span>Profondeur:</span>
+            <span className="font-mono text-cyan-400 font-bold">
+              {mappedTarget.depth > 0 ? `+${mappedTarget.depth}%` : `${mappedTarget.depth}%`}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="-100"
+            max="100"
+            value={mappedTarget.depth || 0}
+            onChange={(e) => {
+              if (onUpdateModTargetDepth) {
+                onUpdateModTargetDepth(mappedMod.id, paramKey, Number(e.target.value));
+              }
+            }}
+            className="w-full h-1 accent-cyan-400 bg-zinc-800 rounded cursor-pointer"
+          />
+          <button
+            type="button"
+            onClick={() => setShowDepthEditor(false)}
+            className="w-full py-0.5 bg-cyan-600/40 hover:bg-cyan-600 text-white rounded text-[8px] font-bold text-center mt-0.5 transition"
+          >
+            Fermer
+          </button>
+        </div>
+      )}
+
+      {/* Slider Track with Modulation Arc / Halo & Real-time Live Cursor */}
+      <div className="relative w-full h-2 flex items-center">
+        {/* Base Track Background */}
+        <div className="absolute inset-0 bg-zinc-800/80 rounded-full overflow-hidden">
+          {/* Base Value Fill (Sahel Gold) */}
+          <div
+            className="h-full bg-[#df9c43]/45 rounded-full"
+            style={{ width: `${baseNorm * 100}%` }}
+          />
+        </div>
+
+        {/* Modulation Halo / Arc Span (Bitwig Chapter 16.2) */}
+        {mappedMod && mappedTarget && (
+          <div
+            className="absolute top-0 bottom-0 bg-cyan-400/35 border-y border-cyan-300/60 rounded-sm pointer-events-none transition-all duration-75"
+            style={{
+              left: `${arcStartNorm * 100}%`,
+              width: `${Math.max(0.03, arcEndNorm - arcStartNorm) * 100}%`
+            }}
+          />
+        )}
+
+        {/* Live Modulated Cursor Dot */}
+        {mappedMod && (
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-cyan-300 border border-white shadow-[0_0_8px_#06b6d4] pointer-events-none z-10 transition-all duration-75"
+            style={{ left: `${liveNorm * 100}%` }}
+          />
+        )}
+
+        {/* Native Input Range Overlay */}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={baseVal}
+          onChange={(e) => onParamChange(deviceId, paramKey, Number(e.target.value))}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+        />
+      </div>
+    </div>
+  );
+}
 
 /**
  * ════════════════════════════════════════════════════════════════════════════════
@@ -958,12 +1379,32 @@ export default function MusicStudioDeviceRack({
   onOpenBrowser,
   mappingModulatorId,
   onAssignModTarget,
+  modulators = [],
+  onUpdateModTargetDepth,
+  onRemoveModTarget,
+  bpm = 120,
+  isPlaying = false,
   setStatusHint
 }) {
   const [activePad, setActivePad] = useState(null);
+  const [currentSec, setCurrentSec] = useState(0);
+  const animFrameRef = useRef(null);
+
+  // Live animation loop for smooth modulation halos & cursors
+  useEffect(() => {
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      setCurrentSec((prev) => prev + dt);
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+    animFrameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animFrameRef.current);
+  }, []);
 
   const handleAudition = (dev, customParam = null) => {
-    deviceAudioEngine.playDeviceAudition(dev, customParam);
+    deviceAudioEngine.playDeviceAudition(dev, customParam, modulators, currentSec, bpm);
     if (setStatusHint) {
       setStatusHint(`Audition DSP en direct : "${dev.name}" (${dev.category})`);
     }
@@ -980,6 +1421,35 @@ export default function MusicStudioDeviceRack({
     setActivePad(padIdx);
     setTimeout(() => setActivePad(null), 120);
     handleAudition(dev, { padIndex: padIdx });
+  };
+
+  // Helper to render Bitwig Studio modulated parameter sliders
+  const renderModSlider = (dev, label, paramKey, defaultVal, min = 0, max = 100, step = 1, unit = "") => {
+    const p = dev.params || {};
+    return (
+      <ModulatedParamSlider
+        key={`${dev.id}-${paramKey}`}
+        label={label}
+        paramKey={paramKey}
+        value={p[paramKey] !== undefined ? p[paramKey] : defaultVal}
+        min={min}
+        max={max}
+        step={step}
+        unit={unit}
+        deviceId={dev.id}
+        deviceName={dev.name}
+        trackId={track?.id}
+        modulators={modulators}
+        mappingModulatorId={mappingModulatorId}
+        onParamChange={handleParamChange}
+        onAssignModTarget={onAssignModTarget}
+        onUpdateModTargetDepth={onUpdateModTargetDepth}
+        onRemoveModTarget={onRemoveModTarget}
+        currentSec={currentSec}
+        bpm={bpm}
+        isPlaying={isPlaying}
+      />
+    );
   };
 
   return (
@@ -1060,53 +1530,12 @@ export default function MusicStudioDeviceRack({
             <div className="flex-1 py-2 overflow-y-auto no-scrollbar">
               {/* 1. Amp Simulator */}
               {(dev.name.includes("Amp") || dev.id.includes("amp")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px] text-zinc-400">
-                    <span>Drive</span>
-                    <span className="text-amber-400 font-mono">{p.drive || 65}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={p.drive !== undefined ? p.drive : 65}
-                    onChange={(e) => handleParamChange(dev.id, "drive", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
-                  <div className="grid grid-cols-3 gap-1 pt-1 text-center">
-                    <div>
-                      <span className="text-[7.5px] text-zinc-500 block">BASS</span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={p.bass || 3}
-                        onChange={(e) => handleParamChange(dev.id, "bass", Number(e.target.value))}
-                        className="w-full h-1 accent-[#df9c43]"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[7.5px] text-zinc-500 block">MID</span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={p.mid || -2}
-                        onChange={(e) => handleParamChange(dev.id, "mid", Number(e.target.value))}
-                        className="w-full h-1 accent-[#df9c43]"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[7.5px] text-zinc-500 block">TREBLE</span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={p.treble || 4}
-                        onChange={(e) => handleParamChange(dev.id, "treble", Number(e.target.value))}
-                        className="w-full h-1 accent-[#df9c43]"
-                      />
-                    </div>
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Drive Tube", "drive", 65, 0, 100, 1, "%")}
+                  <div className="grid grid-cols-3 gap-1 pt-1">
+                    {renderModSlider(dev, "Bass", "bass", 3, -12, 12, 1, "dB")}
+                    {renderModSlider(dev, "Mid", "mid", -2, -12, 12, 1, "dB")}
+                    {renderModSlider(dev, "Treble", "treble", 4, -12, 12, 1, "dB")}
                   </div>
                 </div>
               )}
@@ -1143,150 +1572,44 @@ export default function MusicStudioDeviceRack({
 
               {/* 3. Bit-8 Reducer */}
               {(dev.name.includes("Bit-8") || dev.id.includes("bit")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Résolution Bits</span>
-                    <span className="text-amber-400 font-mono font-bold">{p.bits || 6} BITS</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="2"
-                    max="16"
-                    value={p.bits || 6}
-                    onChange={(e) => handleParamChange(dev.id, "bits", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Mix Lo-Fi</span>
-                    <span className="text-amber-400 font-mono">{p.mix || 75}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={p.mix !== undefined ? p.mix : 75}
-                    onChange={(e) => handleParamChange(dev.id, "mix", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Résolution Bits", "bits", 6, 2, 16, 1, "b")}
+                  {renderModSlider(dev, "Mix Lo-Fi", "mix", 75, 0, 100, 1, "%")}
                 </div>
               )}
 
               {/* 4. Stereo Chorus */}
               {(dev.name.includes("Chorus") || dev.id.includes("cho")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Vitesse (Rate)</span>
-                    <span className="text-amber-400 font-mono">{p.rate || 1.8} Hz</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.2"
-                    max="5.0"
-                    step="0.1"
-                    value={p.rate || 1.8}
-                    onChange={(e) => handleParamChange(dev.id, "rate", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Largeur Spatiale</span>
-                    <span className="text-amber-400 font-mono">{p.width || 80}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={p.width !== undefined ? p.width : 80}
-                    onChange={(e) => handleParamChange(dev.id, "width", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Vitesse (Rate)", "rate", 1.8, 0.2, 5.0, 0.1, "Hz")}
+                  {renderModSlider(dev, "Largeur Spatiale", "width", 80, 0, 100, 1, "%")}
                 </div>
               )}
 
               {/* 5. VCA Compressor */}
               {(dev.name.includes("VCA") || dev.id.includes("cmp")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Seuil (Threshold)</span>
-                    <span className="text-amber-400 font-mono">{p.threshold !== undefined ? p.threshold : -18} dB</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="-48"
-                    max="0"
-                    value={p.threshold !== undefined ? p.threshold : -18}
-                    onChange={(e) => handleParamChange(dev.id, "threshold", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Ratio</span>
-                    <span className="text-amber-400 font-mono">{p.ratio || 6}:1</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="20"
-                    value={p.ratio || 6}
-                    onChange={(e) => handleParamChange(dev.id, "ratio", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Seuil (Threshold)", "threshold", -18, -48, 0, 1, "dB")}
+                  {renderModSlider(dev, "Ratio Compression", "ratio", 6, 1, 20, 1, ":1")}
                 </div>
               )}
 
               {/* 6. Delay+ Dual */}
               {(dev.name.includes("Delay") || dev.id.includes("dly")) && (
-                <div className="space-y-1.5">
-                  <div className="grid grid-cols-2 gap-2 text-[9px]">
-                    <div>
-                      <span className="text-zinc-400 block">Temps Gauche</span>
-                      <span className="text-amber-400 font-mono">{p.timeL || 240} ms</span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-400 block">Temps Droite</span>
-                      <span className="text-amber-400 font-mono">{p.timeR || 360} ms</span>
-                    </div>
+                <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {renderModSlider(dev, "Temps G", "timeL", 240, 20, 1000, 10, "ms")}
+                    {renderModSlider(dev, "Temps D", "timeR", 360, 20, 1000, 10, "ms")}
                   </div>
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Feedback</span>
-                    <span className="text-amber-400 font-mono">{p.feedback || 45}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="90"
-                    value={p.feedback || 45}
-                    onChange={(e) => handleParamChange(dev.id, "feedback", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                  {renderModSlider(dev, "Feedback", "feedback", 45, 0, 90, 1, "%")}
                 </div>
               )}
 
               {/* 7. Overdrive Saturator */}
               {(dev.name.includes("Overdrive") || dev.id.includes("dst")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Chaleur Analogique</span>
-                    <span className="text-amber-400 font-mono">{p.warmth || 70}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={p.warmth || 70}
-                    onChange={(e) => handleParamChange(dev.id, "warmth", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Gain de Sortie</span>
-                    <span className="text-amber-400 font-mono">{p.gain || 0} dB</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="-12"
-                    max="12"
-                    value={p.gain || 0}
-                    onChange={(e) => handleParamChange(dev.id, "gain", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Chaleur Analogique", "warmth", 70, 0, 100, 1, "%")}
+                  {renderModSlider(dev, "Gain Sortie", "gain", 0, -12, 12, 1, "dB")}
                 </div>
               )}
 
@@ -1376,39 +1699,9 @@ export default function MusicStudioDeviceRack({
                     </svg>
                   </div>
                   <div className="grid grid-cols-3 gap-1 pt-1 text-center">
-                    <div>
-                      <span className="text-[7px] text-zinc-500">BAS</span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={p.low || 4}
-                        onChange={(e) => handleParamChange(dev.id, "low", Number(e.target.value))}
-                        className="w-full h-1 accent-[#df9c43]"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[7px] text-zinc-500">MID</span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={p.mid || -3}
-                        onChange={(e) => handleParamChange(dev.id, "mid", Number(e.target.value))}
-                        className="w-full h-1 accent-[#df9c43]"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[7px] text-zinc-500">AIGU</span>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        value={p.high || 3}
-                        onChange={(e) => handleParamChange(dev.id, "high", Number(e.target.value))}
-                        className="w-full h-1 accent-[#df9c43]"
-                      />
-                    </div>
+                    {renderModSlider(dev, "BAS", "low", 4, -12, 12, 1, "dB")}
+                    {renderModSlider(dev, "MID", "mid", -3, -12, 12, 1, "dB")}
+                    {renderModSlider(dev, "AIGU", "high", 3, -12, 12, 1, "dB")}
                   </div>
                 </div>
               )}
@@ -1433,32 +1726,9 @@ export default function MusicStudioDeviceRack({
 
               {/* 12. Analog Flanger */}
               {(dev.name.includes("Flanger") || dev.id.includes("flg")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Feedback Résonant</span>
-                    <span className="text-amber-400 font-mono">{p.feedback || 75}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="95"
-                    value={p.feedback || 75}
-                    onChange={(e) => handleParamChange(dev.id, "feedback", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Fréquence LFO</span>
-                    <span className="text-amber-400 font-mono">{p.rate || 0.4} Hz</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="4.0"
-                    step="0.1"
-                    value={p.rate || 0.4}
-                    onChange={(e) => handleParamChange(dev.id, "rate", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Feedback", "feedback", 75, 0, 95, 1, "%")}
+                  {renderModSlider(dev, "Vitesse (Rate)", "rate", 0.4, 0.1, 4.0, 0.1, "Hz")}
                 </div>
               )}
 
@@ -1524,42 +1794,15 @@ export default function MusicStudioDeviceRack({
 
               {/* 16. Phase Shifter */}
               {(dev.name.includes("Phase") || dev.id.includes("phs")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Étages (Poles)</span>
-                    <span className="text-amber-400 font-mono font-bold">12 PÔLES</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Vitesse LFO</span>
-                    <span className="text-amber-400 font-mono">{p.rate || 0.6} Hz</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="5.0"
-                    step="0.1"
-                    value={p.rate || 0.6}
-                    onChange={(e) => handleParamChange(dev.id, "rate", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Vitesse LFO", "rate", 0.6, 0.1, 5.0, 0.1, "Hz")}
                 </div>
               )}
 
               {/* 17. Polymer Hybrid */}
               {(dev.name.includes("Polymer") || dev.id.includes("pol")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Morphing Table d'Onde</span>
-                    <span className="text-amber-400 font-mono">{p.morph || 45}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={p.morph || 45}
-                    onChange={(e) => handleParamChange(dev.id, "morph", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Morphing WT", "morph", 45, 0, 100, 1, "%")}
                   <div className="flex items-center justify-between text-[9px] pt-1">
                     <span className="text-zinc-400">Filtre Modulaire</span>
                     <span className="text-amber-400 font-mono">24dB SOTA</span>
@@ -1587,24 +1830,8 @@ export default function MusicStudioDeviceRack({
 
               {/* 19. Studio Reverb */}
               {(dev.name.includes("Reverb") || dev.id.includes("rev")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Taille de Pièce</span>
-                    <span className="text-amber-400 font-mono font-bold">Hall de Concert</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[9px] pt-1">
-                    <span className="text-zinc-400">Temps de Déclin</span>
-                    <span className="text-amber-400 font-mono">{p.decay || 3.0} s</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="8.0"
-                    step="0.1"
-                    value={p.decay || 3.0}
-                    onChange={(e) => handleParamChange(dev.id, "decay", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Déclin Réverb", "decay", 3.0, 0.5, 8.0, 0.1, "s")}
                 </div>
               )}
 
@@ -1625,23 +1852,53 @@ export default function MusicStudioDeviceRack({
 
               {/* 21. Mastering Tool */}
               {(dev.name.includes("Mastering") || dev.id.includes("tol")) && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-zinc-400">Largeur Stéréo M/S</span>
-                    <span className="text-amber-400 font-mono">{p.width || 120}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    value={p.width !== undefined ? p.width : 120}
-                    onChange={(e) => handleParamChange(dev.id, "width", Number(e.target.value))}
-                    className="w-full h-1 accent-[#df9c43] bg-zinc-800 rounded cursor-pointer"
-                  />
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Largeur Stéréo", "width", 120, 0, 200, 1, "%")}
                   <div className="flex items-center justify-between text-[9px] pt-1">
                     <span className="text-zinc-400">True Peak Limiter</span>
                     <span className="text-emerald-400 font-mono font-bold">-0.1 dBTP</span>
                   </div>
+                </div>
+              )}
+
+              {/* 22. Transient Split (Spectral Suite - Chapter 21.1) */}
+              {(dev.name.includes("Transient") || dev.id.includes("spt")) && (
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Transitoires Boost", "transientBoost", 2, -12, 12, 1, "dB")}
+                  {renderModSlider(dev, "Corps Tonal", "toneSustain", 0, -12, 12, 1, "dB")}
+                  {renderModSlider(dev, "Sensibilité", "sensitivity", 60, 0, 100, 1, "%")}
+                </div>
+              )}
+
+              {/* 23. Loud Split (Spectral Suite - Chapter 21.2) */}
+              {(dev.name.includes("Loud Split") || dev.id.includes("spl")) && (
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Seuil Coupure", "threshold", -24, -60, 0, 1, "dB")}
+                  {renderModSlider(dev, "Gain Silencieux", "quietGain", 3, -24, 12, 1, "dB")}
+                  {renderModSlider(dev, "Gain Fort", "loudGain", 0, -24, 12, 1, "dB")}
+                </div>
+              )}
+
+              {/* 24. Freq Split (Spectral Suite - Chapter 21.3) */}
+              {(dev.name.includes("Freq Split") || dev.id.includes("spf")) && (
+                <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-1">
+                    {renderModSlider(dev, "Basse <250Hz", "band1", 2, -24, 6, 1, "dB")}
+                    {renderModSlider(dev, "Bas-Mid 1.2k", "band2", 0, -24, 6, 1, "dB")}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    {renderModSlider(dev, "Haut-Mid 5k", "band3", -1, -24, 6, 1, "dB")}
+                    {renderModSlider(dev, "Aigu >5kHz", "band4", 3, -24, 6, 1, "dB")}
+                  </div>
+                </div>
+              )}
+
+              {/* 25. Harmonic Split (Spectral Suite - Chapter 21.4) */}
+              {(dev.name.includes("Harmonic Split") || dev.id.includes("sph")) && (
+                <div className="space-y-1">
+                  {renderModSlider(dev, "Harmoniques Impaires", "odd", 65, 0, 100, 1, "%")}
+                  {renderModSlider(dev, "Harmoniques Paires", "even", 45, 0, 100, 1, "%")}
+                  {renderModSlider(dev, "Bruit Inharmonique", "noise", 15, 0, 100, 1, "%")}
                 </div>
               )}
             </div>

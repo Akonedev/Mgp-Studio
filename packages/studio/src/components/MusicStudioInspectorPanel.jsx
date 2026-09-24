@@ -39,6 +39,7 @@ export default function MusicStudioInspectorPanel({
   onBounceInPlace,
   onSliceToDrumMachine,
   onOpenAudioWarp,
+  onOpenRadialMenu,
   setStatusHint
 }) {
   const [inspectorTab, setInspectorTab] = useState("track"); // 'track' | 'clip' | 'remotes'
@@ -508,20 +509,28 @@ export default function MusicStudioInspectorPanel({
                   <span>Ouvrir Éditeur Audio Warp & Marqueurs</span>
                 </button>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-3 gap-1.5">
                   <button
                     onClick={() => onBounceInPlace && onBounceInPlace(selectedClip?.id, selectedTrack?.id)}
-                    className="py-1.5 px-1 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-[10px] font-bold flex items-center justify-center gap-1 transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                    className="py-1.5 px-1 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-[9.5px] font-bold flex items-center justify-center gap-1 transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
                     title="Rendre le clip sur place (Bounce in place)"
                   >
                     <span>⚡ Bounce</span>
                   </button>
                   <button
                     onClick={() => onSliceToDrumMachine && onSliceToDrumMachine(selectedClip?.id, selectedTrack?.id)}
-                    className="py-1.5 px-1 rounded bg-[#1e293b] hover:bg-[#334155] text-cyan-300 border border-cyan-800/40 text-[10px] font-bold flex items-center justify-center gap-1 transition"
+                    className="py-1.5 px-1 rounded bg-[#1e293b] hover:bg-[#334155] text-cyan-300 border border-cyan-800/40 text-[9.5px] font-bold flex items-center justify-center gap-1 transition"
                     title="Découper aux transitoires vers une Drum Machine"
                   >
-                    <span>🥁 Slice Drum</span>
+                    <span>🥁 Slice</span>
+                  </button>
+                  <button
+                    data-testid="btn-inspector-radial-menu"
+                    onClick={() => onOpenRadialMenu && onOpenRadialMenu(selectedClip, selectedTrack)}
+                    className="py-1.5 px-1 rounded bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] text-[9.5px] font-bold flex items-center justify-center gap-1 transition shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                    title="Ouvrir le menu radial tactile à 8 actions (Chapitre 18)"
+                  >
+                    <span>⭕ Radial</span>
                   </button>
                 </div>
               </div>
