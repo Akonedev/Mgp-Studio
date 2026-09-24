@@ -47,7 +47,8 @@ export const GRID_MODULE_CATEGORIES = [
   { id: "mod", label: "Modulateurs" },
   { id: "shaper", label: "Shapers" },
   { id: "math", label: "Math & Level" },
-  { id: "fx", label: "Delay & FX" }
+  { id: "fx", label: "Delay & FX" },
+  { id: "display", label: "Affichage" }
 ];
 
 export const GRID_MODULE_CATALOG = [
@@ -244,6 +245,17 @@ export const GRID_MODULE_CATALOG = [
     outputs: [{ label: "Audio Out", signal: "audio", color: "#df9c43" }],
     defaultParams: { drive: 3.5, mix: 100 }
   },
+  {
+    type: "chebyshev",
+    name: "Chebyshev Shaper",
+    category: "shaper",
+    categoryLabel: "Shapers",
+    color: "#f87171",
+    desc: "Générateur d'harmoniques par polynômes de Chebyshev T2 à T5 (Section 19.28.10.1)",
+    inputs: [{ label: "Audio In", signal: "audio", color: "#df9c43" }],
+    outputs: [{ label: "Shaped Out", signal: "audio", color: "#df9c43" }],
+    defaultParams: { order: 3, drive: 2.0, evenOdd: 50 }
+  },
 
   // 7. Math & Level
   {
@@ -276,6 +288,20 @@ export const GRID_MODULE_CATALOG = [
     outputs: [{ label: "Sum Out", signal: "audio", color: "#df9c43" }],
     defaultParams: { vol1: 1, vol2: 1, vol3: 1, vol4: 1 }
   },
+  {
+    type: "math_calc",
+    name: "Math Processor",
+    category: "math",
+    categoryLabel: "Math & Level",
+    color: "#fbbf24",
+    desc: "Opérations mathématiques temps réel : Add, Multiply, Invert, Abs, Min/Max (Section 19.28.15)",
+    inputs: [
+      { label: "Sig In A", signal: "mod", color: "#a855f7" },
+      { label: "Sig In B", signal: "mod", color: "#a855f7" }
+    ],
+    outputs: [{ label: "Result Out", signal: "mod", color: "#a855f7" }],
+    defaultParams: { mathOp: "add", factor: 1.0 }
+  },
 
   // 8. Delay & FX
   {
@@ -302,6 +328,19 @@ export const GRID_MODULE_CATALOG = [
     inputs: [{ label: "Audio In", signal: "audio", color: "#df9c43" }],
     outputs: [{ label: "Audio Out", signal: "audio", color: "#df9c43" }],
     defaultParams: { size: 70, decay: 2.5, mix: 35 }
+  },
+
+  // 9. Display & Visualisation (Section 19.28.2)
+  {
+    type: "oscilloscope",
+    name: "Oscilloscope",
+    category: "display",
+    categoryLabel: "Affichage",
+    color: "#10b981",
+    desc: "Visualiseur de signal audio et modulation temps réel (Section 19.28.2.3)",
+    inputs: [{ label: "Sig In", signal: "audio", color: "#df9c43" }],
+    outputs: [{ label: "Thru Out", signal: "audio", color: "#df9c43" }],
+    defaultParams: { scale: 1.0, speed: 50 }
   }
 ];
 
@@ -992,8 +1031,113 @@ export default function MusicStudioTheGridModular({
                   </div>
                 )}
 
+                {/* 8. Chebyshev Shaper Controls (Section 19.28.10.1) */}
+                {mod.type === "chebyshev" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Ordre :</span>
+                      <select
+                        value={mod.order || 3}
+                        onChange={(e) => handleUpdateParam(mod.id, "order", Number(e.target.value))}
+                        className="bg-[#222] text-red-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="2">T2 (2ème Harm. Paire)</option>
+                        <option value="3">T3 (3ème Harm. Impaire)</option>
+                        <option value="4">T4 (4ème Harm. Paire)</option>
+                        <option value="5">T5 (5ème Harm. Impaire)</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Drive :</span>
+                      <span className="text-red-400 font-bold font-mono">{mod.drive || 2.0}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="8"
+                      step="0.5"
+                      value={mod.drive || 2.0}
+                      onChange={(e) => handleUpdateParam(mod.id, "drive", Number(e.target.value))}
+                      className="w-full accent-red-400 h-1 bg-zinc-800 rounded"
+                    />
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Balance Paires/Impaires :</span>
+                      <span className="text-amber-400 font-mono">{mod.evenOdd || 50}%</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 9. Math Processor Controls (Section 19.28.15) */}
+                {mod.type === "math_calc" && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-zinc-400">
+                      <span>Opération :</span>
+                      <select
+                        value={mod.mathOp || "add"}
+                        onChange={(e) => handleUpdateParam(mod.id, "mathOp", e.target.value)}
+                        className="bg-[#222] text-amber-400 text-[9px] font-bold rounded px-1 py-0.5 border border-zinc-700 focus:outline-none"
+                      >
+                        <option value="add">ADD (A + B)</option>
+                        <option value="mult">MULT (A × B)</option>
+                        <option value="invert">INVERT (-A)</option>
+                        <option value="abs">ABS (|A|)</option>
+                        <option value="minmax">MIN/MAX</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Facteur :</span>
+                      <span className="text-amber-400 font-bold font-mono">{mod.factor || 1.0}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="4.0"
+                      step="0.1"
+                      value={mod.factor || 1.0}
+                      onChange={(e) => handleUpdateParam(mod.id, "factor", Number(e.target.value))}
+                      className="w-full accent-amber-400 h-1 bg-zinc-800 rounded"
+                    />
+                  </div>
+                )}
+
+                {/* 10. Oscilloscope Controls & Live Display (Section 19.28.2.3) */}
+                {mod.type === "oscilloscope" && (
+                  <div className="space-y-1">
+                    <div className="w-full h-12 bg-[#0c0c0c] border border-emerald-900/60 rounded flex items-center justify-center relative overflow-hidden">
+                      {/* Interactive Animated SVG Oscilloscope Trace */}
+                      <svg className="w-full h-full" viewBox="0 0 160 48" preserveAspectRatio="none">
+                        <path
+                          d={isTestPlaying
+                            ? "M 0 24 Q 20 6, 40 24 T 80 24 T 120 24 T 160 24"
+                            : "M 0 24 L 160 24"}
+                          fill="none"
+                          stroke={isTestPlaying ? "#10b981" : "#047857"}
+                          strokeWidth="1.5"
+                          className={isTestPlaying ? "animate-pulse" : ""}
+                        />
+                      </svg>
+                      <span className="absolute bottom-0.5 right-1 text-[8px] font-mono text-emerald-400/80">
+                        {isTestPlaying ? "SIGNAL REÇU" : "EN ATTENTE"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Échelle d'amplitude :</span>
+                      <span className="text-emerald-400 font-mono font-bold">{mod.scale || 1.0}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.2"
+                      max="3.0"
+                      step="0.2"
+                      value={mod.scale || 1.0}
+                      onChange={(e) => handleUpdateParam(mod.id, "scale", Number(e.target.value))}
+                      className="w-full accent-emerald-400 h-1 bg-zinc-800 rounded"
+                    />
+                  </div>
+                )}
+
                 {/* Generic fallback for other modules */}
-                {!["oscillator", "filter", "lfo", "envelope", "shaper", "delay", "output"].includes(mod.type) && (
+                {!["oscillator", "filter", "lfo", "envelope", "shaper", "delay", "output", "chebyshev", "math_calc", "oscilloscope"].includes(mod.type) && (
                   <div className="text-zinc-500 italic text-[9px] py-0.5">
                     Paramètres actifs • Prêt au patch
                   </div>
