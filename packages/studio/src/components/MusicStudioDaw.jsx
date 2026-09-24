@@ -5937,7 +5937,7 @@ export function MusicStudioDaw({
           {/* Quick Action: Fredonner un Air / Audio-to-Music */}
           <button
             onClick={() => setIsHumModalOpen(true)}
-            className="h-7 px-2.5 py-0 bg-gradient-to-r from-red-600/30 to-[#b87524]/30 hover:from-red-600/50 hover:to-[#c9842c]/50 border border-[#df9c43]/50 text-white text-[11px] font-bold rounded flex items-center gap-1.5 shadow-sm whitespace-nowrap flex-shrink-0 transition"
+            className="h-7 px-2.5 py-0 bg-gradient-to-r from-red-600/30 to-[#df9c43]/30 hover:from-red-600/50 hover:to-[#eaaf5d]/50 border border-[#df9c43]/50 text-white text-[11px] font-bold rounded flex items-center gap-1.5 shadow-sm whitespace-nowrap flex-shrink-0 transition"
             title="Fredonner un air ou une mélodie pour composer automatiquement"
           >
             <Mic size={13} className="text-[#df9c43] animate-pulse flex-shrink-0" />
@@ -6809,7 +6809,7 @@ export function MusicStudioDaw({
           {onOpenVideoStudio && (
             <button
               onClick={onOpenVideoStudio}
-              className="px-2.5 py-1 bg-[#b87524]/20 hover:bg-[#b87524]/35 text-[#eaaf5d] border border-[#df9c43]/40 text-[11px] font-semibold rounded flex items-center gap-1.5 transition"
+              className="px-2.5 py-1 bg-[#df9c43]/20 hover:bg-[#df9c43]/35 text-[#eaaf5d] border border-[#df9c43]/40 text-[11px] font-semibold rounded flex items-center gap-1.5 transition"
               title="Générer clip vidéo synchronisé avec ComfyUI"
             >
               <Film size={12} />

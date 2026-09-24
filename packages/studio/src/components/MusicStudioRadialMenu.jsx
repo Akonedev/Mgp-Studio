@@ -39,7 +39,7 @@ export const RADIAL_ACTIONS = [
     name: "Bounce",
     desc: "Rendu sur place",
     icon: Zap,
-    color: "#b87524" // Sahel Gold Studio
+    color: "#df9c43" // Sahel Gold Studio
   },
   {
     id: "slice",
