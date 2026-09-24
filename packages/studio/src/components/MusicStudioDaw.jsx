@@ -3037,6 +3037,17 @@ export function MusicStudioDaw({
   const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
   const [isExportAudioModalOpen, setIsExportAudioModalOpen] = useState(false);
 
+  // ── Quantification & Transformations Dialog State (Sections 10.3 & 11.3) ──
+  const [isQuantizeModalOpen, setIsQuantizeModalOpen] = useState(false);
+  const [quantizeSettings, setQuantizeSettings] = useState({
+    gridMode: "current",
+    customGrid: "1/16",
+    startAmount: 100,
+    endAmount: 0,
+    shuffle: 0,
+    humanize: 0
+  });
+
   // ── Music Studio Inspector Panel State (Section 3.3, p. 91) ──
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
 
@@ -4607,6 +4618,190 @@ export function MusicStudioDaw({
     setClipContextMenu(null);
     setStatusHint("Clip supprimé (Outil Gomme [4])");
   };
+
+  // ── Atom Q1: Quantification d'Événements Notes & Audio (Chapitres 10.3 & 11.3) ──
+  const handleApplyQuantize = useCallback((customCfg = null) => {
+    const cfg = customCfg || quantizeSettings;
+    const gridDiv = cfg.gridMode === "custom" ? cfg.customGrid : (arrangerSnap === "off" ? "1/16" : arrangerSnap);
+
+    let stepBeats = 0.25; // 1/16
+    if (gridDiv === "1/4") stepBeats = 1.0;
+    else if (gridDiv === "1/8") stepBeats = 0.5;
+    else if (gridDiv === "1/16") stepBeats = 0.25;
+    else if (gridDiv === "1/32") stepBeats = 0.125;
+    else if (gridDiv === "1/8T") stepBeats = 1.0 / 3.0;
+    else if (gridDiv === "1/16T") stepBeats = 1.0 / 6.0;
+
+    const startAmount = (cfg.startAmount ?? 100) / 100;
+    const endAmount = (cfg.endAmount ?? 0) / 100;
+    const shuffle = (cfg.shuffle ?? 0) / 100;
+    const humanize = (cfg.humanize ?? 0) / 100;
+
+    let modifiedNotesCount = 0;
+    setTracks((prev) =>
+      prev.map((t) => {
+        if (selectedTrackId && t.id !== selectedTrackId) return t;
+        const newClips = (t.clips || []).map((c) => {
+          if (selectedClipId && c.id !== selectedClipId) return c;
+          if (!c.notes || c.notes.length === 0) return c;
+
+          const quantizedNotes = c.notes.map((n, idx) => {
+            modifiedNotesCount++;
+            const origStart = n.startBeat;
+            const targetStart = Math.round(origStart / stepBeats) * stepBeats;
+            let finalStart = origStart + (targetStart - origStart) * startAmount;
+
+            // Swing / Shuffle on off-beats
+            if (shuffle > 0 && Math.round(finalStart / stepBeats) % 2 === 1) {
+              finalStart += shuffle * stepBeats * 0.33;
+            }
+
+            // Humanize random jitter
+            if (humanize > 0) {
+              const jitter = (Math.sin(idx * 777.3) * 0.5) * humanize * stepBeats * 0.25;
+              finalStart = Math.max(0, finalStart + jitter);
+            }
+
+            let finalDur = n.durationBeats;
+            if (endAmount > 0) {
+              const origEnd = origStart + n.durationBeats;
+              const targetEnd = Math.round(origEnd / stepBeats) * stepBeats;
+              const finalEnd = origEnd + (targetEnd - origEnd) * endAmount;
+              finalDur = Math.max(0.0625, finalEnd - finalStart);
+            }
+
+            return {
+              ...n,
+              startBeat: Number(finalStart.toFixed(4)),
+              durationBeats: Number(finalDur.toFixed(4))
+            };
+          });
+
+          return { ...c, notes: quantizedNotes };
+        });
+        return { ...t, clips: newClips };
+      })
+    );
+
+    setIsQuantizeModalOpen(false);
+    setStatusHint(`Quantification appliquée sur ${modifiedNotesCount || "les"} notes (Grille: ${gridDiv}, Rigueur: ${cfg.startAmount}%)`);
+  }, [quantizeSettings, arrangerSnap, selectedTrackId, selectedClipId]);
+
+  // ── Atom Q2: Faire Jouer Legato (Section 10.3 & 11.3) ──
+  const handleApplyLegato = useCallback(() => {
+    let affectedCount = 0;
+    setTracks((prev) =>
+      prev.map((t) => {
+        if (selectedTrackId && t.id !== selectedTrackId) return t;
+        const newClips = (t.clips || []).map((c) => {
+          if (selectedClipId && c.id !== selectedClipId) return c;
+          if (!c.notes || c.notes.length <= 1) return c;
+
+          const sorted = [...c.notes].sort((a, b) => a.startBeat - b.startBeat);
+          const legatoNotes = sorted.map((n, i) => {
+            affectedCount++;
+            if (i < sorted.length - 1) {
+              const nextStart = sorted[i + 1].startBeat;
+              const newDur = Math.max(0.125, nextStart - n.startBeat);
+              return { ...n, durationBeats: Number(newDur.toFixed(4)) };
+            }
+            return n;
+          });
+          return { ...c, notes: legatoNotes };
+        });
+        return { ...t, clips: newClips };
+      })
+    );
+    setStatusHint(`Faire jouer legato appliqué : ${affectedCount} notes ajustées sans interruption`);
+  }, [selectedTrackId, selectedClipId]);
+
+  // ── Atom Q3: Transposition (+/- demi-tons & octaves - Section 11.3) ──
+  const handleApplyTranspose = useCallback((semitones) => {
+    let transposedCount = 0;
+    setTracks((prev) =>
+      prev.map((t) => {
+        if (selectedTrackId && t.id !== selectedTrackId) return t;
+        const newClips = (t.clips || []).map((c) => {
+          if (selectedClipId && c.id !== selectedClipId) return c;
+          if (!c.notes || c.notes.length === 0) return c;
+          const newNotes = c.notes.map((n) => {
+            transposedCount++;
+            const newPitch = Math.min(127, Math.max(0, (n.pitch || 60) + semitones));
+            return { ...n, pitch: newPitch };
+          });
+          return { ...c, notes: newNotes };
+        });
+        return { ...t, clips: newClips };
+      })
+    );
+    setStatusHint(`Transposition ${semitones > 0 ? "+" : ""}${semitones} demi-tons appliquée sur ${transposedCount} notes`);
+  }, [selectedTrackId, selectedClipId]);
+
+  // ── Atom Q4: Inverser (Reverse - Section 10.3 & 11.3) ──
+  const handleApplyReverse = useCallback(() => {
+    setTracks((prev) =>
+      prev.map((t) => {
+        if (selectedTrackId && t.id !== selectedTrackId) return t;
+        const newClips = (t.clips || []).map((c) => {
+          if (selectedClipId && c.id !== selectedClipId) return c;
+          if (c.notes && c.notes.length > 0) {
+            const clipBeats = (c.bars || 4) * 4;
+            const reversedNotes = c.notes.map((n) => ({
+              ...n,
+              startBeat: Math.max(0, Number((clipBeats - (n.startBeat + n.durationBeats)).toFixed(4)))
+            }));
+            return { ...c, notes: reversedNotes.sort((a, b) => a.startBeat - b.startBeat) };
+          }
+          return { ...c, reversed: !c.reversed };
+        });
+        return { ...t, clips: newClips };
+      })
+    );
+    setStatusHint("Inversion (Reverse) appliquée sur la sélection");
+  }, [selectedTrackId, selectedClipId]);
+
+  // ── Atom Q5: Inverser Pattern (Section 10.3 & 11.3) ──
+  const handleApplyReversePattern = useCallback(() => {
+    setTracks((prev) =>
+      prev.map((t) => {
+        if (selectedTrackId && t.id !== selectedTrackId) return t;
+        const newClips = (t.clips || []).map((c) => {
+          if (selectedClipId && c.id !== selectedClipId) return c;
+          if (!c.notes || c.notes.length <= 1) return c;
+          const sorted = [...c.notes].sort((a, b) => a.startBeat - b.startBeat);
+          const startPositions = sorted.map((n) => n.startBeat);
+          const reversedNotes = sorted.reverse().map((n, i) => ({
+            ...n,
+            startBeat: startPositions[i]
+          }));
+          return { ...c, notes: reversedNotes };
+        });
+        return { ...t, clips: newClips };
+      })
+    );
+    setStatusHint("Inversion de l'ordre du pattern appliquée");
+  }, [selectedTrackId, selectedClipId]);
+
+  // ── Atom Q6: Mise à l'Échelle Temporelle (50% / 200% - Section 10.3 & 11.3) ──
+  const handleApplyTimeScale = useCallback((factor) => {
+    setTracks((prev) =>
+      prev.map((t) => {
+        if (selectedTrackId && t.id !== selectedTrackId) return t;
+        const newClips = (t.clips || []).map((c) => {
+          if (selectedClipId && c.id !== selectedClipId) return c;
+          if (!c.notes || c.notes.length === 0) return c;
+          const scaledNotes = c.notes.map((n) => ({
+            ...n,
+            startBeat: Number((n.startBeat * factor).toFixed(4)),
+            durationBeats: Number(Math.max(0.0625, n.durationBeats * factor).toFixed(4))
+          }));
+          return { ...c, notes: scaledNotes, bars: Math.max(1, Math.round((c.bars || 4) * factor)) };
+        });
+        return { ...t, clips: newClips };
+      })
+    );
+    setStatusHint(`Mise à l'échelle ${factor === 0.5 ? "Réduire à 50% (x2 vitesse)" : "Agrandir à 200% (demi-vitesse)"} appliquée`);
+  }, [selectedTrackId, selectedClipId]);
 
   // ── Atom F3: Rendu sur place (Bounce In Place) ──
   const handleBounceInPlace = useCallback((clipId, trkId) => {
@@ -6450,6 +6645,100 @@ export function MusicStudioDaw({
                   >
                     <span>Tout désélectionner</span>
                     <span className="text-[10px] text-zinc-500 font-mono">Ctrl+Shift+A</span>
+                  </button>
+
+                  <div className="border-t border-[#333333] my-1" />
+
+                  {/* Fonctions de Note et Audio (Sections 10.3 & 11.3) */}
+                  <button
+                    data-testid="menu-btn-quantize"
+                    onClick={() => {
+                      setOpenMenu(null);
+                      setIsQuantizeModalOpen(true);
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-[#df9c43] flex items-center justify-between"
+                  >
+                    <span>Quantifier...</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">Ctrl+Shift+Q</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyQuantize();
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Quantifier (Défaut)</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">Q</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyLegato();
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Faire jouer legato</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">Shift+L</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyReverse();
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Inverser (Reverse)</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">R</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyReversePattern();
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Inverser pattern</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyTranspose(12);
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Transposer (+1 Octave)</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">Shift+Up</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyTranspose(-12);
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Transposer (-1 Octave)</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">Shift+Down</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyTimeScale(0.5);
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Mise à l'échelle (50%)</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">2x Vitesse</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenu(null);
+                      handleApplyTimeScale(2.0);
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center justify-between"
+                  >
+                    <span>Mise à l'échelle (200%)</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">1/2 Vitesse</span>
                   </button>
                 </div>
               )}
@@ -8373,6 +8662,45 @@ export function MusicStudioDaw({
                           >
                             <Activity size={12} className="text-cyan-400" />
                             <span>Éditeur Audio Warp & Transitoires</span>
+                          </button>
+                          <button
+                            data-testid="ctx-btn-quantize"
+                            onClick={() => {
+                              setSelectedClipId(clipContextMenu.clipId);
+                              setSelectedTrackId(clipContextMenu.trackId);
+                              setIsQuantizeModalOpen(true);
+                              setClipContextMenu(null);
+                            }}
+                            className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-[#df9c43] flex items-center gap-2"
+                          >
+                            <Sliders size={12} className="text-[#df9c43]" />
+                            <span>Quantifier les événements...</span>
+                          </button>
+                          <button
+                            data-testid="ctx-btn-legato"
+                            onClick={() => {
+                              setSelectedClipId(clipContextMenu.clipId);
+                              setSelectedTrackId(clipContextMenu.trackId);
+                              handleApplyLegato();
+                              setClipContextMenu(null);
+                            }}
+                            className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center gap-2"
+                          >
+                            <Play size={12} className="text-zinc-400" />
+                            <span>Faire jouer legato</span>
+                          </button>
+                          <button
+                            data-testid="ctx-btn-reverse"
+                            onClick={() => {
+                              setSelectedClipId(clipContextMenu.clipId);
+                              setSelectedTrackId(clipContextMenu.trackId);
+                              handleApplyReverse();
+                              setClipContextMenu(null);
+                            }}
+                            className="w-full px-3 py-1.5 text-left hover:bg-[#2c2c2c] hover:text-white flex items-center gap-2"
+                          >
+                            <RotateCw size={12} className="text-zinc-400" />
+                            <span>Inverser (Reverse)</span>
                           </button>
                         </div>
                         <div className="py-1">
@@ -11191,6 +11519,166 @@ export function MusicStudioDaw({
               >
                 <Download size={13} />
                 <span>Lancer l'exportation WAV Stéréo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────
+          MODAL 6: DIALOGUE DE QUANTIFICATION (SECTIONS 10.3 & 11.3, p. 298-300 & 358-360)
+       ──────────────────────────────────────────────────────────── */}
+      {isQuantizeModalOpen && (
+        <div
+          data-testid="modal-quantize"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setIsQuantizeModalOpen(false)}
+        >
+          <div
+            className="bg-[#181513] border border-[#df9c43]/50 rounded-xl w-full max-w-md p-6 shadow-[0_12px_40px_rgba(0,0,0,0.95)] relative text-white space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#2e2e2e]">
+              <div className="flex items-center gap-2">
+                <Sliders size={18} className="text-[#df9c43]" />
+                <h3 className="font-bold text-base text-[#f5c277]">Quantifier les Événements</h3>
+              </div>
+              <button
+                onClick={() => setIsQuantizeModalOpen(false)}
+                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Mode de Grille (Éditeur vs Perso) */}
+              <div className="space-y-1.5">
+                <label className="text-zinc-400 font-semibold uppercase text-[10px]">Mode de Grille</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuantizeSettings((prev) => ({ ...prev, gridMode: "current" }))}
+                    className={`py-2 px-3 rounded-lg border text-xs font-semibold transition ${
+                      quantizeSettings.gridMode === "current"
+                        ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                        : "bg-[#1f1f1f] border-zinc-700/60 text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Grille de l'éditeur ({arrangerSnap === "off" ? "1/16" : arrangerSnap})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuantizeSettings((prev) => ({ ...prev, gridMode: "custom" }))}
+                    className={`py-2 px-3 rounded-lg border text-xs font-semibold transition ${
+                      quantizeSettings.gridMode === "custom"
+                        ? "bg-[#241808] border-[#df9c43] text-[#eaaf5d] shadow-[0_0_8px_rgba(223,156,67,0.25)]"
+                        : "bg-[#1f1f1f] border-zinc-700/60 text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Grille Personnalisée
+                  </button>
+                </div>
+              </div>
+
+              {/* Grille Personnalisée */}
+              {quantizeSettings.gridMode === "custom" && (
+                <div className="space-y-1">
+                  <label className="text-zinc-400 font-semibold uppercase text-[10px]">Division Temporelle</label>
+                  <select
+                    value={quantizeSettings.customGrid}
+                    onChange={(e) => setQuantizeSettings((prev) => ({ ...prev, customGrid: e.target.value }))}
+                    className="w-full bg-[#121212] border border-[#333333] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#df9c43]"
+                  >
+                    <option value="1/4">1/4 (Noire)</option>
+                    <option value="1/8">1/8 (Croche)</option>
+                    <option value="1/16">1/16 (Double-croche - Standard)</option>
+                    <option value="1/32">1/32 (Triple-croche)</option>
+                    <option value="1/8T">1/8 Triolet (Ternaire)</option>
+                    <option value="1/16T">1/16 Triolet (Ternaire rapide)</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Rigueur de début (Start Amount %) */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-zinc-300 font-medium">Rigueur de Début</span>
+                  <span className="text-[#eaaf5d] font-mono font-bold">{quantizeSettings.startAmount}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={quantizeSettings.startAmount}
+                  onChange={(e) => setQuantizeSettings((prev) => ({ ...prev, startAmount: Number(e.target.value) }))}
+                  className="w-full accent-[#df9c43]"
+                />
+              </div>
+
+              {/* Rigueur de fin (End Amount %) */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-zinc-300 font-medium">Rigueur de Fin</span>
+                  <span className="text-[#eaaf5d] font-mono font-bold">{quantizeSettings.endAmount}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={quantizeSettings.endAmount}
+                  onChange={(e) => setQuantizeSettings((prev) => ({ ...prev, endAmount: Number(e.target.value) }))}
+                  className="w-full accent-[#df9c43]"
+                />
+              </div>
+
+              {/* Shuffle / Swing % */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-zinc-300 font-medium">Shuffle / Swing</span>
+                  <span className="text-cyan-400 font-mono font-bold">{quantizeSettings.shuffle}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={quantizeSettings.shuffle}
+                  onChange={(e) => setQuantizeSettings((prev) => ({ ...prev, shuffle: Number(e.target.value) }))}
+                  className="w-full accent-cyan-400"
+                />
+              </div>
+
+              {/* Humaniser % */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-zinc-300 font-medium">Humaniser (Jitter stochastique)</span>
+                  <span className="text-purple-400 font-mono font-bold">{quantizeSettings.humanize}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={quantizeSettings.humanize}
+                  onChange={(e) => setQuantizeSettings((prev) => ({ ...prev, humanize: Number(e.target.value) }))}
+                  className="w-full accent-purple-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#2e2e2e]">
+              <button
+                onClick={() => setIsQuantizeModalOpen(false)}
+                className="px-4 py-2 bg-[#252525] hover:bg-[#303030] text-zinc-300 font-semibold rounded-lg transition text-xs"
+              >
+                Annuler
+              </button>
+              <button
+                data-testid="btn-confirm-quantize"
+                onClick={() => handleApplyQuantize()}
+                className="px-4 py-2 bg-[#241808] hover:bg-[#2d1e0d] border border-[#df9c43] text-[#eaaf5d] hover:text-[#f5c277] font-bold rounded-lg transition text-xs shadow-[0_0_8px_rgba(223,156,67,0.25)] flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                <span>Appliquer la Quantification</span>
               </button>
             </div>
           </div>
