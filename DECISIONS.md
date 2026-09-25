@@ -620,3 +620,26 @@
   4. Badge technique « ACE-Step v1.5 » repositionné proprement en haut à droite et sous-titre de qualité stéréo sur une seule ligne.
   5. Conditionnement strict `!instrumental` : masquage logique automatique des contrôles vocaux et du toggle LRC lorsque le mode Instrumental pur est activé.
 - **Justification** : Ergonomie irréprochable sur toutes les résolutions d'écran (100% responsive), suppression des chevauchements CSS et respect de la charte graphique Sahel Gold.
+
+## 48. Élimination Définitive de l'Erreur Console React « Maximum update depth exceeded » dans la Boucle des Vu-Mètres DAW
+- **Problème** : Une erreur critique d'emballement de cycle de rendu React s'est produite lors de l'exécution de la DAW :
+  `Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render. at MusicStudioDaw.useEffect.updateMeters (packages/studio/src/components/MusicStudioDaw.jsx:5000:9)`.
+  *Causes profondes identifiées* :
+  1. *Boucle rAF continue au repos* : Dans l'implémentation initiale, `animId = requestAnimationFrame(updateMeters)` était appelé inconditionnellement à chaque trame (60 FPS) même quand `isPlaying` était `false` (DAW au repos).
+  2. *Instabilité des références d'objets dans les updaters de state* : Dans la branche `!isPlaying`, `setMasterPeak((prev) => ({ left: Math.max(0, prev.left * 0.82), ... }))` et `setTrackPeaks` renvoyaient systématiquement un nouvel objet littéral à chaque frame. Même lorsque les valeurs de crête avaient déjà atteint 0, la nouvelle référence mémoire forçait React à planifier un re-render permanent.
+  3. *Dépendance cyclique dans `window.__dawTest`* : `trackPeaks` figurait dans la liste des dépendances d'un effet secondaire (ligne 6785), réenregistrant l'interface de test à chaque tick d'animation.
+  4. *Désynchronisation entre les updaters et la planification rAF* : Avec le batching automatique de React 18/19, les updaters fonctionnels de `setState` sont exécutés de manière différée lors de la phase de rendu, empêchant une détection synchrone de fin de décroissance (`isStillDecaying`).
+- **Décisions d'Architecture & Correctif Zéro-Mock** :
+  1. *Synchronisation par Références Réactives (`useRef`)* :
+     - Introduction de `masterPeakRef = useRef({ left: 0, right: 0 })` et `trackPeaksRef = useRef({})`.
+     - Lecture et écriture synchrones immédiates dans les refs, éliminant tout décalage d'exécution avec React concurrent.
+  2. *Filtrage à Seuil de Déviation (Noise Gate à $\Delta \ge 0.005$)* :
+     - En cours de lecture (`isPlaying = true`), les states `masterPeak` et `trackPeaks` ne sont mis à jour que si la valeur de crête a varié d'au moins 0.005 par rapport à la valeur précédente stockée dans le ref, éliminant le scintillement et les re-renders intempestifs sur les micro-variations.
+  3. *Décroissance Déterministe et Extinction Complète du rAF à l'Arrêt* :
+     - Lorsque la lecture s'arrête (`isPlaying = false`), les crêtes décroissent de manière réaliste ($\times 0.82$ par trame, soit ~15-20 frames / 250 ms).
+     - Dès que les valeurs tombent sous le seuil d'audibilité ($< 0.002$), elles sont rigoureusement fixées à 0.
+     - L'indicateur `isStillDecaying` est calculé de manière pure et synchrone avant tout appel : si les crêtes sont à zéro (ou au montage initial du composant), `requestAnimationFrame` n'est **jamais planifié**. Le thread UI reste à 100% dormant et exempt de toute sollicitation.
+  4. *Découplage de `window.__dawTest`* :
+     - `getTrackPeaks: () => trackPeaksRef.current` lit directement le ref synchrone.
+     - Retrait strict de `trackPeaks` du tableau des dépendances de `useEffect` (ligne 6785), rompant toute boucle de cascade de rendus.
+- **Justification** : Conformité stricte aux règles de cycle de vie React 18/19, élimination totale des erreurs de profondeur de mise à jour, fluidité 60 FPS lors de la lecture et consommation CPU/GPU nulle à l'arrêt.

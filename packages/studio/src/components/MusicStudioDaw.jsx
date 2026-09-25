@@ -4863,6 +4863,8 @@ export function MusicStudioDaw({
   // Real WebAudio Live Peak Levels
   const [masterPeak, setMasterPeak] = useState({ left: 0, right: 0 });
   const [trackPeaks, setTrackPeaks] = useState({});
+  const masterPeakRef = useRef({ left: 0, right: 0 });
+  const trackPeaksRef = useRef({});
 
   // Clip Context Menu & Trimming
   const [clipContextMenu, setClipContextMenu] = useState(null); // { x, y, trackId, clipId }
@@ -4986,34 +4988,101 @@ export function MusicStudioDaw({
   }, [selectedTrack]);
 
   // ── Real Peak Meter Animation Frame ──
+  const tracksRef = useRef(tracks);
+  useEffect(() => {
+    tracksRef.current = tracks;
+  }, [tracks]);
+
   useEffect(() => {
     let animId;
+
     const updateMeters = () => {
       if (isPlaying) {
-        setMasterPeak(dawAudioEngine.getMasterPeak());
-        const tp = {};
-        for (const t of tracks) {
-          tp[t.id] = dawAudioEngine.getTrackPeak(t.id);
+        const mp = dawAudioEngine.getMasterPeak();
+        const prevMp = masterPeakRef.current;
+        if (Math.abs(prevMp.left - mp.left) >= 0.005 || Math.abs(prevMp.right - mp.right) >= 0.005) {
+          masterPeakRef.current = mp;
+          setMasterPeak(mp);
         }
-        setTrackPeaks(tp);
-      } else {
-        setMasterPeak((prev) => ({
-          left: Math.max(0, prev.left * 0.82),
-          right: Math.max(0, prev.right * 0.82)
-        }));
-        setTrackPeaks((prev) => {
-          const next = {};
-          for (const k in prev) {
-            next[k] = Math.max(0, prev[k] * 0.82);
+
+        const currentTracks = tracksRef.current || [];
+        const tp = {};
+        let tpChanged = false;
+        const prevTp = trackPeaksRef.current;
+        for (const t of currentTracks) {
+          const val = dawAudioEngine.getTrackPeak(t.id);
+          tp[t.id] = val;
+          if (Math.abs((prevTp[t.id] || 0) - val) >= 0.005) {
+            tpChanged = true;
           }
-          return next;
-        });
+        }
+        if (tpChanged) {
+          trackPeaksRef.current = tp;
+          setTrackPeaks(tp);
+        }
+
+        animId = requestAnimationFrame(updateMeters);
+      } else {
+        // When stopped, decay meters smoothly until zero, then halt animation loop completely
+        let isStillDecaying = false;
+        const prevMp = masterPeakRef.current;
+
+        if (prevMp.left > 0.002 || prevMp.right > 0.002) {
+          const nextLeft = prevMp.left * 0.82;
+          const nextRight = prevMp.right * 0.82;
+          const clamped = {
+            left: nextLeft >= 0.002 ? nextLeft : 0,
+            right: nextRight >= 0.002 ? nextRight : 0
+          };
+          masterPeakRef.current = clamped;
+          setMasterPeak(clamped);
+          if (clamped.left > 0 || clamped.right > 0) {
+            isStillDecaying = true;
+          }
+        } else if (prevMp.left !== 0 || prevMp.right !== 0) {
+          masterPeakRef.current = { left: 0, right: 0 };
+          setMasterPeak({ left: 0, right: 0 });
+        }
+
+        const prevTp = trackPeaksRef.current;
+        let tpStillDecaying = false;
+        let anyNonZero = false;
+        const nextTp = {};
+
+        for (const k in prevTp) {
+          const v = prevTp[k] * 0.82;
+          if (v >= 0.002) {
+            nextTp[k] = v;
+            tpStillDecaying = true;
+            anyNonZero = true;
+          } else {
+            nextTp[k] = 0;
+            if (prevTp[k] !== 0) anyNonZero = true;
+          }
+        }
+
+        if (tpStillDecaying) {
+          isStillDecaying = true;
+          trackPeaksRef.current = nextTp;
+          setTrackPeaks(nextTp);
+        } else if (anyNonZero) {
+          const zeroTp = {};
+          for (const k in prevTp) zeroTp[k] = 0;
+          trackPeaksRef.current = zeroTp;
+          setTrackPeaks(zeroTp);
+        }
+
+        if (isStillDecaying) {
+          animId = requestAnimationFrame(updateMeters);
+        }
       }
-      animId = requestAnimationFrame(updateMeters);
     };
+
     animId = requestAnimationFrame(updateMeters);
-    return () => cancelAnimationFrame(animId);
-  }, [isPlaying, tracks]);
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [isPlaying]);
 
   // ── Clip Resizing Mouse Handlers ──
   useEffect(() => {
@@ -6688,7 +6757,7 @@ export function MusicStudioDaw({
         getIsPlaying: () => isPlaying,
         getCurrentBar: () => currentBar,
         getZoomLevel: () => zoomLevel,
-        getTrackPeaks: () => trackPeaks,
+        getTrackPeaks: () => trackPeaksRef.current,
         loadSongStemsIntoDaw,
         demoSongs: DEMO_SONGS_LIST,
         togglePlay,
@@ -6720,7 +6789,7 @@ export function MusicStudioDaw({
         getStudioOscStatus: () => studioOscStatus
       };
     }
-  }, [tracks, visibleTracks, toggleGroupCollapse, handleSeekToBar, isPlaying, currentBar, zoomLevel, trackPeaks, loadSongStemsIntoDaw, togglePlay, stopPlayback, handleExportWav, toggleAutomationVisible, toggleLaneActive, handleOpenAutomationEditor, mainView, showBottomPanel, bottomPanelTab, automationEditorMode, selectedAutomationLaneId, applyAutomationPresetShape, selectedTrackId, sendStudioOsc, studioHostLink, studioOscStatus]);
+  }, [tracks, visibleTracks, toggleGroupCollapse, handleSeekToBar, isPlaying, currentBar, zoomLevel, loadSongStemsIntoDaw, togglePlay, stopPlayback, handleExportWav, toggleAutomationVisible, toggleLaneActive, handleOpenAutomationEditor, mainView, showBottomPanel, bottomPanelTab, automationEditorMode, selectedAutomationLaneId, applyAutomationPresetShape, selectedTrackId, sendStudioOsc, studioHostLink, studioOscStatus]);
 
   // ── Piano Roll Interactive Editing Handlers (Section 11.2 & Ch. 12) ──
   const handleUpdatePianoRollNote = useCallback((noteId, updates) => {

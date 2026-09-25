@@ -1318,3 +1318,11 @@
     - Déploiement de cartes empilées pleine largeur `flex flex-col gap-2.5` assurant un affichage net sans césure des titres, boutons spacieux et sous-titres aérés sur une ligne.
     - Conditionnement strict `!instrumental` masquant logiquement la section vocale en mode instrumental pur.
     - Package studio recompilé (`npm run build:studio`), 18 suites de tests unitaires et mathématiques validées (100%).
+
+62. **Sprint V : Résolution Définitive de l'Erreur Console React « Maximum update depth exceeded » (Boucle de Vu-Mètres DAW)** :
+    - Éradication de l'emballement de cycle de rendu React causé par `updateMeters` dans `MusicStudioDaw.jsx` (`useEffect.updateMeters` ligne 5000).
+    - Synchronisation d'état via `masterPeakRef` et `trackPeaksRef` éliminant tout décalage avec le batching asynchrone React 18/19.
+    - Filtrage par seuil $\Delta \ge 0.005$ pour supprimer les micro-variations et re-renders intempestifs durant la lecture.
+    - Décroissance déterministe ($\times 0.82$) et extinction complète de `requestAnimationFrame` dès que le niveau tombe sous $0.002$ (boucle d'animation 100% dormante au repos).
+    - Découplage de `window.__dawTest` par lecture de `trackPeaksRef.current` et retrait de `trackPeaks` de la liste des dépendances de l'effet.
+    - Recompilation complète (`npm run build:studio`, 38 fichiers Babel) et 18 suites de tests validées (100%).

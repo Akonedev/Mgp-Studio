@@ -1152,3 +1152,12 @@
     * Conditionnement strict sous `!instrumental` évitant l'affichage inutile des paramètres vocaux en mode purement instrumental.
     * Recompilation complète du package studio (`npm run build:studio`, 38 fichiers Babel).
     * Validation de non-régression (18/18 suites de tests unitaires et mathématiques validées).
+
+  - [x] **Sprint V : Résolution Définitive de l'Erreur Console React « Maximum update depth exceeded » (Animation Vu-Mètres DAW)** :
+    * Diagnostic de l'emballement de mise à jour dans `packages/studio/src/components/MusicStudioDaw.jsx` (`useEffect.updateMeters`) causé par l'exécution d'un `requestAnimationFrame` permanent au repos et la réallocation permanente d'objets state `{ left, right }` sans vérification d'égalité référentielle.
+    * Introduction de références synchrones `masterPeakRef = useRef({ left: 0, right: 0 })` et `trackPeaksRef = useRef({})` pour découpler la logique de mesure de la cascade de rendus.
+    * Ajout d'un seuil de filtrage $\Delta \ge 0.005$ pour éliminer les micro-fluctuations et limiter les re-renders inutiles en cours de lecture.
+    * Implémentation d'une décroissance déterministe ($\times 0.82$) s'arrêtant rigoureusement à $< 0.002$ et coupant totalement l'appel `requestAnimationFrame` dès que le niveau atteint zéro (repos complet de la boucle d'animation lorsque le DAW est arrêté).
+    * Découplage de `window.__dawTest` : lecture directe de `trackPeaksRef.current` et retrait de `trackPeaks` de la liste des dépendances de l'effet.
+    * Recompilation du package studio avec Babel (`npm run build:studio` : 38 fichiers compilés avec succès).
+    * Validation intégrale du banc de tests automatisé (`test_daw_core.js` : 18/18 suites 100% validées).
